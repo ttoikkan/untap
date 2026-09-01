@@ -7,7 +7,7 @@ parsing, matching, browser automation, network requests, or CSV persistence.
 
 from datetime import date
 from html import escape
-from typing import Any, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
 from untap_types import AlternativeRecord, MatchResult
@@ -52,6 +52,55 @@ def _format_abv(value: Any) -> str:
         return f"{value:g}%"
     text = str(value).strip()
     return text if text.endswith("%") else f"{text}%"
+
+
+def _style_group(type_name: Any) -> Optional[str]:
+    """Derive one broad filter label from Untappd's canonical type_name.
+
+    The vocabulary is entirely data-derived: Untap keeps the leading style
+    component before Untappd's structural ``" - "`` subtype separator.
+    Styles without that separator remain unchanged.
+    """
+    text = " ".join(str(type_name or "").split())
+    if not text:
+        return None
+    group = text.split(" - ", 1)[0].strip()
+    return group or text
+
+
+def _style_group_key(type_name: Any) -> Optional[str]:
+    group = _style_group(type_name)
+    return group.casefold() if group else None
+
+
+def _style_groups(results: Sequence[MatchResult]) -> List[str]:
+    """Return report-present style groups in deterministic alphabetic order."""
+    labels: Dict[str, str] = {}
+
+    def remember(type_name: Any) -> None:
+        group = _style_group(type_name)
+        if not group:
+            return
+        key = group.casefold()
+        current = labels.get(key)
+        if current is None or group < current:
+            labels[key] = group
+
+    for result in results:
+        if result.get("status") == "ok":
+            remember(result.get("type_name"))
+        else:
+            for candidate in _review_candidates(result):
+                remember(candidate.get("type_name"))
+
+    return sorted(labels.values(), key=lambda value: (value.casefold(), value))
+
+
+def _style_data_attribute(type_name: Any) -> str:
+    key = _style_group_key(type_name)
+    if not key:
+        return ""
+    return f' data-style-group="{escape(key, quote=True)}"'
 
 
 def _linked_name(name: Any, url: Any) -> str:
@@ -104,6 +153,7 @@ def render_html_report(
     generated_date = report_date or date.today().isoformat()
     confirmed = _confirmed_results(results)
     needs_review = [result for result in results if result.get("status") != "ok"]
+    style_groups = _style_groups(results)
 
     confirmed_cards: List[str] = []
     for result in confirmed:
@@ -117,7 +167,7 @@ def render_html_report(
         )
         confirmed_cards.append(
             """
-            <li class="beer-card">
+            <li class="beer-card"{style_attr}>
               <div class="rating-badge">{rating}</div>
               <div class="beer-content">
                 <h3>{name}</h3>
@@ -130,6 +180,7 @@ def render_html_report(
                 name=linked_name,
                 metadata=metadata,
                 ratings=_format_count(result.get("ratings")),
+                style_attr=_style_data_attribute(result.get("type_name")),
             )
         )
 
@@ -145,7 +196,7 @@ def render_html_report(
             score_text = f"{float(score):.3f}" if score is not None else "N/A"
             candidate_cards.append(
                 """
-                <li class="candidate-card">
+                <li class="candidate-card"{style_attr}>
                   <div class="candidate-score">Match {score}</div>
                   <div>
                     <h4>{name}</h4>
@@ -160,10 +211,12 @@ def render_html_report(
                         [
                             candidate.get("brewery") or "Unknown brewery",
                             _format_abv(candidate.get("abv")),
+                            candidate.get("type_name"),
                         ]
                     ),
                     rating=_format_rating(candidate.get("rating")),
                     ratings=_format_count(candidate.get("ratings")),
+                    style_attr=_style_data_attribute(candidate.get("type_name")),
                 )
             )
 
@@ -194,6 +247,26 @@ def render_html_report(
     confirmed_html = "".join(confirmed_cards) or '<p class="empty">No confirmed beers.</p>'
     review_html = "".join(review_groups) or '<p class="empty">Nothing needs review.</p>'
 
+    filter_controls = []
+    for index, group in enumerate(style_groups):
+        key = group.casefold()
+        filter_controls.append(
+            '<label class="style-option" for="style-filter-{index}">'
+            '<input id="style-filter-{index}" type="checkbox" '
+            'data-style-filter value="{key}" checked> {label}</label>'.format(
+                index=index,
+                key=escape(key, quote=True),
+                label=escape(group),
+            )
+        )
+    style_filters_html = ""
+    if filter_controls:
+        style_filters_html = (
+            '<fieldset class="style-filters"><legend>Styles</legend>'
+            + "".join(filter_controls)
+            + '</fieldset>'
+        )
+
     return """<!doctype html>
 <html lang="en">
 <head>
@@ -215,6 +288,11 @@ def render_html_report(
     h2 {{ margin-top: 32px; }}
     h3, h4, p {{ margin-top: 0; }}
     .summary {{ margin: 0; opacity: .72; }}
+    .style-filters {{ margin: 22px 0 8px; padding: 12px 14px 14px; border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 12px; }}
+    .style-filters legend {{ padding: 0 5px; font-weight: 700; }}
+    .style-option {{ display: inline-flex; gap: 6px; align-items: center; margin: 4px 16px 4px 0; cursor: pointer; }}
+    .style-option input {{ margin: 0; }}
+    [hidden] {{ display: none !important; }}
     .beer-list, .candidate-list {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }}
     .beer-card, .candidate-card, .review-group {{ border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 14px; background: color-mix(in srgb, Canvas 94%, CanvasText 6%); }}
     .beer-card {{ display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px; align-items: start; }}
@@ -244,6 +322,8 @@ def render_html_report(
       <p class="summary">{total} beers · {confirmed_count} confirmed · {review_count} need review</p>
     </header>
 
+    {style_filters}
+
     <section aria-labelledby="confirmed-heading">
       <h2 id="confirmed-heading">Confirmed</h2>
       <ol class="beer-list">{confirmed}</ol>
@@ -254,6 +334,34 @@ def render_html_report(
       {review}
     </section>
   </main>
+  <script>
+    (function () {{
+      const filters = Array.from(document.querySelectorAll('input[data-style-filter]'));
+      if (!filters.length) return;
+
+      const styledCards = Array.from(document.querySelectorAll('[data-style-group]'));
+      const reviewGroups = Array.from(document.querySelectorAll('.review-group'));
+
+      function applyStyleFilters() {{
+        const enabled = new Set(
+          filters.filter((filter) => filter.checked).map((filter) => filter.value)
+        );
+
+        styledCards.forEach((card) => {{
+          card.hidden = !enabled.has(card.dataset.styleGroup);
+        }});
+
+        reviewGroups.forEach((group) => {{
+          const candidates = Array.from(group.querySelectorAll('.candidate-card'));
+          if (!candidates.length) return;
+          group.hidden = candidates.every((candidate) => candidate.hidden);
+        }});
+      }}
+
+      filters.forEach((filter) => filter.addEventListener('change', applyStyleFilters));
+      applyStyleFilters();
+    }})();
+  </script>
 </body>
 </html>
 """.format(
@@ -264,6 +372,7 @@ def render_html_report(
         total=len(results),
         confirmed_count=len(confirmed),
         review_count=len(needs_review),
+        style_filters=style_filters_html,
         confirmed=confirmed_html,
         review=review_html,
     )

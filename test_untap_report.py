@@ -47,6 +47,7 @@ class HtmlReportTests(unittest.TestCase):
                         "ratings": 10,
                         "abv": 10.0,
                         "brewery": "Brewery C",
+                        "type_name": "Stout - Imperial / Double",
                         "url": "https://untappd.com/b/brewery-c-wrong/4",
                     },
                     {
@@ -56,6 +57,7 @@ class HtmlReportTests(unittest.TestCase):
                         "ratings": 40,
                         "abv": 10.0,
                         "brewery": "Brewery C",
+                        "type_name": "Stout - Imperial / Double",
                         "url": "https://untappd.com/b/brewery-c-right/3",
                     },
                 ],
@@ -104,8 +106,74 @@ class HtmlReportTests(unittest.TestCase):
         html = untap_report.render_html_report(self._results())
         self.assertIn('name="viewport"', html)
         self.assertIn("<style>", html)
-        self.assertNotIn("<script", html.lower())
+        self.assertIn("<script>", html)
         self.assertNotIn("stylesheet", html.lower())
+        self.assertNotIn("src=", html.lower())
+
+    def test_style_group_uses_untappd_leading_style_component(self):
+        self.assertEqual(untap_report._style_group("IPA - New England / Hazy"), "IPA")
+        self.assertEqual(untap_report._style_group("Lager - Helles"), "Lager")
+        self.assertEqual(untap_report._style_group("Historical Beer - Gruit / Ancient Herbed Ale"), "Historical Beer")
+        self.assertEqual(untap_report._style_group("Barleywine"), "Barleywine")
+        self.assertIsNone(untap_report._style_group(None))
+
+    def test_style_filters_are_data_derived_present_only_and_alphabetical(self):
+        results = [
+            {"status": "ok", "beer": "Sour One", "rating": 4.0, "type_name": "Sour - Fruited"},
+            {"status": "ok", "beer": "IPA One", "rating": 4.0, "type_name": "IPA - New England / Hazy"},
+            {"status": "ok", "beer": "Lager One", "rating": 4.0, "type_name": "Lager - Helles"},
+            {"status": "ok", "beer": "IPA Two", "rating": 4.0, "type_name": "IPA - Imperial / Double"},
+            {"status": "ok", "beer": "Stout One", "rating": 4.0, "type_name": "Stout - Imperial / Double"},
+        ]
+        html = untap_report.render_html_report(results)
+        filter_start = html.index('<fieldset class="style-filters">')
+        filter_end = html.index('</fieldset>', filter_start)
+        filters = html[filter_start:filter_end]
+        self.assertLess(filters.index("checked> IPA</label>"), filters.index("checked> Lager</label>"))
+        self.assertLess(filters.index("checked> Lager</label>"), filters.index("checked> Sour</label>"))
+        self.assertLess(filters.index("checked> Sour</label>"), filters.index("checked> Stout</label>"))
+        self.assertEqual(filters.count('data-style-filter'), 4)
+        self.assertEqual(filters.count(' checked'), 4)
+        self.assertNotIn("Pilsner", filters)
+
+    def test_style_filter_groups_are_not_predefined(self):
+        results = [
+            {
+                "status": "ok",
+                "beer": "Ancient One",
+                "rating": 4.0,
+                "type_name": "Historical Beer - Gruit / Ancient Herbed Ale",
+            },
+            {"status": "ok", "beer": "Wine Beer", "rating": 4.0, "type_name": "Grape Ale - Italian"},
+        ]
+        html = untap_report.render_html_report(results)
+        self.assertIn("checked> Grape Ale</label>", html)
+        self.assertIn("checked> Historical Beer</label>", html)
+        self.assertNotIn("checked> Other</label>", html)
+
+    def test_beer_cards_carry_normalized_style_group_keys(self):
+        html = untap_report.render_html_report(self._results())
+        self.assertIn('data-style-group="ipa"', html)
+        self.assertIn('data-style-group="pilsner"', html)
+        self.assertIn('data-style-group="stout"', html)
+
+    def test_review_candidate_displays_detailed_untappd_style(self):
+        html = untap_report.render_html_report(self._results())
+        review_html = html[html.index("Needs review"):]
+        self.assertIn("Stout - Imperial / Double", review_html)
+
+    def test_inline_javascript_filters_cards_without_external_dependency(self):
+        html = untap_report.render_html_report(self._results())
+        self.assertIn("filter.addEventListener('change', applyStyleFilters)", html)
+        self.assertIn("card.hidden = !enabled.has(card.dataset.styleGroup)", html)
+        self.assertIn("applyStyleFilters();", html)
+        self.assertNotIn("<script src=", html.lower())
+
+    def test_report_without_styles_omits_filter_controls_but_remains_valid(self):
+        results = [{"status": "ok", "beer": "Unknown Style", "rating": 4.0}]
+        html = untap_report.render_html_report(results)
+        self.assertNotIn('class="style-filters"', html)
+        self.assertIn("Unknown Style", html)
 
     def test_non_untappd_url_is_not_emitted_as_link(self):
         results = [{

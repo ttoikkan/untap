@@ -6,7 +6,7 @@ import unittest
 import untap_batch
 import untap_matcher
 import untap_parser
-from untap_types import CsvRow, MatchResult, MatchStatus, NormalizedMenuRecord
+from untap_types import AlternativeRecord, CsvRow, MatchResult, MatchStatus, NormalizedMenuRecord
 
 
 ROOT = Path(__file__).resolve().parent
@@ -24,6 +24,9 @@ class StaticContractTests(unittest.TestCase):
             tuple(CsvRow.__annotations__),
             untap_batch.CSV_FIELDS,
         )
+
+    def test_ambiguity_candidate_contract_includes_canonical_type_name(self):
+        self.assertIn("type_name", AlternativeRecord.__annotations__)
 
     def test_match_status_type_matches_runtime_status_vocabulary(self):
         self.assertEqual(

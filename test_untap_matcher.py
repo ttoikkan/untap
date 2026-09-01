@@ -48,6 +48,16 @@ class MatcherContractTests(unittest.TestCase):
             ],
         )
 
+    def test_ambiguity_projection_preserves_canonical_type_name(self):
+        candidate = {
+            "name": "Variant",
+            "score": 0.98,
+            "type_name": "Lager - Helles",
+            "url": "https://untappd.com/b/example/1",
+        }
+        alternative = untap_matcher._alternative_from_candidate(candidate)
+        self.assertEqual(alternative["type_name"], "Lager - Helles")
+
     def test_relaxed_candidate_must_be_base_identity(self):
         self.assertTrue(
             candidate_matches_trailing_relaxed_identity(

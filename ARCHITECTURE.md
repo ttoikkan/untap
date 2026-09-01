@@ -1,6 +1,6 @@
 # Untap architecture contract
 
-v60 closed the architecture-renewal effort. Later releases preserve that decomposition while hardening and optimizing the established boundaries. v73 hardened the direct search transport and extended static checks. v74 added the separate manual live-dependency smoke boundary and removed unused GitHub workflow automation. v75 consolidated the final validated manual/local-only v74 corrections. v76 expands only the parser/preflight input contract for three structurally clear historical menu layouts. v77 adds a separate static HTML-report presentation boundary. v78 extends only that presentation contract with optional descriptive report titles and archive-oriented HTML metadata; downstream parser, matcher, batch, and transport behavior remains unchanged.
+v60 closed the architecture-renewal effort. Later releases preserve that decomposition while hardening and optimizing the established boundaries. v73 hardened the direct search transport and extended static checks. v74 added the separate manual live-dependency smoke boundary and removed unused GitHub workflow automation. v75 consolidated the final validated manual/local-only v74 corrections. v76 expands only the parser/preflight input contract for three structurally clear historical menu layouts. v77 adds a separate static HTML-report presentation boundary. v78 extends only that presentation contract with optional descriptive report titles and archive-oriented HTML metadata. v79 adds a standalone local archive publisher. v80 adds data-derived client-side style filtering inside the static report while preserving those boundaries; downstream parser, matching decisions, batch, and transport behavior remain unchanged.
 
 ## Dependency flow
 
@@ -65,13 +65,15 @@ The batch layer consumes validated `NormalizedMenuRecord` values or plain query 
 
 The stable CSV order remains `CSV_FIELDS`; v63 adds a corresponding `CsvRow` TypedDict and contract test. Only confirmed `status=ok` rows are reusable.
 
-## HTML report contract (v77–v78)
+## HTML report contract (v77–v80)
 
 `untap_report.py` owns static human-facing HTML rendering from already completed `MatchResult` records. It may depend on shared type contracts only; it must not import parser, matcher, batch, transport, smoke, or Playwright layers. The CLI may invoke it after a batch completes.
 
 The report is self-contained and responsive, makes no network requests, and does not alter result data. Confirmed beers are ordered by Untappd rating descending. Ambiguous candidates remain grouped by input result and are ordered by match score descending. Canonical Untappd `/b/` URLs are rendered as links for confirmed beers and review candidates when available. CSV remains the persistence/resume format; HTML is presentation only.
 
 v78 adds an optional descriptive title supplied by the CLI through `--report-title`. The renderer also embeds simple machine-readable metadata for report title, generation date, total beers, confirmed beers, and needs-review count. That metadata is presentation/archive context only; no GitHub or publishing responsibility is introduced into Untap.
+
+v80 adds a small inline client-side style filter while keeping the report one self-contained static HTML file. Filter groups are not predefined: they are derived from canonical Untappd `type_name` values present in the completed results, using the leading component before the structural `" - "` subtype separator. Only present groups are rendered, alphabetically, and all begin enabled. Detailed `type_name` values remain visible. Ambiguity candidate projections now preserve `type_name` so Needs review candidates participate in the same presentation contract; this is metadata propagation only and does not alter candidate scoring or ambiguity decisions.
 
 ## Local archive publisher contract (v79)
 

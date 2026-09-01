@@ -1,5 +1,16 @@
 # HTML report changelog
 
+## v80
+
+- Adds inline checkbox filtering by broad style group while preserving one self-contained static HTML file.
+- Style groups are entirely data-derived from canonical Untappd `type_name`; there is no predefined style vocabulary.
+- A group is the normalized leading component before the structural `" - "` subtype separator; styles without that separator remain unchanged.
+- Only groups present in the report are rendered, in case-insensitive alphabetical order, and all are checked by default.
+- Beer cards carry normalized style-group keys while continuing to display the full canonical Untappd style.
+- Needs-review candidates display/preserve canonical style metadata and participate in filtering when style data is available.
+- The filter script is inline and dependency-free, so archived reports continue to work directly from local disk or GitHub Pages.
+- No rating/ABV filters, text search, saved preferences, extra sorting, server state, or publishing changes are included.
+
 ## v78
 
 - Adds optional descriptive report identity through `--report-title`.

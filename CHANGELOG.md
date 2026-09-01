@@ -1,3 +1,15 @@
+# v80
+
+- Built directly from the validated v79 baseline.
+- Adds self-contained client-side style filtering to generated HTML reports.
+- Derives filter groups only from canonical Untappd `type_name` values present in each report; Untap has no predefined style-group taxonomy.
+- Uses the leading style component before Untappd's structural `" - "` subtype separator, preserving the full detailed style on each beer card.
+- Renders only present style groups, sorted case-insensitively alphabetically, with every checkbox enabled by default.
+- Filtering works from a locally opened static `.html` file with inline JavaScript and no server, external JavaScript, CSS, or network dependency.
+- Preserves canonical style metadata on ambiguity candidates so Needs review beers can participate in the same filter UI.
+- Leaves matching/scoring/ambiguity decisions, parser behavior, ABV policy, transport, CSV/resume, v79 publishing, Git/GitHub behavior, pacing, and rate-limit behavior unchanged.
+- Deterministic suite: 128 tests in this release artifact.
+
 # v79
 
 - Built directly from the validated v78 baseline.

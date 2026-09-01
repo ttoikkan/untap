@@ -12,6 +12,12 @@
 
 # Matcher changelog
 
+## v80
+
+- Ambiguity candidate projections now preserve the candidate's canonical Untappd `type_name` for downstream report presentation.
+- Refactors the repeated compact ambiguity-candidate dictionary into `_alternative_from_candidate()` so `alternatives` and `same_abv_variants` share one projection contract.
+- Candidate scoring, ordering, ambiguity decisions, expansion, fallbacks, and selected identities are unchanged.
+
 ## v59
 
 - No matcher behavior changes. v59 only extracts batch/CSV/resume responsibilities from `untap.py`.

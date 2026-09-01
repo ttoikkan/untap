@@ -1,6 +1,6 @@
-# Untap v79
+# Untap v80
 
-Untap v79 builds directly on the validated v78 report-identity baseline. It adds a standalone local archive publisher for completed HTML reports while keeping report generation, Git/GitHub operations, matching, parsing, transport, CSV/resume, and browser behavior separate. Parsing, matching, ambiguity policy, ABV handling, Algolia transport, self-healing, rate-limit behavior, CSV/resume, smoke behavior, pacing, and performance are unchanged.
+Untap v80 builds directly on the validated v79 local-publishing baseline. It adds data-derived style filtering to the self-contained HTML report while preserving the static-file/archive model. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, archive publishing, Git/GitHub behavior, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -13,9 +13,11 @@ python3 untap.py --menu menu10.txt --html --report-title "September Bottle Share
 
 `--report-title` is optional and requires `--html`. When supplied, the descriptive title appears in both the browser tab and the report heading. If omitted, the title remains `Untap Results`. Empty titles are rejected before browser startup.
 
-Untap still writes its normal `results.csv` and terminal summary. With `--html`, it also writes `results.html`. The report is a single portable file with inline CSS and no JavaScript or external assets, so it can be opened directly in a desktop or mobile browser.
+Untap still writes its normal `results.csv` and terminal summary. With `--html`, it also writes `results.html`. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
 
 Confirmed beers are sorted from highest Untappd rating to lowest. Every confirmed beer name links to its canonical Untappd beer page. The **Needs review** section keeps each uncertain result grouped separately; ambiguity candidates are sorted by match score, not beer rating, and each available candidate beer name links to its own canonical Untappd page.
+
+v80 derives broad style groups only from canonical Untappd `type_name` values actually present in the report. The group is the leading component before Untappd's structural `" - "` subtype separator; a style without that separator remains its own group. No style taxonomy or predefined group list exists in Untap. Present groups are shown as checked boxes in case-insensitive alphabetical order. Unchecking a group immediately hides beer cards in that family; rechecking restores them. Detailed Untappd styles remain visible on the beer cards.
 
 The report is generated only from already completed `MatchResult` data. It makes no additional Untappd requests and has no parsing, matching, browser, Algolia, or CSV responsibility. v78 also embeds the report title, generation date, total beer count, confirmed count, and needs-review count as simple HTML `<meta>` fields so a later archive publisher can index reports without understanding matcher internals.
 
@@ -100,4 +102,4 @@ python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
 ```
 
-The deterministic v79 suite contains 119 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+The deterministic v80 suite contains 128 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.

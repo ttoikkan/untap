@@ -3,7 +3,7 @@ from difflib import SequenceMatcher
 from typing import Any, Dict, Optional, TypedDict
 from time import perf_counter
 
-from untap_types import MatchResult, SearchTransportResult
+from untap_types import AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult
 
 from untap_parser import (
     normalize,
@@ -2563,6 +2563,20 @@ def run_search_fallback_attempt(
 # Search one beer
 # ============================================================
 
+def _alternative_from_candidate(item: CandidateRecord) -> AlternativeRecord:
+    """Project one scored candidate into the compact ambiguity contract."""
+    return {
+        "name": item["name"],
+        "score": item["score"],
+        "abv": item.get("abv"),
+        "brewery": item.get("brewery"),
+        "rating": item.get("rating_score"),
+        "ratings": item.get("rating_count"),
+        "type_name": item.get("type_name"),
+        "url": item.get("url"),
+    }
+
+
 def _search_one_impl(
     page: Any,
     query: str,
@@ -3194,28 +3208,10 @@ def _search_one_impl(
             "url": best.get("url"),
             "reason": f"multiple {expected_abv:g}% variants found",
             "alternatives": [
-                {
-                    "name": item["name"],
-                    "score": item["score"],
-                    "abv": item.get("abv"),
-                    "brewery": item.get("brewery"),
-                    "rating": item.get("rating_score"),
-                    "ratings": item.get("rating_count"),
-                    "url": item.get("url"),
-                }
-                for item in candidates[:10]
+                _alternative_from_candidate(item) for item in candidates[:10]
             ],
             "same_abv_variants": [
-                {
-                    "name": item["name"],
-                    "score": item["score"],
-                    "abv": item.get("abv"),
-                    "brewery": item.get("brewery"),
-                    "rating": item.get("rating_score"),
-                    "ratings": item.get("rating_count"),
-                    "url": item.get("url"),
-                }
-                for item in same_abv_variants
+                _alternative_from_candidate(item) for item in same_abv_variants
             ],
             "search_expanded": bool(expanded_candidates),
             "search_fallback": fallback_query_used,
@@ -3237,16 +3233,7 @@ def _search_one_impl(
             "url": best.get("url"),
             "reason": ambiguity_reason,
             "alternatives": [
-                {
-                    "name": item["name"],
-                    "score": item["score"],
-                    "abv": item.get("abv"),
-                    "brewery": item.get("brewery"),
-                    "rating": item.get("rating_score"),
-                    "ratings": item.get("rating_count"),
-                    "url": item.get("url"),
-                }
-                for item in candidates[:10]
+                _alternative_from_candidate(item) for item in candidates[:10]
             ],
             "same_abv_variants": [],
             "search_expanded": bool(expanded_candidates),

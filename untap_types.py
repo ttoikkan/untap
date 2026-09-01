@@ -53,6 +53,7 @@ class AlternativeRecord(TypedDict, total=False):
     brewery: Optional[str]
     rating: Optional[float]
     ratings: Optional[int]
+    type_name: Optional[str]
     url: Optional[str]
 
 
