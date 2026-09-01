@@ -1,6 +1,6 @@
-# Untap v77
+# Untap v78
 
-Untap v77 is a presentation-only release built directly from the validated v76 baseline. It adds an optional self-contained, responsive HTML report for batch results without changing parsing, matching, ambiguity policy, ABV handling, Algolia transport, self-healing, rate-limit behavior, CSV/resume, smoke behavior, pacing, or performance.
+Untap v78 builds directly on the validated v77 HTML-report baseline. It adds optional human-readable report identity through `--report-title` plus machine-readable report metadata for future archive publishing. Parsing, matching, ambiguity policy, ABV handling, Algolia transport, self-healing, rate-limit behavior, CSV/resume, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -8,13 +8,16 @@ Use `--html` with `--menu` or `--file`:
 
 ```bash
 python3 untap.py --menu menu10.txt --html
+python3 untap.py --menu menu10.txt --html --report-title "September Bottle Share"
 ```
+
+`--report-title` is optional and requires `--html`. When supplied, the descriptive title appears in both the browser tab and the report heading. If omitted, the title remains `Untap Results`. Empty titles are rejected before browser startup.
 
 Untap still writes its normal `results.csv` and terminal summary. With `--html`, it also writes `results.html`. The report is a single portable file with inline CSS and no JavaScript or external assets, so it can be opened directly in a desktop or mobile browser.
 
 Confirmed beers are sorted from highest Untappd rating to lowest. Every confirmed beer name links to its canonical Untappd beer page. The **Needs review** section keeps each uncertain result grouped separately; ambiguity candidates are sorted by match score, not beer rating, and each available candidate beer name links to its own canonical Untappd page.
 
-The report is generated only from already completed `MatchResult` data. It makes no additional Untappd requests and has no parsing, matching, browser, Algolia, or CSV responsibility.
+The report is generated only from already completed `MatchResult` data. It makes no additional Untappd requests and has no parsing, matching, browser, Algolia, or CSV responsibility. v78 also embeds the report title, generation date, total beer count, confirmed count, and needs-review count as simple HTML `<meta>` fields so a later archive publisher can index reports without understanding matcher internals.
 
 ## Manual live smoke check
 
@@ -79,4 +82,4 @@ python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
 ```
 
-The deterministic v77 suite contains 101 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+The deterministic v78 suite contains 106 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.

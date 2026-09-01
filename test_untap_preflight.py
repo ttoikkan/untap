@@ -80,6 +80,7 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
             self.assertIn("Usage:", text)
             self.assertIn("--debug-timing", text)
             self.assertIn("--smoke-test", text)
+            self.assertIn("--report-title TITLE", text)
             self.assertNotIn("Searching Untappd", text)
 
     def test_invalid_smoke_test_combination_is_browser_free(self):
@@ -102,6 +103,27 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
                 untap.main()
         self.assertEqual(exc.exception.code, 1)
         self.assertIn("--html requires --menu or --file", output.getvalue())
+
+
+    def test_report_title_without_html_is_browser_free(self):
+        output = io.StringIO()
+        with self._forbid_playwright_import(), mock.patch.object(
+            sys, "argv", ["untap.py", "--report-title", "Bottle Share"]
+        ), contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as exc:
+                untap.main()
+        self.assertEqual(exc.exception.code, 1)
+        self.assertIn("--report-title requires --html", output.getvalue())
+
+    def test_empty_report_title_is_browser_free(self):
+        output = io.StringIO()
+        with self._forbid_playwright_import(), mock.patch.object(
+            sys, "argv", ["untap.py", "--html", "--report-title", "   "]
+        ), contextlib.redirect_stdout(output):
+            with self.assertRaises(SystemExit) as exc:
+                untap.main()
+        self.assertEqual(exc.exception.code, 1)
+        self.assertIn("--report-title requires a non-empty title", output.getvalue())
 
     def test_v76_historical_structured_fixtures_validate_browser_free(self):
         fixture_dir = Path(__file__).with_name("testdata")

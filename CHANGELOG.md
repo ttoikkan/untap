@@ -1,3 +1,14 @@
+# v78
+
+- Built directly from the validated v77 baseline.
+- Adds optional `--report-title TITLE` for `--html` batch reports.
+- The title is rendered in the browser title and report heading; the default remains `Untap Results`.
+- Adds archive-oriented HTML metadata for report title, generation date, total beers, confirmed beers, and needs-review beers.
+- Invalid/missing report-title arguments fail before Playwright/browser startup.
+- Keeps the HTML renderer presentation-only and free of GitHub/publishing/network responsibilities.
+- No parser, matcher, ambiguity, ABV, transport, self-healing, 429, CSV/resume, smoke, pacing, concurrency, or performance-policy changes.
+- Deterministic suite: 106 tests.
+
 # v77
 
 - Presentation-only release built directly from the validated v76 baseline.

@@ -5,6 +5,7 @@ records and writes a self-contained, responsive HTML file. It performs no
 parsing, matching, browser automation, network requests, or CSV persistence.
 """
 
+from datetime import date
 from html import escape
 from typing import Any, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
@@ -13,6 +14,7 @@ from untap_types import AlternativeRecord, MatchResult
 
 
 DEFAULT_HTML_REPORT = "results.html"
+DEFAULT_REPORT_TITLE = "Untap Results"
 
 
 def _canonical_untappd_beer_url(value: Any) -> Optional[str]:
@@ -92,8 +94,14 @@ def _meta_parts(parts: Iterable[Any]) -> str:
     return " <span aria-hidden=\"true\">·</span> ".join(visible)
 
 
-def render_html_report(results: Sequence[MatchResult], title: str = "Untap Results") -> str:
+def render_html_report(
+    results: Sequence[MatchResult],
+    title: str = DEFAULT_REPORT_TITLE,
+    report_date: Optional[str] = None,
+) -> str:
     """Return one self-contained responsive HTML report."""
+    clean_title = title.strip() or DEFAULT_REPORT_TITLE
+    generated_date = report_date or date.today().isoformat()
     confirmed = _confirmed_results(results)
     needs_review = [result for result in results if result.get("status") != "ok"]
 
@@ -191,6 +199,11 @@ def render_html_report(results: Sequence[MatchResult], title: str = "Untap Resul
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="untap-report-title" content="{meta_title}">
+  <meta name="untap-report-date" content="{report_date}">
+  <meta name="untap-total-beers" content="{total}">
+  <meta name="untap-confirmed-count" content="{confirmed_count}">
+  <meta name="untap-review-count" content="{review_count}">
   <title>{title}</title>
   <style>
     :root {{ color-scheme: light dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }}
@@ -244,8 +257,10 @@ def render_html_report(results: Sequence[MatchResult], title: str = "Untap Resul
 </body>
 </html>
 """.format(
-        title=escape(title),
-        heading=escape(title),
+        title=escape(clean_title),
+        meta_title=escape(clean_title, quote=True),
+        heading=escape(clean_title),
+        report_date=escape(generated_date, quote=True),
         total=len(results),
         confirmed_count=len(confirmed),
         review_count=len(needs_review),
@@ -257,7 +272,7 @@ def render_html_report(results: Sequence[MatchResult], title: str = "Untap Resul
 def save_html_report(
     results: Sequence[MatchResult],
     filename: str = DEFAULT_HTML_REPORT,
-    title: str = "Untap Results",
+    title: str = DEFAULT_REPORT_TITLE,
 ) -> None:
     """Write a self-contained HTML report to ``filename``."""
     with open(filename, "w", encoding="utf-8", newline="") as handle:

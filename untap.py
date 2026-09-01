@@ -31,7 +31,7 @@ from untap_batch import (
     reusable_resume_count,
     print_batch_timing_summary,
 )
-from untap_report import DEFAULT_HTML_REPORT, save_html_report
+from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
 from untap_untappd import (
     _reset_run_algolia_debug_stats,
     configure_search_timing,
@@ -593,6 +593,7 @@ def _print_cli_help():
     print()
     print("  python3 untap.py --menu menu.txt --csv results.csv")
     print("  python3 untap.py --menu menu.txt --html")
+    print('  python3 untap.py --menu menu.txt --html --report-title "September Bottle Share"')
     print()
     print("Options:")
     print("  -h, --help")
@@ -605,6 +606,7 @@ def _print_cli_help():
     print("  --validate-menu menu.txt")
     print("  --resume")
     print("  --html")
+    print("  --report-title TITLE")
     print("  --probe-abv-sort")
     print("  --smoke-test")
 
@@ -631,6 +633,7 @@ def main() -> None:
     csv_filename = "results.csv"
     resume_requested = False
     html_requested = False
+    report_title = None
     file_mode = None
     menu_mode = None
     min_score = DEFAULT_MIN_SCORE
@@ -729,6 +732,16 @@ def main() -> None:
             html_requested = True
             i += 1
 
+        elif arg == "--report-title":
+            if i + 1 >= len(args):
+                print("--report-title requires a non-empty title")
+                sys.exit(1)
+            report_title = args[i + 1].strip()
+            if not report_title:
+                print("--report-title requires a non-empty title")
+                sys.exit(1)
+            i += 2
+
         elif arg == "--min-score":
             if i + 1 >= len(args):
                 print(
@@ -766,8 +779,12 @@ def main() -> None:
 
     if formats_requested:
         print(supported_formats_help())
-        if not (clean_args or file_mode or menu_mode or validate_menu_mode or probe_abv_sort or smoke_test_requested or html_requested):
+        if not (clean_args or file_mode or menu_mode or validate_menu_mode or probe_abv_sort or smoke_test_requested or html_requested or report_title):
             return
+
+    if report_title is not None and not html_requested:
+        print("--report-title requires --html")
+        sys.exit(1)
 
     if validate_menu_mode and (file_mode or menu_mode or clean_args or probe_abv_sort or smoke_test_requested or html_requested):
         print("--validate-menu is a local-only command and cannot be combined with search input")
@@ -924,7 +941,7 @@ def main() -> None:
                 )
 
             if html_requested:
-                save_html_report(results, DEFAULT_HTML_REPORT)
+                save_html_report(results, DEFAULT_HTML_REPORT, title=report_title or DEFAULT_REPORT_TITLE)
 
         # ----------------------------------------------------
         # One-query-per-line mode
@@ -970,7 +987,7 @@ def main() -> None:
                 )
 
             if html_requested:
-                save_html_report(results, DEFAULT_HTML_REPORT)
+                save_html_report(results, DEFAULT_HTML_REPORT, title=report_title or DEFAULT_REPORT_TITLE)
 
         # ----------------------------------------------------
         # Single beer mode
