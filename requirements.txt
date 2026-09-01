@@ -1,0 +1,2 @@
+# Runtime dependency pinned to the version used for the validated v61/v62 baseline.
+playwright==1.57.0

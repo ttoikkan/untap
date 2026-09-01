@@ -1,0 +1,2 @@
+# Static checker used for local validation; runtime dependencies remain in requirements.txt.
+mypy==1.14.1
