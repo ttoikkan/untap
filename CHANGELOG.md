@@ -1,3 +1,15 @@
+# v81
+
+- Built directly from the validated v80 baseline.
+- Adds explicit `--replace` support to `untap_publish.py` for intentionally regenerated reports with the same logical descriptive-title identity, independent of generation date.
+- Preserves refusal-to-replace as the default behavior; replacement never occurs without the explicit flag.
+- Preserves the existing archived filename during replacement so public report URLs remain stable; validates the source and all existing reports first, regenerates the index without duplicate entries, and restores the previous report if index writing fails.
+- Fails closed on multiple existing normalized-title matches and never uses `--replace` to overwrite a filename collision belonging to a different title.
+- `--replace` on a not-yet-existing logical title behaves as a normal new publication.
+- Replacement remains local-filesystem-only; Git, GitHub credentials/APIs, GitHub Pages deployment, and network behavior remain outside Untap.
+- No matcher, parser, ambiguity, ABV, transport, CSV/resume, report style-filtering, smoke, pacing, concurrency, or rate-limit behavior changes.
+- Deterministic suite: 135 tests in this release artifact.
+
 # v80
 
 - Built directly from the validated v79 baseline.

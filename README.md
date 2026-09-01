@@ -1,6 +1,6 @@
-# Untap v80
+# Untap v81
 
-Untap v80 builds directly on the validated v79 local-publishing baseline. It adds data-derived style filtering to the self-contained HTML report while preserving the static-file/archive model. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, archive publishing, Git/GitHub behavior, smoke behavior, pacing, and performance are unchanged.
+Untap v81 builds directly on the validated v80 style-filtering baseline. It adds explicit, opt-in replacement of an already archived report while preserving the publisher's fail-closed default. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, HTML style filtering, Git/GitHub behavior, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -35,7 +35,15 @@ The publisher reads the embedded `untap-*` metadata, validates the report, deriv
 reports/2026-09-01-pien-new-arrivals-september-2026.html
 ```
 
-and regenerates the archive `index.html` with reports ordered newest-first. It refuses to overwrite an existing report and fails closed if the source report or an already archived HTML report has malformed/missing Untap metadata.
+and regenerates the archive `index.html` with reports ordered newest-first. The descriptive report title is the logical archive identity; the embedded report date is generation metadata used when the report is first published. By default the publisher refuses to replace an existing logical report and fails closed if the source report or an already archived HTML report has malformed/missing Untap metadata.
+
+When a report has intentionally been regenerated, replacement must be requested explicitly:
+
+```bash
+python3 untap_publish.py results.html ../untap-results --replace
+```
+
+`--replace` matches an existing logical report by normalized descriptive title, even when the regenerated report has a later generation date. The existing archive filename is preserved, so replacement keeps the public report URL stable. The source and all existing archived reports still undergo the normal validation first. If replacement succeeds but the subsequent index update fails, the previous report is restored. If no report with that logical title exists, `--replace` behaves like an ordinary new publication. A filename collision belonging to a different title is never replaceable through this flag.
 
 `untap_publish.py` is intentionally local-filesystem-only. It does **not** run Git, authenticate with GitHub, call GitHub APIs, push commits, or make network requests. After a successful local publication it prints the remaining explicit Git commands (`git add .`, a descriptive `git commit`, and `git push`). This keeps credentials and public publication under user control while removing the tedious filename/copy/index work.
 
@@ -102,4 +110,4 @@ python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
 ```
 
-The deterministic v80 suite contains 128 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+The deterministic v81 suite contains 135 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.

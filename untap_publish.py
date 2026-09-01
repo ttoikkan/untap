@@ -16,7 +16,6 @@ from html.parser import HTMLParser
 from pathlib import Path
 import os
 import re
-import shutil
 import shlex
 import sys
 import tempfile
@@ -139,6 +138,11 @@ def archive_filename(metadata: ReportMetadata) -> str:
     return f"{metadata.report_date}-{slugify_title(metadata.title)}.html"
 
 
+def _report_identity(title: str) -> str:
+    """Return the stable logical archive identity for a report title."""
+    return " ".join(title.split()).casefold()
+
+
 def _archive_reports(reports_dir: Path) -> List[ArchiveReport]:
     reports: List[ArchiveReport] = []
     for path in sorted(reports_dir.glob("*.html")):
@@ -217,6 +221,21 @@ def render_archive_index(reports: Iterable[ArchiveReport]) -> str:
 """
 
 
+def _atomic_write_bytes(path: Path, content: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(content)
+        os.replace(temporary_name, path)
+    except BaseException:
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 def _atomic_write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
@@ -232,8 +251,16 @@ def _atomic_write_text(path: Path, content: str) -> None:
         raise
 
 
-def publish_report(source_report: Path, archive_root: Path) -> ArchiveReport:
-    """Publish one report into a local archive and regenerate its index."""
+def publish_report(
+    source_report: Path, archive_root: Path, *, replace: bool = False
+) -> ArchiveReport:
+    """Publish one report into a local archive and regenerate its index.
+
+    A report's logical archive identity is its normalized descriptive title; the
+    embedded report date is generation metadata, not identity. Existing logical
+    reports remain protected by default. ``replace=True`` replaces exactly one
+    existing title match at its existing filename, preserving the public URL.
+    """
     metadata = read_report_metadata(source_report)
     if not archive_root.is_dir():
         raise PublishError(f"archive directory does not exist: {archive_root}")
@@ -242,23 +269,59 @@ def publish_report(source_report: Path, archive_root: Path) -> ArchiveReport:
     if not reports_dir.is_dir():
         raise PublishError(f"archive reports directory does not exist: {reports_dir}")
 
-    filename = archive_filename(metadata)
-    destination = reports_dir / filename
-    if destination.exists():
-        raise PublishError(f"refusing to overwrite existing report: {destination}")
-
     existing_reports = _archive_reports(reports_dir)
-    new_report = ArchiveReport(metadata=metadata, filename=filename)
-    index_html = render_archive_index([*existing_reports, new_report])
+    identity = _report_identity(metadata.title)
+    identity_matches = [
+        report for report in existing_reports
+        if _report_identity(report.metadata.title) == identity
+    ]
+    if len(identity_matches) > 1:
+        filenames = ", ".join(report.filename for report in identity_matches)
+        raise PublishError(
+            "archive contains multiple reports with the same logical title: " + filenames
+        )
 
-    shutil.copyfile(source_report, destination)
+    replacing = bool(identity_matches)
+    if replacing and not replace:
+        existing = identity_matches[0]
+        raise PublishError(
+            "refusing to replace existing logical report without --replace: "
+            f"{reports_dir / existing.filename}"
+        )
+
+    if replacing:
+        existing = identity_matches[0]
+        filename = existing.filename
+        destination = reports_dir / filename
+        index_reports = [
+            report for report in existing_reports if report.filename != filename
+        ]
+    else:
+        filename = archive_filename(metadata)
+        destination = reports_dir / filename
+        if destination.exists():
+            raise PublishError(
+                "refusing to overwrite archive filename belonging to another report: "
+                f"{destination}"
+            )
+        index_reports = existing_reports
+
+    new_report = ArchiveReport(metadata=metadata, filename=filename)
+    index_html = render_archive_index([*index_reports, new_report])
+
+    source_bytes = source_report.read_bytes()
+    previous_bytes = destination.read_bytes() if replacing else None
+    _atomic_write_bytes(destination, source_bytes)
     try:
         _atomic_write_text(archive_root / "index.html", index_html)
     except BaseException:
-        try:
-            destination.unlink()
-        except FileNotFoundError:
-            pass
+        if previous_bytes is None:
+            try:
+                destination.unlink()
+            except FileNotFoundError:
+                pass
+        else:
+            _atomic_write_bytes(destination, previous_bytes)
         raise
     return new_report
 
@@ -269,25 +332,39 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("report", type=Path, help="completed Untap HTML report")
     parser.add_argument("archive", type=Path, help="local untap-results repository root")
+    parser.add_argument(
+        "--replace",
+        action="store_true",
+        help="explicitly replace an existing report with the same logical title",
+    )
     return parser
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
-        published = publish_report(args.report, args.archive)
+        metadata = read_report_metadata(args.report)
+        reports_dir = args.archive / "reports"
+        existing_reports = _archive_reports(reports_dir) if reports_dir.is_dir() else []
+        identity = _report_identity(metadata.title)
+        replacing = args.replace and any(
+            _report_identity(report.metadata.title) == identity
+            for report in existing_reports
+        )
+        published = publish_report(args.report, args.archive, replace=args.replace)
     except (OSError, PublishError) as exc:
         print(f"Publish failed: {exc}", file=sys.stderr)
         return 2
 
     metadata = published.metadata
-    print("Published locally:")
+    action = "Replace" if replacing else "Publish"
+    print("Replaced locally:" if replacing else "Published locally:")
     print(f"  {metadata.title}")
     print(f"  reports/{published.filename}")
     print("\nArchive index updated.")
     print("\nNext:")
     print("  git add .")
-    print(f"  git commit -m {shlex.quote('Publish ' + metadata.title)}")
+    print(f"  git commit -m {shlex.quote(action + ' ' + metadata.title)}")
     print("  git push")
     return 0
 

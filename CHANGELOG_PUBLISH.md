@@ -1,5 +1,16 @@
 # Archive publisher changelog
 
+## v81
+
+- Adds optional `--replace` for explicitly replacing a regenerated report with the same normalized descriptive-title identity, even when its generation date has changed.
+- Keeps accidental-replacement protection unchanged by default: without `--replace`, an existing logical title still fails closed.
+- Replacement validates the new source and every existing archived report before mutation, preserves the existing archive filename/public URL, and regenerates the index with exactly one entry for the logical report.
+- Uses atomic destination writes and restores the previous report if the subsequent index update fails.
+- Multiple existing normalized-title matches fail closed, and a filename collision belonging to a different title is never overwritten by `--replace`.
+- If `--replace` is supplied when no logical-title match exists, publication proceeds normally.
+- Successful replacement output is labeled `Replaced locally` and suggests a descriptive `Replace ...` Git commit; Git itself remains external and explicit.
+- No GitHub, network, matcher, parser, report-rendering, or transport responsibility is added.
+
 ## v79
 
 - Introduces `untap_publish.py` as a standalone, standard-library-only local archive publisher.
