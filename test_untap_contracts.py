@@ -104,7 +104,7 @@ class ArchitectureContractTests(unittest.TestCase):
         imports = {}
         for filename in (
             "untap_parser.py", "untap_untappd.py", "untap_matcher.py",
-            "untap_batch.py", "untap_smoke.py", "untap_report.py", "untap.py",
+            "untap_batch.py", "untap_smoke.py", "untap_report.py", "untap_publish.py", "untap.py",
         ):
             tree = ast.parse((roots / filename).read_text(encoding="utf-8"))
             modules = set()
@@ -134,6 +134,14 @@ class ArchitectureContractTests(unittest.TestCase):
             {"untap_parser", "untap_matcher", "untap_batch", "untap_untappd", "untap_smoke", "playwright"}
         ))
         self.assertIn("untap_types", imports["untap_report.py"])
+        self.assertTrue(imports["untap_publish.py"].isdisjoint(
+            {
+                "untap_types", "untap_parser", "untap_matcher", "untap_batch",
+                "untap_untappd", "untap_smoke", "untap_report", "playwright",
+            }
+        ))
+        self.assertNotIn("untap_publish", imports["untap.py"])
+        self.assertNotIn("untap_publish", imports["untap_report.py"])
 
     def test_importing_architecture_modules_remains_playwright_lazy(self):
         # The transport imports Playwright only inside untappd_browser_page().

@@ -73,6 +73,14 @@ The report is self-contained and responsive, makes no network requests, and does
 
 v78 adds an optional descriptive title supplied by the CLI through `--report-title`. The renderer also embeds simple machine-readable metadata for report title, generation date, total beers, confirmed beers, and needs-review count. That metadata is presentation/archive context only; no GitHub or publishing responsibility is introduced into Untap.
 
+## Local archive publisher contract (v79)
+
+`untap_publish.py` is a standalone local-filesystem utility, not part of the Untap runtime data flow. It imports no Untap runtime/type/report modules and is not imported by `untap.py` or `untap_report.py`. Its input contract is only the machine-readable `untap-*` metadata embedded in completed v78+ HTML reports.
+
+The publisher owns archive validation, safe dated filename derivation, copying a completed report into a local `reports/` directory, and deterministic newest-first regeneration of the static archive `index.html`. It must fail closed on malformed metadata and must never silently overwrite an existing report. Existing archived HTML reports are validated before archive mutation.
+
+The publisher deliberately does **not** own Git, GitHub credentials, GitHub APIs, GitHub Pages deployment, browser automation, or any network operation. It may print suggested Git commands after local publication, but committing and pushing remain explicit external actions. This preserves the boundary `Untap report generation -> completed HTML artifact -> local publisher -> user-controlled Git publication`.
+
 ## CLI contract
 
 `untap.py` owns argument parsing, menu preflight orchestration, browser-session orchestration, and user-facing presentation. It should not accumulate parser heuristics, matching rules, direct Algolia mechanics, or CSV/resume implementation.
@@ -84,7 +92,7 @@ Typing is deliberately incremental and boundary-first. Runtime validators remain
 The static checker is pinned in `requirements-dev.txt` and is run manually/local with:
 
 ```text
-python -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap.py
+python -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap_publish.py untap.py
 ```
 
 ## Reproducible local environment

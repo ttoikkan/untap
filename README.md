@@ -1,6 +1,6 @@
-# Untap v78
+# Untap v79
 
-Untap v78 builds directly on the validated v77 HTML-report baseline. It adds optional human-readable report identity through `--report-title` plus machine-readable report metadata for future archive publishing. Parsing, matching, ambiguity policy, ABV handling, Algolia transport, self-healing, rate-limit behavior, CSV/resume, smoke behavior, pacing, and performance are unchanged.
+Untap v79 builds directly on the validated v78 report-identity baseline. It adds a standalone local archive publisher for completed HTML reports while keeping report generation, Git/GitHub operations, matching, parsing, transport, CSV/resume, and browser behavior separate. Parsing, matching, ambiguity policy, ABV handling, Algolia transport, self-healing, rate-limit behavior, CSV/resume, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -18,6 +18,24 @@ Untap still writes its normal `results.csv` and terminal summary. With `--html`,
 Confirmed beers are sorted from highest Untappd rating to lowest. Every confirmed beer name links to its canonical Untappd beer page. The **Needs review** section keeps each uncertain result grouped separately; ambiguity candidates are sorted by match score, not beer rating, and each available candidate beer name links to its own canonical Untappd page.
 
 The report is generated only from already completed `MatchResult` data. It makes no additional Untappd requests and has no parsing, matching, browser, Algolia, or CSV responsibility. v78 also embeds the report title, generation date, total beer count, confirmed count, and needs-review count as simple HTML `<meta>` fields so a later archive publisher can index reports without understanding matcher internals.
+
+## Local report archive publishing
+
+After Untap has generated a v78+ HTML report, publish it into a local `untap-results` repository with:
+
+```bash
+python3 untap_publish.py results.html ../untap-results
+```
+
+The publisher reads the embedded `untap-*` metadata, validates the report, derives a permanent filename such as:
+
+```text
+reports/2026-09-01-pien-new-arrivals-september-2026.html
+```
+
+and regenerates the archive `index.html` with reports ordered newest-first. It refuses to overwrite an existing report and fails closed if the source report or an already archived HTML report has malformed/missing Untap metadata.
+
+`untap_publish.py` is intentionally local-filesystem-only. It does **not** run Git, authenticate with GitHub, call GitHub APIs, push commits, or make network requests. After a successful local publication it prints the remaining explicit Git commands (`git add .`, a descriptive `git commit`, and `git push`). This keeps credentials and public publication under user control while removing the tedious filename/copy/index work.
 
 ## Manual live smoke check
 
@@ -55,7 +73,7 @@ With `--debug-timing`, the transport summary reports UI bootstrap searches, UI r
 Local static validation runs mypy across all eight runtime modules:
 
 ```bash
-python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap.py
+python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap_publish.py untap.py
 ```
 
 `untap_types.py` now includes explicit request/event/result contracts for the Algolia transport boundary. The live request-template mutation and browser-fetch response path are annotated so payload-shape wiring is no longer outside static checking.
@@ -76,10 +94,10 @@ python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py u
 Run:
 
 ```bash
-python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap.py
+python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap_publish.py untap.py
 python3 -m unittest discover -v
 python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
 ```
 
-The deterministic v78 suite contains 106 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+The deterministic v79 suite contains 119 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.

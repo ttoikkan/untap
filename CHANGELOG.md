@@ -1,3 +1,15 @@
+# v79
+
+- Built directly from the validated v78 baseline.
+- Adds standalone `untap_publish.py` for local preparation of the public static report archive.
+- Validates v78+ embedded report metadata, creates a safe dated archive filename, copies the report into `reports/`, and regenerates `index.html` newest-first.
+- Refuses accidental report overwrites and fails closed on malformed source or existing archive reports.
+- Archive titles and metadata are HTML-escaped; filenames use a conservative ASCII slug.
+- Publisher performs no Git operations, GitHub authentication/API calls, browser automation, or network requests; final `git add`/`commit`/`push` remain explicit user actions.
+- `untap.py` and `untap_report.py` do not import the publisher, preserving the report-generation/publishing boundary.
+- No parser, matcher, ambiguity, ABV, transport, self-healing, 429, CSV/resume, smoke, pacing, concurrency, performance-policy, or v78 HTML-report changes.
+- Deterministic suite: 119 tests.
+
 # v78
 
 - Built directly from the validated v77 baseline.
