@@ -1,5 +1,10 @@
 # Archive publisher changelog
 
+## v84
+
+- Harmonizes the generated archive index with the HTML reports' adaptive light/dark palette, responsive 900px content width, typography, link treatment, borders, rounded cards, and spacing rhythm.
+- Keeps the index fully self-contained and JavaScript-free, with publication ordering, metadata validation, replacement safety, and filesystem behavior unchanged.
+
 ## v81
 
 - Adds optional `--replace` for explicitly replacing a regenerated report with the same normalized descriptive-title identity, even when its generation date has changed.

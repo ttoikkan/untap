@@ -1,3 +1,12 @@
+# v84
+
+- Harmonizes the generated archive `index.html` with the reports' responsive, adaptive light/dark visual language while keeping it self-contained and JavaScript-free.
+- Removes the legacy extra bottom margin from ambiguous report cards so the unified Results list owns all top-level card spacing.
+- Sentence-cases canonical matcher ambiguity reasons at their source, keeping terminal, CSV, and HTML wording consistent without renderer-specific transformations.
+- Adds focused archive-style, report-spacing, and matcher-prose regression coverage.
+- Deterministic suite: 140 tests.
+- No matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume semantics, publishing safety, smoke behavior, pacing, concurrency, or performance-policy changes.
+
 # v83
 
 - Built directly from the validated v82 baseline.

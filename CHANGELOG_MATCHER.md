@@ -12,6 +12,12 @@
 
 # Matcher changelog
 
+## v84
+
+- Sentence-cases the existing user-facing ambiguity reason strings at their source, including near-tie, family, same-ABV, and brewery-like ambiguity wording.
+- Keeps the reasons canonical across terminal, CSV, and HTML output without renderer-specific capitalization.
+- Changes no scoring, ordering, ambiguity decisions, expansion, fallbacks, or selected identities.
+
 ## v80
 
 - Ambiguity candidate projections now preserve the candidate's canonical Untappd `type_name` for downstream report presentation.

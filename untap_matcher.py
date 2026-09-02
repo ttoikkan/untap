@@ -1206,7 +1206,7 @@ def detect_candidate_ambiguity(
         and (best["score"] - second["score"]) <= AMBIGUITY_SCORE_MARGIN
     ):
         return (
-            f"top candidates are too close: "
+            f"Top candidates are too close: "
             f"'{best['name']}' ({best['score']:.3f}) vs "
             f"'{second['name']}' ({second['score']:.3f})"
         )
@@ -1257,7 +1257,7 @@ def detect_candidate_ambiguity(
                 )
 
                 return (
-                    f"multiple candidates include {names}"
+                    f"Multiple candidates include {names}"
                 )
 
     return None
@@ -2245,7 +2245,7 @@ def evaluate_and_expand_candidates(
                 expanded_candidates = sorted_candidates
                 best = candidates[0]
                 ambiguity_reason = (
-                    "brewery-like input matches multiple "
+                    "Brewery-like input matches multiple "
                     f"{expected_abv:g}% beers"
                 )
                 weak_match = False
@@ -2282,7 +2282,7 @@ def evaluate_and_expand_candidates(
 
                 if expansion_diagnostics.get("ambiguity_early_stopped"):
                     ambiguity_reason = (
-                        "brewery-like input matches multiple "
+                        "Brewery-like input matches multiple "
                         f"{expected_abv:g}% beers"
                     )
 
@@ -3206,7 +3206,7 @@ def _search_one_impl(
             "match": best["name"],
             "score": best["score"],
             "url": best.get("url"),
-            "reason": f"multiple {expected_abv:g}% variants found",
+            "reason": f"Multiple {expected_abv:g}% variants found",
             "alternatives": [
                 _alternative_from_candidate(item) for item in candidates[:10]
             ],
@@ -3357,4 +3357,3 @@ def search_one(
 # ============================================================
 # Main
 # ============================================================
-

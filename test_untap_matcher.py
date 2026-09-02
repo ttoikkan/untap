@@ -21,6 +21,29 @@ from untap_matcher import (
 
 
 class MatcherContractTests(unittest.TestCase):
+    def test_ambiguity_reasons_are_canonical_sentence_case(self):
+        near_tie = [
+            {"name": "Beer One", "score": 0.90},
+            {"name": "Beer Two", "score": 0.89},
+        ]
+        family = [
+            {"name": "Daily Serving Mango", "score": 0.99, "abv": 5.0},
+            {"name": "Daily Serving Peach", "score": 0.70, "abv": 5.1},
+        ]
+        self.assertTrue(
+            untap_matcher.detect_candidate_ambiguity(near_tie).startswith(
+                "Top candidates are too close:"
+            )
+        )
+        self.assertTrue(
+            untap_matcher.detect_candidate_ambiguity(
+                family, expected_beer="Daily Serving"
+            ).startswith("Multiple candidates include")
+        )
+        source = Path("untap_matcher.py").read_text(encoding="utf-8")
+        self.assertIn('"Brewery-like input matches multiple "', source)
+        self.assertIn('f"Multiple {expected_abv:g}% variants found"', source)
+
     def test_style_suffix_relaxation_is_exact_and_search_only(self):
         self.assertEqual(
             strip_redundant_terminal_style_for_search("Élixir-IPA", "IPA"),

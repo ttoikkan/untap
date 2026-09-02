@@ -4,6 +4,7 @@ import io
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 import untap
@@ -11,6 +12,11 @@ import untap_report
 
 
 class HtmlReportTests(unittest.TestCase):
+    def test_review_groups_use_results_list_spacing_only(self):
+        source = Path("untap_report.py").read_text(encoding="utf-8")
+        self.assertIn(".review-group {{ padding: 16px; }}", source)
+        self.assertNotIn(".review-group {{ padding: 16px; margin-bottom", source)
+
     def _results(self):
         return [
             {

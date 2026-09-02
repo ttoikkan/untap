@@ -1,5 +1,11 @@
 # HTML report changelog
 
+## v84
+
+- Removes the obsolete `margin-bottom` from top-level ambiguous cards; the unified Results list now supplies the same spacing between confirmed and ambiguous cards.
+- Displays the matcher-owned sentence-cased ambiguity reasons unchanged.
+- Adds no filtering, sorting, candidate-ordering, matching, persistence, network, or publishing behavior.
+
 ## v83
 
 - Merges confirmed and ambiguous top-level report cards into one Results list sorted by rating.

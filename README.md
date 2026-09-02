@@ -1,6 +1,6 @@
-# Untap v83
+# Untap v84
 
-Untap v83 builds directly on the validated v82 report-filter baseline. It places confirmed and ambiguous top-level report results in one rating-sorted list while preserving the existing ambiguous-card presentation and match-score candidate ordering. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, publishing, smoke behavior, pacing, and performance are unchanged.
+Untap v84 builds directly on the validated v83 unified-results baseline. It harmonizes the generated archive index with the reports' responsive light/dark visual language, removes the legacy extra margin below ambiguous cards, and treats matcher ambiguity reasons as intentional sentence-cased user-facing prose across terminal, CSV, and HTML output. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume semantics, publishing safety, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -15,7 +15,7 @@ python3 untap.py --menu menu10.txt --html --report-title "September Bottle Share
 
 Untap still writes its normal `results.csv` and terminal summary. With `--html`, it also writes `results.html`. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
 
-Confirmed and ambiguous results now share one **Results** list sorted from highest report rating to lowest. A confirmed result uses its own Untappd rating. An ambiguous result uses the Untappd rating of its highest match-score candidate; a lower-scoring candidate never changes the result's list position even if that candidate has a higher beer rating. The ambiguous card itself is unchanged, and its candidates remain ordered by match score rather than rating. Results without a usable sort rating appear after rated results. Canonical Untappd beer links remain unchanged.
+Confirmed and ambiguous results now share one **Results** list sorted from highest report rating to lowest. A confirmed result uses its own Untappd rating. An ambiguous result uses the Untappd rating of its highest match-score candidate; a lower-scoring candidate never changes the result's list position even if that candidate has a higher beer rating. The ambiguous card's content and candidate ordering remain unchanged, while v84 removes its obsolete extra bottom margin so all top-level cards use the Results list's common spacing. Results without a usable sort rating appear after rated results. Canonical Untappd beer links remain unchanged.
 
 v80 derives broad style groups only from canonical Untappd `type_name` values actually present in the report. The group is the leading component before Untappd's structural `" - "` subtype separator; a style without that separator remains its own group. No style taxonomy or predefined group list exists in Untap. v82 presents those same case-insensitively sorted, checked-by-default filters as selectable chips with a clear selected checkmark, hover treatment, and keyboard focus state. Unselecting a group immediately hides beer cards in that family; selecting it again restores them. Detailed Untappd styles remain visible on the beer cards.
 
@@ -35,7 +35,7 @@ The publisher reads the embedded `untap-*` metadata, validates the report, deriv
 reports/2026-09-01-pien-new-arrivals-september-2026.html
 ```
 
-and regenerates the archive `index.html` with reports ordered newest-first. The descriptive report title is the logical archive identity; the embedded report date is generation metadata used when the report is first published. By default the publisher refuses to replace an existing logical report and fails closed if the source report or an already archived HTML report has malformed/missing Untap metadata.
+and regenerates the archive `index.html` with reports ordered newest-first. v84 gives that self-contained, JavaScript-free index the same adaptive light/dark palette, 900px responsive content width, typography, link treatment, rounded cards, borders, and spacing rhythm as the HTML reports. The descriptive report title is the logical archive identity; the embedded report date is generation metadata used when the report is first published. By default the publisher refuses to replace an existing logical report and fails closed if the source report or an already archived HTML report has malformed/missing Untap metadata.
 
 When a report has intentionally been regenerated, replacement must be requested explicitly:
 

@@ -329,7 +329,7 @@ def render_html_report(
     .beer-content h3, .candidate-card h4 {{ margin-bottom: 5px; }}
     .beer-link {{ color: LinkText; text-decoration-thickness: .08em; text-underline-offset: .15em; }}
     .meta, .ratings-count, .review-reason {{ margin-bottom: 4px; opacity: .75; line-height: 1.4; }}
-    .review-group {{ padding: 16px; margin-bottom: 14px; }}
+    .review-group {{ padding: 16px; }}
     .review-heading {{ display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }}
     .review-heading h3 {{ margin-bottom: 8px; }}
     .status-pill {{ border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; font-size: .78rem; font-weight: 700; opacity: .78; }}

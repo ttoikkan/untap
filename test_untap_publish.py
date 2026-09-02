@@ -102,6 +102,15 @@ class ArchiveRenderingTests(unittest.TestCase):
         two = untap_publish.render_archive_index([second, first])
         self.assertEqual(one, two)
 
+    def test_index_uses_report_visual_language(self):
+        html = untap_publish.render_archive_index([])
+        self.assertIn(":root { color-scheme: light dark;", html)
+        self.assertIn("main { width: min(900px, 100%);", html)
+        self.assertIn('class="report-list"', html)
+        self.assertIn("border-radius: 14px", html)
+        self.assertIn("color: LinkText", html)
+        self.assertIn("@media (max-width: 520px)", html)
+
 
 class PublishFilesystemTests(unittest.TestCase):
     def _archive(self, root: Path) -> Path:
