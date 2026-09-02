@@ -1,5 +1,15 @@
 # HTML report changelog
 
+## v83
+
+- Merges confirmed and ambiguous top-level report cards into one Results list sorted by rating.
+- Confirmed cards sort by their own Untappd rating.
+- Ambiguous cards sort by the rating of the highest match-score candidate, never by the highest-rated candidate.
+- Keeps the existing ambiguous badge, explanation, candidate cards, match-score ordering, and candidate metadata unchanged.
+- Places results without a usable sort rating after rated results.
+- Keeps style filtering, self-contained inline CSS/JavaScript, canonical links, and embedded summary metadata unchanged.
+- Adds no matcher, persistence, network, publishing, or archive behavior.
+
 ## v82
 
 - Replaces native style-filter checkbox presentation with rounded selectable chips while keeping real checkbox inputs and existing filtering semantics.

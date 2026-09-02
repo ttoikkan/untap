@@ -1,6 +1,6 @@
-# Untap v82
+# Untap v83
 
-Untap v82 builds directly on the validated v81 archive-replacement baseline. It replaces the browser-native style-filter checkbox presentation with selectable filter chips that fit the existing report design while preserving real checkbox semantics, keyboard focus, reduced-motion support, and all v80 filtering behavior. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, publishing, smoke behavior, pacing, and performance are unchanged.
+Untap v83 builds directly on the validated v82 report-filter baseline. It places confirmed and ambiguous top-level report results in one rating-sorted list while preserving the existing ambiguous-card presentation and match-score candidate ordering. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, publishing, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -15,7 +15,7 @@ python3 untap.py --menu menu10.txt --html --report-title "September Bottle Share
 
 Untap still writes its normal `results.csv` and terminal summary. With `--html`, it also writes `results.html`. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
 
-Confirmed beers are sorted from highest Untappd rating to lowest. Every confirmed beer name links to its canonical Untappd beer page. The **Needs review** section keeps each uncertain result grouped separately; ambiguity candidates are sorted by match score, not beer rating, and each available candidate beer name links to its own canonical Untappd page.
+Confirmed and ambiguous results now share one **Results** list sorted from highest report rating to lowest. A confirmed result uses its own Untappd rating. An ambiguous result uses the Untappd rating of its highest match-score candidate; a lower-scoring candidate never changes the result's list position even if that candidate has a higher beer rating. The ambiguous card itself is unchanged, and its candidates remain ordered by match score rather than rating. Results without a usable sort rating appear after rated results. Canonical Untappd beer links remain unchanged.
 
 v80 derives broad style groups only from canonical Untappd `type_name` values actually present in the report. The group is the leading component before Untappd's structural `" - "` subtype separator; a style without that separator remains its own group. No style taxonomy or predefined group list exists in Untap. v82 presents those same case-insensitively sorted, checked-by-default filters as selectable chips with a clear selected checkmark, hover treatment, and keyboard focus state. Unselecting a group immediately hides beer cards in that family; selecting it again restores them. Detailed Untappd styles remain visible on the beer cards.
 
@@ -110,4 +110,4 @@ python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
 ```
 
-The deterministic v82 suite contains 136 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+The deterministic v83 suite contains 137 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.

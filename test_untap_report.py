@@ -68,15 +68,24 @@ class HtmlReportTests(unittest.TestCase):
         html = untap_report.render_html_report(self._results())
         self.assertLess(html.index("High Rated"), html.index("Low Rated"))
 
+    def test_ambiguous_result_is_sorted_by_top_match_rating_not_highest_candidate_rating(self):
+        html = untap_report.render_html_report(self._results())
+        high = html.index(">High Rated</a>")
+        ambiguous = html.index("Ambiguous Beer")
+        low = html.index(">Low Rated</a>")
+        self.assertLess(high, ambiguous)
+        self.assertLess(ambiguous, low)
+        self.assertNotIn('id="review-heading"', html)
+        self.assertIn('id="results-heading">Results</h2>', html)
+
     def test_confirmed_beer_names_link_to_canonical_untappd_pages(self):
         html = untap_report.render_html_report(self._results())
         self.assertIn('href="https://untappd.com/b/brewery-a-high-rated/1"', html)
         self.assertIn(">High Rated</a>", html)
 
-    def test_needs_review_candidates_are_sorted_by_match_score_and_linked(self):
+    def test_ambiguous_candidates_are_sorted_by_match_score_and_linked(self):
         html = untap_report.render_html_report(self._results())
-        review_start = html.index("Needs review")
-        review_html = html[review_start:]
+        review_html = html[html.index("Ambiguous Beer"):]
         self.assertLess(review_html.index("Right Variant"), review_html.index("Wrong Variant"))
         self.assertIn('href="https://untappd.com/b/brewery-c-right/3"', review_html)
         self.assertIn("Match 1.000", review_html)
@@ -171,7 +180,7 @@ class HtmlReportTests(unittest.TestCase):
 
     def test_review_candidate_displays_detailed_untappd_style(self):
         html = untap_report.render_html_report(self._results())
-        review_html = html[html.index("Needs review"):]
+        review_html = html[html.index("Ambiguous Beer"):]
         self.assertIn("Stout - Imperial / Double", review_html)
 
     def test_inline_javascript_filters_cards_without_external_dependency(self):

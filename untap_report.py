@@ -114,18 +114,6 @@ def _linked_name(name: Any, url: Any) -> str:
     )
 
 
-def _confirmed_results(results: Sequence[MatchResult]) -> List[MatchResult]:
-    confirmed = [result for result in results if result.get("status") == "ok"]
-    confirmed.sort(
-        key=lambda result: (
-            result.get("rating") is not None,
-            float(result.get("rating") or 0),
-        ),
-        reverse=True,
-    )
-    return confirmed
-
-
 def _review_candidates(result: MatchResult) -> List[AlternativeRecord]:
     raw = result.get("same_abv_variants") or result.get("alternatives") or []
     candidates = list(raw)
@@ -136,6 +124,38 @@ def _review_candidates(result: MatchResult) -> List[AlternativeRecord]:
         )
     )
     return candidates[:10]
+
+
+def _rating_value(value: Any) -> Optional[float]:
+    if value in (None, ""):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _result_sort_rating(result: MatchResult) -> Optional[float]:
+    """Return the rating used only to position one top-level report result."""
+    if result.get("status") == "ok":
+        return _rating_value(result.get("rating"))
+
+    candidates = _review_candidates(result)
+    if not candidates:
+        return None
+    return _rating_value(candidates[0].get("rating"))
+
+
+def _sorted_report_results(results: Sequence[MatchResult]) -> List[MatchResult]:
+    ordered = list(results)
+    ordered.sort(
+        key=lambda result: (
+            _result_sort_rating(result) is not None,
+            _result_sort_rating(result) or 0.0,
+        ),
+        reverse=True,
+    )
+    return ordered
 
 
 def _meta_parts(parts: Iterable[Any]) -> str:
@@ -151,30 +171,32 @@ def render_html_report(
     """Return one self-contained responsive HTML report."""
     clean_title = title.strip() or DEFAULT_REPORT_TITLE
     generated_date = report_date or date.today().isoformat()
-    confirmed = _confirmed_results(results)
+    confirmed = [result for result in results if result.get("status") == "ok"]
     needs_review = [result for result in results if result.get("status") != "ok"]
+    ordered_results = _sorted_report_results(results)
     style_groups = _style_groups(results)
 
-    confirmed_cards: List[str] = []
-    for result in confirmed:
-        linked_name = _linked_name(result.get("beer"), result.get("url"))
-        metadata = _meta_parts(
-            [
-                result.get("brewery") or "Unknown brewery",
-                _format_abv(result.get("abv")),
-                result.get("type_name"),
-            ]
-        )
-        confirmed_cards.append(
+    result_cards: List[str] = []
+    for result in ordered_results:
+        if result.get("status") == "ok":
+            linked_name = _linked_name(result.get("beer"), result.get("url"))
+            metadata = _meta_parts(
+                [
+                    result.get("brewery") or "Unknown brewery",
+                    _format_abv(result.get("abv")),
+                    result.get("type_name"),
+                ]
+            )
+            result_cards.append(
             """
-            <li class="beer-card"{style_attr}>
+            <article class="beer-card"{style_attr}>
               <div class="rating-badge">{rating}</div>
               <div class="beer-content">
                 <h3>{name}</h3>
                 <p class="meta">{metadata}</p>
                 <p class="ratings-count">{ratings} ratings</p>
               </div>
-            </li>
+            </article>
             """.format(
                 rating=_format_rating(result.get("rating")),
                 name=linked_name,
@@ -182,10 +204,9 @@ def render_html_report(
                 ratings=_format_count(result.get("ratings")),
                 style_attr=_style_data_attribute(result.get("type_name")),
             )
-        )
+            )
+            continue
 
-    review_groups: List[str] = []
-    for result in needs_review:
         status = str(result.get("status") or "unknown").replace("_", " ").title()
         query = escape(str(result.get("query") or result.get("input_beer") or "Untap result"))
         reason = escape(str(result.get("reason") or "Review required"))
@@ -231,7 +252,7 @@ def render_html_report(
             )
 
         candidates_html = "".join(candidate_cards) or '<p class="empty">No linked candidate was available.</p>'
-        review_groups.append(
+        result_cards.append(
             """
             <article class="review-group">
               <div class="review-heading">
@@ -244,8 +265,7 @@ def render_html_report(
             """.format(status=escape(status), query=query, reason=reason, candidates=candidates_html)
         )
 
-    confirmed_html = "".join(confirmed_cards) or '<p class="empty">No confirmed beers.</p>'
-    review_html = "".join(review_groups) or '<p class="empty">Nothing needs review.</p>'
+    results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'
 
     filter_controls = []
     for index, group in enumerate(style_groups):
@@ -302,7 +322,7 @@ def render_html_report(
     .style-chip:hover span {{ border-color: LinkText; }}
     .style-chip input:focus-visible + span {{ outline: 3px solid LinkText; outline-offset: 3px; }}
     [hidden] {{ display: none !important; }}
-    .beer-list, .candidate-list {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }}
+    .results-list, .candidate-list {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }}
     .beer-card, .candidate-card, .review-group {{ border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 14px; background: color-mix(in srgb, Canvas 94%, CanvasText 6%); }}
     .beer-card {{ display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px; align-items: start; }}
     .rating-badge {{ font-size: 1.35rem; font-weight: 750; font-variant-numeric: tabular-nums; }}
@@ -336,14 +356,9 @@ def render_html_report(
 
     {style_filters}
 
-    <section aria-labelledby="confirmed-heading">
-      <h2 id="confirmed-heading">Confirmed</h2>
-      <ol class="beer-list">{confirmed}</ol>
-    </section>
-
-    <section aria-labelledby="review-heading">
-      <h2 id="review-heading">Needs review</h2>
-      {review}
+    <section aria-labelledby="results-heading">
+      <h2 id="results-heading">Results</h2>
+      <div class="results-list">{results_html}</div>
     </section>
   </main>
   <script>
@@ -385,8 +400,7 @@ def render_html_report(
         confirmed_count=len(confirmed),
         review_count=len(needs_review),
         style_filters=style_filters_html,
-        confirmed=confirmed_html,
-        review=review_html,
+        results_html=results_html,
     )
 
 

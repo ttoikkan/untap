@@ -1,3 +1,14 @@
+# v83
+
+- Built directly from the validated v82 baseline.
+- Replaces separate Confirmed and Needs review report sections with one rating-sorted Results list.
+- Confirmed results use their own Untappd rating as the top-level sort value.
+- Ambiguous results use the Untappd rating of their highest match-score candidate as the top-level sort value; lower-scoring candidates never influence placement even when they have a higher beer rating.
+- Preserves the existing ambiguous-card presentation, ambiguity explanations, candidate match-score ordering, candidate details, style filtering, canonical links, and embedded confirmed/review metadata counts.
+- Results without a usable sort rating appear after rated results.
+- No matcher, parser, ambiguity decision, ABV, transport, CSV/resume, publisher, archive identity, smoke, pacing, concurrency, or rate-limit behavior changes.
+- Deterministic suite: 137 tests in this release artifact.
+
 # v82
 
 - Built directly from the validated v81 baseline.
