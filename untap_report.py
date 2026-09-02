@@ -251,9 +251,10 @@ def render_html_report(
     for index, group in enumerate(style_groups):
         key = group.casefold()
         filter_controls.append(
-            '<label class="style-option" for="style-filter-{index}">'
+            '<label class="style-chip" for="style-filter-{index}">'
             '<input id="style-filter-{index}" type="checkbox" '
-            'data-style-filter value="{key}" checked> {label}</label>'.format(
+            'data-style-filter value="{key}" checked>'
+            '<span>{label}</span></label>'.format(
                 index=index,
                 key=escape(key, quote=True),
                 label=escape(group),
@@ -263,8 +264,9 @@ def render_html_report(
     if filter_controls:
         style_filters_html = (
             '<fieldset class="style-filters"><legend>Styles</legend>'
+            '<div class="style-chips">'
             + "".join(filter_controls)
-            + '</fieldset>'
+            + '</div></fieldset>'
         )
 
     return """<!doctype html>
@@ -288,10 +290,17 @@ def render_html_report(
     h2 {{ margin-top: 32px; }}
     h3, h4, p {{ margin-top: 0; }}
     .summary {{ margin: 0; opacity: .72; }}
-    .style-filters {{ margin: 22px 0 8px; padding: 12px 14px 14px; border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 12px; }}
-    .style-filters legend {{ padding: 0 5px; font-weight: 700; }}
-    .style-option {{ display: inline-flex; gap: 6px; align-items: center; margin: 4px 16px 4px 0; cursor: pointer; }}
-    .style-option input {{ margin: 0; }}
+    .style-filters {{ margin: 22px 0 8px; padding: 14px 16px 16px; border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 16px; }}
+    .style-filters legend {{ padding: 0 7px; font-size: 1.08rem; font-weight: 700; }}
+    .style-chips {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+    .style-chip {{ position: relative; cursor: pointer; }}
+    .style-chip input {{ position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }}
+    .style-chip span {{ display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1px solid color-mix(in srgb, CanvasText 28%, transparent); border-radius: 999px; background: color-mix(in srgb, Canvas 92%, CanvasText 8%); color: color-mix(in srgb, CanvasText 76%, Canvas 24%); font-weight: 600; transition: background-color 150ms, border-color 150ms, color 150ms, box-shadow 150ms; }}
+    .style-chip span::before {{ content: "✓"; width: 0; margin-right: 0; overflow: hidden; color: LinkText; font-size: 1.08em; transition: width 150ms, margin-right 150ms; }}
+    .style-chip input:checked + span {{ border-color: LinkText; background: color-mix(in srgb, Canvas 88%, LinkText 12%); color: CanvasText; }}
+    .style-chip input:checked + span::before {{ width: 1em; margin-right: 8px; }}
+    .style-chip:hover span {{ border-color: LinkText; }}
+    .style-chip input:focus-visible + span {{ outline: 3px solid LinkText; outline-offset: 3px; }}
     [hidden] {{ display: none !important; }}
     .beer-list, .candidate-list {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }}
     .beer-card, .candidate-card, .review-group {{ border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 14px; background: color-mix(in srgb, Canvas 94%, CanvasText 6%); }}
@@ -308,6 +317,9 @@ def render_html_report(
     .candidate-card {{ display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 12px; }}
     .candidate-score {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
     .empty {{ opacity: .65; font-style: italic; }}
+    @media (prefers-reduced-motion: reduce) {{
+      .style-chip span, .style-chip span::before {{ transition: none; }}
+    }}
     @media (max-width: 520px) {{
       main {{ padding: 18px 12px 36px; }}
       .beer-card {{ grid-template-columns: 54px 1fr; }}

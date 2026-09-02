@@ -129,9 +129,9 @@ class HtmlReportTests(unittest.TestCase):
         filter_start = html.index('<fieldset class="style-filters">')
         filter_end = html.index('</fieldset>', filter_start)
         filters = html[filter_start:filter_end]
-        self.assertLess(filters.index("checked> IPA</label>"), filters.index("checked> Lager</label>"))
-        self.assertLess(filters.index("checked> Lager</label>"), filters.index("checked> Sour</label>"))
-        self.assertLess(filters.index("checked> Sour</label>"), filters.index("checked> Stout</label>"))
+        self.assertLess(filters.index("checked><span>IPA</span></label>"), filters.index("checked><span>Lager</span></label>"))
+        self.assertLess(filters.index("checked><span>Lager</span></label>"), filters.index("checked><span>Sour</span></label>"))
+        self.assertLess(filters.index("checked><span>Sour</span></label>"), filters.index("checked><span>Stout</span></label>"))
         self.assertEqual(filters.count('data-style-filter'), 4)
         self.assertEqual(filters.count(' checked'), 4)
         self.assertNotIn("Pilsner", filters)
@@ -147,9 +147,21 @@ class HtmlReportTests(unittest.TestCase):
             {"status": "ok", "beer": "Wine Beer", "rating": 4.0, "type_name": "Grape Ale - Italian"},
         ]
         html = untap_report.render_html_report(results)
-        self.assertIn("checked> Grape Ale</label>", html)
-        self.assertIn("checked> Historical Beer</label>", html)
-        self.assertNotIn("checked> Other</label>", html)
+        self.assertIn("checked><span>Grape Ale</span></label>", html)
+        self.assertIn("checked><span>Historical Beer</span></label>", html)
+        self.assertNotIn("checked><span>Other</span></label>", html)
+
+    def test_style_filters_render_as_accessible_selectable_chips(self):
+        html = untap_report.render_html_report(self._results())
+        self.assertIn('<div class="style-chips">', html)
+        self.assertIn('class="style-chip"', html)
+        self.assertIn('type="checkbox"', html)
+        self.assertIn('checked><span>IPA</span></label>', html)
+        self.assertIn('.style-chip input:checked + span', html)
+        self.assertIn('.style-chip:hover span', html)
+        self.assertIn('.style-chip input:focus-visible + span', html)
+        self.assertIn('@media (prefers-reduced-motion: reduce)', html)
+        self.assertNotIn('class="style-option"', html)
 
     def test_beer_cards_carry_normalized_style_group_keys(self):
         html = untap_report.render_html_report(self._results())

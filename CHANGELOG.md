@@ -1,3 +1,14 @@
+# v82
+
+- Built directly from the validated v81 baseline.
+- Replaces browser-native style-filter checkbox presentation with rounded selectable chips in generated HTML reports.
+- Keeps semantic checkbox inputs underneath the chip labels, preserving keyboard operation and the existing dependency-free filtering JavaScript.
+- Selected chips use the report link accent for border, tint, and checkmark; unselected chips remain visible with muted styling and the entire chip is clickable.
+- Adds hover and `:focus-visible` treatment plus a `prefers-reduced-motion` fallback for chip transitions.
+- Preserves data-derived style grouping, alphabetical ordering, checked-by-default state, detailed Untappd styles, and Needs review filtering exactly as in v80/v81.
+- No matcher, parser, ambiguity, ABV, transport, CSV/resume, publisher, archive identity, smoke, pacing, concurrency, or rate-limit behavior changes.
+- Deterministic suite: 136 tests in this release artifact.
+
 # v81
 
 - Built directly from the validated v80 baseline.

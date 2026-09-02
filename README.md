@@ -1,6 +1,6 @@
-# Untap v81
+# Untap v82
 
-Untap v81 builds directly on the validated v80 style-filtering baseline. It adds explicit, opt-in replacement of an already archived report while preserving the publisher's fail-closed default. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, HTML style filtering, Git/GitHub behavior, smoke behavior, pacing, and performance are unchanged.
+Untap v82 builds directly on the validated v81 archive-replacement baseline. It replaces the browser-native style-filter checkbox presentation with selectable filter chips that fit the existing report design while preserving real checkbox semantics, keyboard focus, reduced-motion support, and all v80 filtering behavior. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume, publishing, smoke behavior, pacing, and performance are unchanged.
 
 ## Mobile-friendly HTML results
 
@@ -17,7 +17,7 @@ Untap still writes its normal `results.csv` and terminal summary. With `--html`,
 
 Confirmed beers are sorted from highest Untappd rating to lowest. Every confirmed beer name links to its canonical Untappd beer page. The **Needs review** section keeps each uncertain result grouped separately; ambiguity candidates are sorted by match score, not beer rating, and each available candidate beer name links to its own canonical Untappd page.
 
-v80 derives broad style groups only from canonical Untappd `type_name` values actually present in the report. The group is the leading component before Untappd's structural `" - "` subtype separator; a style without that separator remains its own group. No style taxonomy or predefined group list exists in Untap. Present groups are shown as checked boxes in case-insensitive alphabetical order. Unchecking a group immediately hides beer cards in that family; rechecking restores them. Detailed Untappd styles remain visible on the beer cards.
+v80 derives broad style groups only from canonical Untappd `type_name` values actually present in the report. The group is the leading component before Untappd's structural `" - "` subtype separator; a style without that separator remains its own group. No style taxonomy or predefined group list exists in Untap. v82 presents those same case-insensitively sorted, checked-by-default filters as selectable chips with a clear selected checkmark, hover treatment, and keyboard focus state. Unselecting a group immediately hides beer cards in that family; selecting it again restores them. Detailed Untappd styles remain visible on the beer cards.
 
 The report is generated only from already completed `MatchResult` data. It makes no additional Untappd requests and has no parsing, matching, browser, Algolia, or CSV responsibility. v78 also embeds the report title, generation date, total beer count, confirmed count, and needs-review count as simple HTML `<meta>` fields so a later archive publisher can index reports without understanding matcher internals.
 
@@ -110,4 +110,4 @@ python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
 ```
 
-The deterministic v81 suite contains 135 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+The deterministic v82 suite contains 136 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.

@@ -1,5 +1,15 @@
 # HTML report changelog
 
+## v82
+
+- Replaces native style-filter checkbox presentation with rounded selectable chips while keeping real checkbox inputs and existing filtering semantics.
+- Uses the report's existing `Canvas`, `CanvasText`, and `LinkText` system colors so the controls continue to blend with the self-contained light/dark-aware report styling.
+- Selected chips show a checkmark and accent border/tint; unselected chips remain muted and fully clickable.
+- Adds hover and keyboard `:focus-visible` states with a larger touch target than the former native checkbox labels.
+- Disables chip transitions when `prefers-reduced-motion: reduce` is active.
+- Leaves style-group derivation, filter ordering, checked-by-default behavior, card metadata, Needs review behavior, and inline JavaScript filtering unchanged.
+- Adds no external CSS, JavaScript, assets, network requests, persistence, or publishing behavior.
+
 ## v80
 
 - Adds inline checkbox filtering by broad style group while preserving one self-contained static HTML file.
