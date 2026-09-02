@@ -1,3 +1,12 @@
+# v85
+
+- Replaces the potentially misleading visible summary phrase `need review` with `ambiguous` in HTML reports and archive index cards.
+- Changes the rare missing-reason fallback from `Review required` to `Match is ambiguous`.
+- Preserves internal `review_count` fields, `untap-review-count` metadata, CSS classes, CSV contracts, and historical changelog terminology for compatibility and accuracy.
+- Updates presentation regression coverage for the new wording.
+- Deterministic suite: 141 tests.
+- No matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume semantics, publishing safety, smoke behavior, pacing, concurrency, or performance-policy changes.
+
 # v84
 
 - Harmonizes the generated archive `index.html` with the reports' responsive, adaptive light/dark visual language while keeping it self-contained and JavaScript-free.

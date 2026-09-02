@@ -88,7 +88,7 @@ class ArchiveRenderingTests(unittest.TestCase):
         )
         html = untap_publish.render_archive_index([old, new])
         self.assertLess(html.index("&lt;Newest &quot;Report&quot;&gt;"), html.index("Older &amp; Good"))
-        self.assertIn("September 1, 2026 · 5 beers · 4 confirmed · 1 need review", html)
+        self.assertIn("September 1, 2026 · 5 beers · 4 confirmed · 1 ambiguous", html)
         self.assertIn('href="reports/2026-09-01-newest-report.html"', html)
 
     def test_index_tie_order_is_deterministic(self):

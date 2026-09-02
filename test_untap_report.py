@@ -117,6 +117,13 @@ class HtmlReportTests(unittest.TestCase):
         self.assertIn('name="untap-confirmed-count" content="2"', html)
         self.assertIn('name="untap-review-count" content="1"', html)
 
+    def test_missing_ambiguity_reason_uses_clear_fallback(self):
+        ambiguous = dict(self._results()[2])
+        ambiguous.pop("reason")
+        html = untap_report.render_html_report([ambiguous])
+        self.assertIn("Match is ambiguous", html)
+        self.assertNotIn("Review required", html)
+
     def test_report_is_self_contained_and_mobile_ready(self):
         html = untap_report.render_html_report(self._results())
         self.assertIn('name="viewport"', html)
@@ -226,7 +233,7 @@ class HtmlReportTests(unittest.TestCase):
             with open(path, "r", encoding="utf-8") as saved:
                 html = saved.read()
             self.assertIn("Untap Results", html)
-            self.assertIn("3 beers · 2 confirmed · 1 need review", html)
+            self.assertIn("3 beers · 2 confirmed · 1 ambiguous", html)
         finally:
             os.unlink(path)
 

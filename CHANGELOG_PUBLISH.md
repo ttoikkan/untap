@@ -1,5 +1,10 @@
 # Archive publisher changelog
 
+## v85
+
+- Labels unresolved results as `ambiguous` in visible archive-card summaries instead of `need review`.
+- Keeps the `untap-review-count` metadata contract, validation, ordering, replacement safety, and filesystem behavior unchanged.
+
 ## v84
 
 - Harmonizes the generated archive index with the HTML reports' adaptive light/dark palette, responsive 900px content width, typography, link treatment, borders, rounded cards, and spacing rhythm.

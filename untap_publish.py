@@ -178,7 +178,7 @@ def render_archive_index(reports: Iterable[ArchiveReport]) -> str:
                 display_date,
                 _plural(metadata.total_beers, "beer"),
                 f"{metadata.confirmed_count} confirmed",
-                f"{metadata.review_count} need review",
+                f"{metadata.review_count} ambiguous",
             )
         )
         cards.append(

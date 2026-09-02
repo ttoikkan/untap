@@ -1,6 +1,6 @@
-# Untap v84
+# Untap v85
 
-Untap v84 builds directly on the validated v83 unified-results baseline. It harmonizes the generated archive index with the reports' responsive light/dark visual language, removes the legacy extra margin below ambiguous cards, and treats matcher ambiguity reasons as intentional sentence-cased user-facing prose across terminal, CSV, and HTML output. Matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume semantics, publishing safety, smoke behavior, pacing, and performance are unchanged.
+Untap v85 builds directly on the validated v84 presentation baseline. It labels unresolved results as **ambiguous** in visible HTML report and archive summaries, avoiding possible confusion between match ambiguity and Untappd user reviews. Internal metadata and compatibility contracts remain unchanged, as do matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume semantics, publishing safety, smoke behavior, pacing, and performance.
 
 ## Mobile-friendly HTML results
 

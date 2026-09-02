@@ -1,5 +1,11 @@
 # HTML report changelog
 
+## v85
+
+- Labels unresolved results as `ambiguous` in the visible report summary instead of the potentially misleading phrase `need review`.
+- Uses `Match is ambiguous` when an unresolved result unexpectedly has no explanatory reason.
+- Keeps embedded review-count metadata, result structure, styling, filtering, sorting, and matching behavior unchanged.
+
 ## v84
 
 - Removes the obsolete `margin-bottom` from top-level ambiguous cards; the unified Results list now supplies the same spacing between confirmed and ambiguous cards.

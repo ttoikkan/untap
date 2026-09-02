@@ -209,7 +209,7 @@ def render_html_report(
 
         status = str(result.get("status") or "unknown").replace("_", " ").title()
         query = escape(str(result.get("query") or result.get("input_beer") or "Untap result"))
-        reason = escape(str(result.get("reason") or "Review required"))
+        reason = escape(str(result.get("reason") or "Match is ambiguous"))
         candidate_cards: List[str] = []
 
         for candidate in _review_candidates(result):
@@ -351,7 +351,7 @@ def render_html_report(
   <main>
     <header>
       <h1>{heading}</h1>
-      <p class="summary">{total} beers · {confirmed_count} confirmed · {review_count} need review</p>
+      <p class="summary">{total} beers · {confirmed_count} confirmed · {review_count} ambiguous</p>
     </header>
 
     {style_filters}
