@@ -1,3 +1,11 @@
+# v86
+
+- Adds one brewery-qualified leading-`On` recovery query after a zero-hit primary search, preserving original-input scoring and strict recovered identity/ABV checks.
+- Adds guarded exact-base-name preference over recognized flavor/process extensions; preserves scores and batch/year, unknown-qualifier, and incomplete-search uncertainty.
+- Splits visible ambiguous/failed/other unresolved counts, with optional backward-compatible archive metadata. Legacy archive entries are labeled unresolved.
+- Adds offline matcher orchestration and report metadata regression tests; four-menu manual validation remains a release gate.
+- Defers M-43 style-suffix normalization. No parser, CSV/resume schema, transport authority, rate-limit, or publication-safety changes.
+
 # v85
 
 - Replaces the potentially misleading visible summary phrase `need review` with `ambiguous` in HTML reports and archive index cards.

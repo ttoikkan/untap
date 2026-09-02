@@ -173,6 +173,14 @@ def render_html_report(
     generated_date = report_date or date.today().isoformat()
     confirmed = [result for result in results if result.get("status") == "ok"]
     needs_review = [result for result in results if result.get("status") != "ok"]
+    ambiguous_count = sum(result.get("status") == "ambiguous" for result in results)
+    failed_count = sum(result.get("status") == "failed" for result in results)
+    other_count = len(needs_review) - ambiguous_count - failed_count
+    status_summary = f"{len(results)} beers · {len(confirmed)} confirmed · {ambiguous_count} ambiguous"
+    if failed_count:
+        status_summary += f" · {failed_count} failed"
+    if other_count:
+        status_summary += f" · {other_count} unresolved"
     ordered_results = _sorted_report_results(results)
     style_groups = _style_groups(results)
 
@@ -209,7 +217,8 @@ def render_html_report(
 
         status = str(result.get("status") or "unknown").replace("_", " ").title()
         query = escape(str(result.get("query") or result.get("input_beer") or "Untap result"))
-        reason = escape(str(result.get("reason") or "Match is ambiguous"))
+        fallback_reason = "Match is ambiguous" if result.get("status") == "ambiguous" else "Match unresolved"
+        reason = escape(str(result.get("reason") or fallback_reason))
         candidate_cards: List[str] = []
 
         for candidate in _review_candidates(result):
@@ -299,6 +308,8 @@ def render_html_report(
   <meta name="untap-total-beers" content="{total}">
   <meta name="untap-confirmed-count" content="{confirmed_count}">
   <meta name="untap-review-count" content="{review_count}">
+  <meta name="untap-ambiguous-count" content="{ambiguous_count}">
+  <meta name="untap-failed-count" content="{failed_count}">
   <title>{title}</title>
   <style>
     :root {{ color-scheme: light dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }}
@@ -351,7 +362,7 @@ def render_html_report(
   <main>
     <header>
       <h1>{heading}</h1>
-      <p class="summary">{total} beers · {confirmed_count} confirmed · {review_count} ambiguous</p>
+      <p class="summary">{status_summary}</p>
     </header>
 
     {style_filters}
@@ -399,6 +410,9 @@ def render_html_report(
         total=len(results),
         confirmed_count=len(confirmed),
         review_count=len(needs_review),
+        ambiguous_count=ambiguous_count,
+        failed_count=failed_count,
+        status_summary=status_summary,
         style_filters=style_filters_html,
         results_html=results_html,
     )

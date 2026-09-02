@@ -1,5 +1,11 @@
 # Archive publisher changelog
 
+## v86
+
+- Uses validated optional ambiguous/failed counts in archive summaries; residual statuses remain unresolved.
+- Accepts legacy metadata unchanged and labels its non-confirmed aggregate unresolved rather than guessing a breakdown.
+- Rejects partial, negative, or inconsistent optional status counts before archive mutation.
+
 ## v85
 
 - Labels unresolved results as `ambiguous` in visible archive-card summaries instead of `need review`.

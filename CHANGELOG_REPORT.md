@@ -1,5 +1,11 @@
 # HTML report changelog
 
+## v86
+
+- Corrects the v85 aggregate label: failed and other unresolved results are no longer counted as ambiguous in visible summaries.
+- Adds optional ambiguous/failed metadata while retaining the legacy aggregate review count.
+- Uses a neutral missing-reason fallback for non-ambiguous statuses.
+
 ## v85
 
 - Labels unresolved results as `ambiguous` in the visible report summary instead of the potentially misleading phrase `need review`.

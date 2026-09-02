@@ -12,6 +12,12 @@
 
 # Matcher changelog
 
+## v86
+
+- Adds bounded zero-hit leading-`On` discovery recovery; returned identity must match the recovered name, brewery, and ABV, with scoring against original input.
+- Adds guarded exact-base acceptance over a limited flavor/process suffix vocabulary without altering scores. Unknown, batch/year, duplicate, and incomplete-search cases remain uncertain.
+- Keeps 429 fail-fast behavior and defers style-suffix normalization.
+
 ## v84
 
 - Sentence-cases the existing user-facing ambiguity reason strings at their source, including near-tie, family, same-ABV, and brewery-like ambiguity wording.

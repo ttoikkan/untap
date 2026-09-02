@@ -1,6 +1,6 @@
-# Untap v85
+# Untap v86
 
-Untap v85 builds directly on the validated v84 presentation baseline. It labels unresolved results as **ambiguous** in visible HTML report and archive summaries, avoiding possible confusion between match ambiguity and Untappd user reviews. Internal metadata and compatibility contracts remain unchanged, as do matching decisions, parser behavior, ABV handling, Algolia transport, CSV/resume semantics, publishing safety, smoke behavior, pacing, and performance.
+Untap v86 adds bounded zero-hit search recovery for an extra leading `On` and guarded exact-base-name acceptance over recognized flavor/process variants. Candidate scores are unchanged; batch/year and unknown qualifiers still preserve ambiguity. Report and archive summaries now distinguish ambiguous, failed, and other unresolved results. See [v86 manual regression checks](V86_VALIDATION.md) before release.
 
 ## Mobile-friendly HTML results
 

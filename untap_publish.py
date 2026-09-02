@@ -43,6 +43,8 @@ class ReportMetadata:
     total_beers: int
     confirmed_count: int
     review_count: int
+    ambiguous_count: Optional[int] = None
+    failed_count: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -61,7 +63,7 @@ class _MetaParser(HTMLParser):
             return
         attr_map = {key.casefold(): value for key, value in attrs}
         name = (attr_map.get("name") or "").strip()
-        if name not in REQUIRED_META_NAMES:
+        if name not in REQUIRED_META_NAMES + ("untap-ambiguous-count", "untap-failed-count"):
             return
         content = attr_map.get("content")
         if content is None:
@@ -117,12 +119,23 @@ def read_report_metadata(path: Path) -> ReportMetadata:
             "inconsistent report counts: total must equal confirmed plus needs-review"
         )
 
+    split_names = ("untap-ambiguous-count", "untap-failed-count")
+    split_counts = None
+    if any(name in parser.values for name in split_names):
+        if not all(name in parser.values for name in split_names):
+            raise PublishError("incomplete report status breakdown")
+        split_counts = [_parse_nonnegative_int(name, parser.values[name]) for name in split_names]
+        if sum(split_counts) > review:
+            raise PublishError("inconsistent report status breakdown")
+
     return ReportMetadata(
         title=title,
         report_date=report_date,
         total_beers=total,
         confirmed_count=confirmed,
         review_count=review,
+        ambiguous_count=split_counts[0] if split_counts is not None else None,
+        failed_count=split_counts[1] if split_counts is not None else None,
     )
 
 
@@ -173,12 +186,21 @@ def render_archive_index(reports: Iterable[ArchiveReport]) -> str:
         parsed_date = date.fromisoformat(metadata.report_date)
         display_date = f"{parsed_date.strftime('%B')} {parsed_date.day}, {parsed_date.year}"
         href = "reports/" + report.filename
+        if metadata.ambiguous_count is None or metadata.failed_count is None:
+            status_summary = f"{metadata.review_count} unresolved"
+        else:
+            status_summary = f"{metadata.ambiguous_count} ambiguous"
+            if metadata.failed_count:
+                status_summary += f" · {metadata.failed_count} failed"
+            other = metadata.review_count - metadata.ambiguous_count - metadata.failed_count
+            if other:
+                status_summary += f" · {other} unresolved"
         summary = " · ".join(
             (
                 display_date,
                 _plural(metadata.total_beers, "beer"),
                 f"{metadata.confirmed_count} confirmed",
-                f"{metadata.review_count} ambiguous",
+                status_summary,
             )
         )
         cards.append(

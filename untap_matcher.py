@@ -1500,6 +1500,50 @@ def trailing_relaxation_search_queries(expected_beer, expected_brewery):
     ]
 
 
+def leading_word_recovery(expected_beer, expected_brewery):
+    """One discovery-only retry for an extra 'On' before a substantial name."""
+    if not expected_beer or not expected_brewery:
+        return None
+    words = expected_beer.split()
+    if len(words) < 5 or words[0].casefold() != "on":
+        return None
+    return final_query_cleanup(" ".join(words[1:]))
+
+
+def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_abv,
+                         min_score=DEFAULT_MIN_SCORE):
+    """Prefer an exact base only over recognized flavor/process extensions.
+
+    Unknown, batch/year, duplicate exact-name and unrelated identities fail
+    closed. This is an acceptance rule, never a score or popularity bonus.
+    """
+    if len(candidates) < 2 or not expected_beer or not expected_brewery or expected_abv is None:
+        return None
+    target = normalize(expected_beer)
+    best = candidates[0]
+    if normalize(best.get("name") or "") != target or best.get("score", 0) < min_score:
+        return None
+    brewery = _meaningful_brewery_words(expected_brewery)
+    flavors = {"peach", "cherry", "blueberry", "raspberry", "blackberry",
+               "strawberry", "marshmallow", "orange marmalade", "fluff strawberry"}
+    process_pattern = r"double dry hopped(?: (?:w|with) (?:centennial|citra|mosaic|simcoe|cascade|amarillo))?"
+    for index, candidate in enumerate(candidates):
+        if not brewery or _meaningful_brewery_words(candidate.get("brewery") or "") != brewery:
+            return None
+        abv = candidate.get("abv")
+        if abv is None or abs(float(abv) - expected_abv) > EXACT_ABV_EPSILON:
+            return None
+        if not index:
+            continue
+        name = normalize(candidate.get("name") or "")
+        if not name.startswith(target + " "):
+            return None
+        suffix = name[len(target) + 1:]
+        if suffix not in flavors and not re.fullmatch(process_pattern, suffix):
+            return None
+    return best
+
+
 def build_search_fallback_queries(
     original_query,
     expected_beer=None,
@@ -1545,6 +1589,13 @@ def build_search_fallback_queries(
     # token relaxation. A merely weak/nonzero search is not enough evidence
     # that the menu contains extra descriptive suffix text.
     if enable_trailing_relaxation:
+        recovered = leading_word_recovery(expected_beer, expected_brewery)
+        if recovered:
+            combined = final_query_cleanup(f"{normalized_brewery} {recovered}")
+            key = normalize(combined)
+            if key not in seen:
+                seen.add(key)
+                fallback_queries.append(combined)
         for relaxed_query in trailing_relaxation_search_queries(
             expected_beer, expected_brewery
         ):
@@ -3018,6 +3069,32 @@ def _search_one_impl(
 
         fallback_candidates = fallback.get("candidates") or []
 
+        recovered = leading_word_recovery(expected_beer, expected_brewery)
+        recovery_query = final_query_cleanup(
+            f"{normalize_brewery_for_search(expected_brewery)} {recovered}"
+        ) if recovered else None
+        if recovery_query and normalize(fallback_query) == normalize(recovery_query):
+            fallback_candidates = [
+                item for item in fallback_candidates
+                if normalize(item.get("name") or "") == normalize(recovered)
+                and _meaningful_brewery_words(item.get("brewery")) == _meaningful_brewery_words(expected_brewery)
+                and expected_abv is not None and item.get("abv") is not None
+                and abs(float(item["abv"]) - expected_abv) <= EXACT_ABV_EPSILON
+            ]
+            for item in fallback_candidates:
+                item["score"] = score_candidate(
+                    query, item["name"], item["text"],
+                    expected_beer=expected_beer, expected_brewery=expected_brewery,
+                    expected_abv=expected_abv,
+                )
+            fallback_candidates.sort(key=lambda item: -item["score"])
+            fallback["ambiguity_reason"] = detect_candidate_ambiguity(
+                fallback_candidates, expected_beer=expected_beer, expected_abv=expected_abv
+            )
+            fallback["weak_match"] = (
+                not fallback_candidates or fallback_candidates[0].get("score", 0) < min_score
+            )
+
         # v47: relaxed trailing-token searches are discovery-only. Require
         # brewery agreement and a returned beer name that is the leading/base
         # identity of the original menu beer before accepting the result set.
@@ -3146,6 +3223,7 @@ def _search_one_impl(
             ambiguity_reason = fallback.get("ambiguity_reason")
             expanded_candidates = fallback.get("expanded_candidates") or []
             expansion_diagnostics = fallback.get("expansion_diagnostics")
+            abv_sorted_diagnostics = fallback.get("abv_sorted_diagnostics")
             fallback_query_used = fallback_query
             # The winning candidate now comes from this fallback query, not
             # the original one -- use its initial Algolia page (if any) for
@@ -3164,6 +3242,7 @@ def _search_one_impl(
             ambiguity_reason = fallback.get("ambiguity_reason")
             expanded_candidates = fallback.get("expanded_candidates") or []
             expansion_diagnostics = fallback.get("expansion_diagnostics")
+            abv_sorted_diagnostics = fallback.get("abv_sorted_diagnostics")
             fallback_query_used = fallback_query
             primary_algolia_page = fallback.get("initial_algolia_page")
 
@@ -3188,7 +3267,20 @@ def _search_one_impl(
             "reason": "No matching beer found",
         }
 
-    same_abv_variants = same_abv_family_variants(
+    # Never override uncertainty from an incomplete expansion.
+    incomplete = any(
+        diagnostics and (diagnostics.get("capped") or diagnostics.get("errors")
+                         or diagnostics.get("ambiguity_early_stopped")
+                         or diagnostics.get("ambiguity_established"))
+        for diagnostics in (expansion_diagnostics, abv_sorted_diagnostics)
+    )
+    exact_base = None if incomplete else exact_base_candidate(
+        candidates, expected_beer, expected_brewery, expected_abv, min_score
+    )
+    if exact_base is not None:
+        ambiguity_reason = None
+
+    same_abv_variants = [] if exact_base is not None else same_abv_family_variants(
         candidates,
         expected_beer,
         expected_abv,
