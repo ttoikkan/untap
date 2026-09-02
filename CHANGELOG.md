@@ -1,5 +1,6 @@
 # v86
 
+- Excludes candidates differing from explicit menu ABV by at least the existing 1.0 percentage-point mismatch threshold before final acceptance/ambiguity; keeps rejection diagnostics and returns an explicit failed ABV-conflict result if none survive.
 - Adds one brewery-qualified leading-`On` recovery query after a zero-hit primary search, preserving original-input scoring and strict recovered identity/ABV checks.
 - Adds guarded exact-base-name preference over recognized flavor/process extensions; preserves scores and batch/year, unknown-qualifier, and incomplete-search uncertainty.
 - Splits visible ambiguous/failed/other unresolved counts, with optional backward-compatible archive metadata. Legacy archive entries are labeled unresolved.

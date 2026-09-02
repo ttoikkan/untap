@@ -14,6 +14,7 @@
 
 ## v86
 
+- Filters clear ABV conflicts after retrieval/recovery and before final matching decisions, so rejected candidates cannot appear in output alternatives or veto exact-base acceptance. Missing/nearby ABVs remain eligible; all-conflict outcomes are explicit and contain no proposed beer link.
 - Manual-regression follow-up: recognize a terminal `Beer Company`/`Beer Co.` designation only in exact-base brewery comparison; preserve shared normalization and candidate scores.
 - Debug output lists all exact-base candidates and explains acceptance or the first blocking guard.
 - Adds bounded zero-hit leading-`On` discovery recovery; returned identity must match the recovered name, brewery, and ABV, with scoring against original input.

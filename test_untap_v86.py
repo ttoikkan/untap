@@ -20,6 +20,62 @@ def candidate(name, brewery, abv, score=1.0, bid=1):
 
 
 class MatcherV86Tests(unittest.TestCase):
+    def test_full_twelve_candidate_pb_j_fixture(self):
+        names = ["PB&J Mixtape", "PB&J Mixtape: Peach", "PB&J Mixtape: Cherry",
+                 "PB&J Mixtape: Raspberry", "PB&J Mixtape: Blueberry",
+                 "PB&J Mixtape: Strawberry", "PB&J Mixtape: Blackberry",
+                 "PB&J Mixtape: Marshmallow", "PB&J Mixtape: Orange Marmalade",
+                 "PB&J Mixtape Fluff: Strawberry", "BA PB&J Mixtape", "Pb&j Mixtape: Grape"]
+        scores = [1., .9375, .9294, .9081, .9081, .9018, .9018, .8958, .8704, .8704, .5590, .53125]
+        abvs = [6.5] * 10 + [8.5, 5.0]
+        rows = [candidate(name, "Xül Beer Company", abvs[i], scores[i], i + 1)
+                for i, name in enumerate(names)]
+        before = copy.deepcopy(rows)
+        result, _ = self.run_search(rows, "PB&J Mixtape", "Xül", 6.5)
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["url"], rows[0]["url"])
+        self.assertEqual(result["score"], 1.)
+        self.assertEqual(rows, before)
+
+    def test_abv_filter_boundary_unknowns_order_and_debug(self):
+        abvs = [6.5, 7.49, 5.51, 7.5, 5.5, None, float("nan")]
+        rows = [candidate(f"Beer {i}", "Brewery", abv, .9, i) for i, abv in enumerate(abvs)]
+        output = io.StringIO()
+        with redirect_stdout(output):
+            kept = matcher._exclude_abv_conflicts(rows, 6.5, debug=True)
+        self.assertEqual([row["bid"] for row in kept], [0, 1, 2, 5, 6])
+        self.assertIn("Excluded: Beer 3 — 7.5% conflicts with menu 6.5%", output.getvalue())
+        self.assertIn("Excluded: Beer 4 — 5.5% conflicts with menu 6.5%", output.getvalue())
+        self.assertEqual(matcher._exclude_abv_conflicts(rows, None), rows)
+
+    def test_all_conflicting_candidates_report_explicit_conflict_without_links(self):
+        rows = [candidate("Some Beer", "Brewery", 8.5), candidate("Some Beer Peach", "Brewery", 5.0, .8, 2)]
+        # Simulate completed recovery: all retrieved candidates still conflict.
+        result, _ = self.run_search(rows, "Some Beer", "Brewery", 6.5,
+                                    fallback=lambda *a, **k: {"candidates": [], "weak_match": True})
+        self.assertEqual(result["status"], "failed")
+        self.assertIn("ABV conflict: all retrieved candidates", result["reason"])
+        for field in ["url", "match", "alternatives", "same_abv_variants"]:
+            self.assertNotIn(field, result)
+        self.assertNotIn("https://untappd.com/b/fixture", report.render_html_report([result]))
+
+    def test_conflicts_are_absent_from_ambiguous_result_and_report(self):
+        rows = [candidate("Each A Little Token", "Sante Adairius Rustic Ales", 5.2),
+                candidate("Each A Little Token (Batch 2)", "Sante Adairius Rustic Ales", 5.2, .94, 2),
+                candidate("Each A Little Token Conflicting", "Sante Adairius Rustic Ales", 8.0, .8, 3)]
+        result, _ = self.run_search(rows, "Each A Little Token", "Sante Adairius Rustic Ales", 5.2)
+        self.assertEqual(result["status"], "ambiguous")
+        self.assertNotIn("Conflicting", str(result))
+        self.assertNotIn("Conflicting", report.render_html_report([result]))
+
+    def test_stale_ambiguity_is_recomputed_after_exclusion(self):
+        rows = [candidate("Some Beer", "Brewery", 6.5), candidate("Other Beer", "Brewery", 8.5, .99, 2)]
+        result, _ = self.run_search(rows, "Some Beer", "Brewery", 6.5)
+        self.assertEqual(result["status"], "ok")
+        incomplete, _ = self.run_search(rows, "Some Beer", "Brewery", 6.5, diagnostics={"capped": True})
+        self.assertEqual(incomplete["status"], "ambiguous")
+        self.assertIn("Search incomplete", incomplete["reason"])
+
     def test_xul_short_menu_brewery_matches_terminal_beer_company(self):
         suffixes = ["", ": Peach", ": Cherry", ": Raspberry", ": Blueberry",
                     ": Strawberry", ": Blackberry", ": Marshmallow",

@@ -5,6 +5,12 @@ Untappd run or archived-report replacement is performed by the deterministic sui
 
 ## Matcher policy
 
+- Before final selection/ambiguity, exclude candidates differing from explicit
+  menu ABV by at least the existing 1.0 percentage-point mismatch threshold.
+  Preserve missing/unknown and nearby ABVs, scores and order. Raw retrieval still
+  drives existing recovery; exclusions are logged only in debug. Recompute stale
+  ambiguity explanations from survivors. If all candidates conflict, return
+  `failed` with an explicit ABV-conflict reason and no proposed beer link.
 - Only a true zero-hit primary search enables the new leading-word retry.
 - Remove exactly one leading `On`, only with a separately known brewery and at
   least four remaining name words. Retry once before existing trailing fallbacks.
@@ -66,3 +72,9 @@ The PB&J log contained 12 candidates but printed only ten. Debug mode now prints
 every candidate considered by exact-base preference and the first blocking
 reason (or acceptance), without changing qualifier rules. A Nailo retest is
 still required; the two previously hidden candidates may present another guard.
+
+The second Nailo debug run identified those candidates: BA PB&J Mixtape (8.5%)
+and PB&J Mixtape: Grape (5.0%), against menu 6.5%. Final candidate filtering now
+removes both rather than letting their conflicting ABVs veto the exact base.
+The full 12-candidate regression fixture passes. A live Nailo retest is pending;
+because ABV filtering applies generally, recheck the other three menus as well.

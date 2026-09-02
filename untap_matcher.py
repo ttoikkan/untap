@@ -1,4 +1,5 @@
 import re
+import math
 from difflib import SequenceMatcher
 from typing import Any, Dict, Optional, TypedDict
 from time import perf_counter
@@ -1510,6 +1511,29 @@ def leading_word_recovery(expected_beer, expected_brewery):
     return final_query_cleanup(" ".join(words[1:]))
 
 
+def _exclude_abv_conflicts(candidates, expected_abv, debug=False):
+    """Remove clear ABV conflicts at the final decision boundary, not retrieval.
+
+    Preserve scores/order and unknown ABVs. Search expansion/fallbacks still see
+    raw candidates so a conflict can trigger recovery rather than hide evidence.
+    """
+    if expected_abv is None or not math.isfinite(float(expected_abv)):
+        return list(candidates)
+    eligible = []
+    for candidate in candidates:
+        try:
+            abv = float(candidate.get("abv"))
+        except (TypeError, ValueError):
+            abv = math.nan
+        if math.isfinite(abv) and abs(abv - expected_abv) >= ABV_MISMATCH_DIFF:
+            if debug:
+                print(f"Excluded: {candidate.get('name')} — {abv:g}% conflicts "
+                      f"with menu {expected_abv:g}%")
+        else:
+            eligible.append(candidate)
+    return eligible
+
+
 def _exact_base_brewery_words(brewery):
     """Normalize only a terminal company designation for base acceptance.
 
@@ -1553,7 +1577,7 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
             return rejected(f"brewery mismatch for {candidate.get('name')!r}: "
                             f"{candidate.get('brewery')!r} vs {expected_brewery!r}")
         abv = candidate.get("abv")
-        if abv is None or abs(float(abv) - expected_abv) > EXACT_ABV_EPSILON:
+        if abv is None or not math.isfinite(float(abv)) or abs(float(abv) - expected_abv) > EXACT_ABV_EPSILON:
             return rejected(f"missing or different ABV for {candidate.get('name')!r}")
         if not index:
             continue
@@ -3291,6 +3315,17 @@ def _search_one_impl(
             "reason": "No matching beer found",
         }
 
+    eligible = _exclude_abv_conflicts(candidates, expected_abv, debug=debug)
+    abv_exclusions = len(eligible) != len(candidates)
+    if not eligible:
+        return {
+            "query": query,
+            "status": "failed",
+            "reason": f"ABV conflict: all retrieved candidates conflict with menu {expected_abv:g}%",
+            "search_fallback": fallback_query_used,
+        }
+    candidates = eligible
+
     # Never override uncertainty from an incomplete expansion.
     incomplete = any(
         diagnostics and (diagnostics.get("capped") or diagnostics.get("errors")
@@ -3298,6 +3333,14 @@ def _search_one_impl(
                          or diagnostics.get("ambiguity_established"))
         for diagnostics in (expansion_diagnostics, abv_sorted_diagnostics)
     )
+    if abv_exclusions:
+        # Earlier explanations may refer to candidates that are no longer
+        # eligible. Recompute from survivors, preserving incomplete-search doubt.
+        ambiguity_reason = (
+            "Search incomplete; remaining candidates cannot be resolved safely"
+            if incomplete and ambiguity_reason
+            else detect_candidate_ambiguity(candidates, expected_beer, expected_abv)
+        )
     exact_base = None if incomplete else exact_base_candidate(
         candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
     )
@@ -3364,25 +3407,6 @@ def _search_one_impl(
         }
 
     best = candidates[0]
-
-    # If both the menu and the search result expose ABV, reject a large
-    # mismatch even when the textual match looks convincing.
-    if (
-        expected_abv is not None
-        and best.get("abv") is not None
-        and abs(expected_abv - best["abv"]) >= 1.00
-    ):
-        return {
-            "query": query,
-            "status": "low_confidence",
-            "match": best["name"],
-            "score": best["score"],
-            "url": best["url"],
-            "reason": (
-                f"ABV mismatch: menu {expected_abv:g}% vs "
-                f"Untappd {best['abv']:g}%"
-            ),
-        }
 
     if best["score"] < min_score:
         return {
