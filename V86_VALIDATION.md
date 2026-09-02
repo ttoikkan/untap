@@ -1,6 +1,6 @@
 # v86 validation and manual release gate
 
-This branch is pending validation against the user's four saved menus. No live
+This branch is pending final validation against the user's four saved menus. No live
 Untappd run or archived-report replacement is performed by the deterministic suite.
 
 ## Matcher policy
@@ -12,6 +12,9 @@ Untappd run or archived-report replacement is performed by the deterministic sui
   ABV (existing 0.01 tolerance). Score against original input, not corrected text.
 - Prefer an already top-ranked exact base name only when all competitors share
   brewery/ABV and extend that name with recognized flavor or process qualifiers.
+- This acceptance-only brewery check treats a terminal `Beer Company`/`Beer Co.`
+  as a company designation (e.g. menu `Xül` versus `Xül Beer Company`). It does
+  not remove standalone or internal `Beer`, or alter search/scoring normalization.
 - Flavor suffixes initially supported: peach, cherry, blueberry, raspberry,
   blackberry, strawberry, marshmallow, orange marmalade, fluff strawberry.
 - Process suffixes: double dry hopped, optionally `w`/`with` one of Centennial,
@@ -50,3 +53,16 @@ Compare canonical beer URLs/IDs and statuses, not changing ratings/counts.
 
 Investigate any changed confirmed identity before merging. New unknown variants
 may deliberately retain ambiguity; do not broaden qualifiers just to force a pass.
+
+## First manual pass and follow-up
+
+The user reported unchanged visible results for Musta Kynnys, Pien and CM
+Ruoholahti. Nailo correctly recovered Clouds and Tomorrow, Today; Each A Little
+Token remained ambiguous. PB&J exposed a brewery-comparison bug: the generic
+`Beer Company` suffix was not fully removed. The follow-up fixes that narrow
+comparison and tests the actual short menu brewery `Xül`.
+
+The PB&J log contained 12 candidates but printed only ten. Debug mode now prints
+every candidate considered by exact-base preference and the first blocking
+reason (or acceptance), without changing qualifier rules. A Nailo retest is
+still required; the two previously hidden candidates may present another guard.

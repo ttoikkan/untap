@@ -1,6 +1,7 @@
 """Offline regression fixtures for v86 search, acceptance and report contracts."""
 import copy
-from contextlib import ExitStack
+import io
+from contextlib import ExitStack, redirect_stdout
 from pathlib import Path
 import tempfile
 import unittest
@@ -19,6 +20,46 @@ def candidate(name, brewery, abv, score=1.0, bid=1):
 
 
 class MatcherV86Tests(unittest.TestCase):
+    def test_xul_short_menu_brewery_matches_terminal_beer_company(self):
+        suffixes = ["", ": Peach", ": Cherry", ": Raspberry", ": Blueberry",
+                    ": Strawberry", ": Blackberry", ": Marshmallow",
+                    ": Orange Marmalade", " Fluff: Strawberry"]
+        rows = [candidate("PB&J Mixtape" + suffix, "Xül Beer Company", 6.5,
+                          1.0 if i == 0 else .9, i + 1)
+                for i, suffix in enumerate(suffixes)]
+        before = copy.deepcopy(rows)
+        result, calls = self.run_search(rows, "PB&J Mixtape", "Xül", 6.5)
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["url"], rows[0]["url"])
+        self.assertEqual(result["score"], 1.0)
+        self.assertEqual(rows, before)
+        self.assertFalse(calls)
+
+    def test_company_suffix_is_narrow_and_does_not_change_shared_normalization(self):
+        for name in ["Xül Beer Company", "Xül Beer Co."]:
+            self.assertEqual(matcher._exact_base_brewery_words(name), {"xul"})
+        self.assertEqual(matcher._meaningful_brewery_words("Xül Beer Company"), {"xul", "beer"})
+        for name in ["Xül Beer", "Xül Beer Company North", "Xül Other Beer Company"]:
+            self.assertNotEqual(matcher._exact_base_brewery_words(name), {"xul"})
+        self.assertEqual(matcher._exact_base_brewery_words("Beer Tree Brewing"), {"beer", "tree"})
+
+    def test_debug_exposes_candidates_beyond_ten_and_blocking_qualifier(self):
+        rows = [candidate("PB&J Mixtape", "Xül Beer Company", 6.5)]
+        rows += [candidate("PB&J Mixtape: Peach", "Xül Beer Company", 6.5, .9, i)
+                 for i in range(2, 12)]
+        rows.append(candidate("PB&J Mixtape: Unknown Edition", "Xül Beer Company", 6.5, .8, 12))
+        before = copy.deepcopy(rows)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            result = matcher.exact_base_candidate(rows, "PB&J Mixtape", "Xül", 6.5, debug=True)
+        self.assertIsNone(result)
+        self.assertIn("12 candidates", output.getvalue())
+        self.assertIn("unrecognized qualifier 'unknown edition'", output.getvalue())
+        self.assertEqual(rows, before)
+        with redirect_stdout(io.StringIO()) as quiet:
+            self.assertIsNone(matcher.exact_base_candidate(rows, "PB&J Mixtape", "Xül", 6.5))
+        self.assertEqual(quiet.getvalue(), "")
+
     def run_search(self, candidates, beer, brewery, abv, *, hits=2,
                    diagnostics=None, fallback=None):
         evaluation = dict(candidates=candidates, ambiguity_reason="Multiple candidates",

@@ -14,6 +14,8 @@
 
 ## v86
 
+- Manual-regression follow-up: recognize a terminal `Beer Company`/`Beer Co.` designation only in exact-base brewery comparison; preserve shared normalization and candidate scores.
+- Debug output lists all exact-base candidates and explains acceptance or the first blocking guard.
 - Adds bounded zero-hit leading-`On` discovery recovery; returned identity must match the recovered name, brewery, and ABV, with scoring against original input.
 - Adds guarded exact-base acceptance over a limited flavor/process suffix vocabulary without altering scores. Unknown, batch/year, duplicate, and incomplete-search cases remain uncertain.
 - Keeps 429 fail-fast behavior and defers style-suffix normalization.

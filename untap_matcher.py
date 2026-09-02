@@ -1510,37 +1510,61 @@ def leading_word_recovery(expected_beer, expected_brewery):
     return final_query_cleanup(" ".join(words[1:]))
 
 
+def _exact_base_brewery_words(brewery):
+    """Normalize only a terminal company designation for base acceptance.
+
+    Do not globally discard 'beer': it can be part of a brewery's identity.
+    Keep search/scoring and existing brewery-overlap rules unchanged.
+    """
+    name = normalize(brewery or "")
+    name = re.sub(r"\s+beer\s+(?:company|co)$", "", name)
+    return _meaningful_brewery_words(name)
+
+
 def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_abv,
-                         min_score=DEFAULT_MIN_SCORE):
+                         min_score=DEFAULT_MIN_SCORE, debug=False):
     """Prefer an exact base only over recognized flavor/process extensions.
 
     Unknown, batch/year, duplicate exact-name and unrelated identities fail
     closed. This is an acceptance rule, never a score or popularity bonus.
     """
-    if len(candidates) < 2 or not expected_beer or not expected_brewery or expected_abv is None:
+    def rejected(reason):
+        if debug:
+            print(f"  exact-base preference blocked: {reason}")
         return None
+
+    if debug:
+        print(f"Exact-base preference: {len(candidates)} candidates")
+        for candidate in candidates:
+            print(f"  - {candidate.get('name')!r} | brewery={candidate.get('brewery')!r} "
+                  f"| ABV={candidate.get('abv')!r} | score={candidate.get('score')!r}")
+    if len(candidates) < 2 or not expected_beer or not expected_brewery or expected_abv is None:
+        return rejected("requires multiple candidates and beer/brewery/ABV input")
     target = normalize(expected_beer)
     best = candidates[0]
     if normalize(best.get("name") or "") != target or best.get("score", 0) < min_score:
-        return None
-    brewery = _meaningful_brewery_words(expected_brewery)
+        return rejected("top candidate is not an exact-name match above the score threshold")
+    brewery = _exact_base_brewery_words(expected_brewery)
     flavors = {"peach", "cherry", "blueberry", "raspberry", "blackberry",
                "strawberry", "marshmallow", "orange marmalade", "fluff strawberry"}
     process_pattern = r"double dry hopped(?: (?:w|with) (?:centennial|citra|mosaic|simcoe|cascade|amarillo))?"
     for index, candidate in enumerate(candidates):
-        if not brewery or _meaningful_brewery_words(candidate.get("brewery") or "") != brewery:
-            return None
+        if not brewery or _exact_base_brewery_words(candidate.get("brewery")) != brewery:
+            return rejected(f"brewery mismatch for {candidate.get('name')!r}: "
+                            f"{candidate.get('brewery')!r} vs {expected_brewery!r}")
         abv = candidate.get("abv")
         if abv is None or abs(float(abv) - expected_abv) > EXACT_ABV_EPSILON:
-            return None
+            return rejected(f"missing or different ABV for {candidate.get('name')!r}")
         if not index:
             continue
         name = normalize(candidate.get("name") or "")
         if not name.startswith(target + " "):
-            return None
+            return rejected(f"duplicate exact name or non-extension: {candidate.get('name')!r}")
         suffix = name[len(target) + 1:]
         if suffix not in flavors and not re.fullmatch(process_pattern, suffix):
-            return None
+            return rejected(f"unrecognized qualifier {suffix!r} in {candidate.get('name')!r}")
+    if debug:
+        print(f"  exact-base preference accepted: {best['name']!r}")
     return best
 
 
@@ -3275,8 +3299,10 @@ def _search_one_impl(
         for diagnostics in (expansion_diagnostics, abv_sorted_diagnostics)
     )
     exact_base = None if incomplete else exact_base_candidate(
-        candidates, expected_beer, expected_brewery, expected_abv, min_score
+        candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
     )
+    if debug and incomplete:
+        print("Exact-base preference blocked: incomplete or early-stopped expansion")
     if exact_base is not None:
         ambiguity_reason = None
 
