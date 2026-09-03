@@ -158,3 +158,11 @@ The transport layer may issue a bounded, opt-in browser-context replay solely fo
 `untap_smoke.py` owns the manual live integration probe. It is intentionally separate from deterministic tests and normal batch execution. Architecture-invariant tests include it explicitly: the smoke layer may depend on matcher, transport, and shared types, but not parser, batch, or Playwright directly. The command `python3 untap.py --smoke-test` exercises one UI bootstrap/template capture followed by one serial authoritative browser-context Algolia search, then validates the confirmed-result contract and known identities without pinning mutable rating values. It does not probe rate-limit thresholds.
 
 The current deployment/operating model is manual/local only. No GitHub automation is part of the project; manual invocation is the authoritative operational path.
+# v87 output lifecycle
+
+The CLI reserves a unique local-time timestamp/title directory for each batch run.
+It passes explicit paths to the unchanged CSV and HTML serializers. No matcher
+policy or result schema changes are involved. CLI CSV naming and resume options
+are removed; historical batch resume helpers remain internal and are no longer
+reachable through the CLI. Earlier resume descriptions below document history.
+Debug remains terminal-only. Publishing accepts the selected run's HTML path.

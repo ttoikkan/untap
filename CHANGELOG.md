@@ -215,3 +215,10 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - The smoke layer is explicitly prevented from importing parser, batch, or Playwright directly; matcher, transport, and shared types remain its intended dependencies.
 - Extended the browser-free CLI preflight invariant to an invalid `--smoke-test` combination, proving standalone smoke argument validation fails before any Playwright import.
 - No live smoke behavior, matcher policy, transport authority, or request cadence changed.
+# v87 — Per-run output folders
+
+- Batch runs reserve unique timestamp/title folders beneath `results/`, preserving previous runs.
+- CSV and optional HTML share the folder; completion prints its absolute path.
+- Remove CLI `--csv` and `--resume`; reject obsolete flags with migration guidance.
+- Every batch searches the full input. Matching and report contents are unchanged.
+- Update publishing examples and add offline output-lifecycle regression tests.

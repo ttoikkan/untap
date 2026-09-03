@@ -1,4 +1,22 @@
-# Untap v86
+# Untap v87
+
+## Per-run output folders (v87)
+
+Every `--menu` or `--file` run saves its CSV in a new folder, for example
+`results/2026-09-04_091530_nailo-new-arrivals/results.csv`. With `--html`,
+`results.html` is saved alongside it. The folder uses local run-start time and
+a filesystem-safe report title, falling back to the input filename stem.
+Same-second runs receive a numeric suffix; existing run folders are never reused.
+The absolute output folder is printed on completion. Single-beer searches and
+validation-only commands do not create output folders.
+
+**Breaking change:** `--csv` and `--resume` have been removed. Every batch run
+searches its full input again. Old flags fail with migration guidance; old CSVs
+are not changed or deleted. There is no `--resume-from` replacement.
+Debug output still goes to the terminal; automatic debug-file capture is not
+part of this change. No automatic cleanup or generic latest-result copy is made.
+
+Use the chosen run's HTML path when publishing, as shown below.
 
 Untap v86 adds bounded zero-hit search recovery for an extra leading `On` and guarded exact-base-name acceptance over recognized flavor/process variants. Candidate scores are unchanged; batch/year and unknown qualifiers still preserve ambiguity. Report and archive summaries now distinguish ambiguous, failed, and other unresolved results. See [v86 manual regression checks](V86_VALIDATION.md) before release.
 
@@ -13,7 +31,7 @@ python3 untap.py --menu menu10.txt --html --report-title "September Bottle Share
 
 `--report-title` is optional and requires `--html`. When supplied, the descriptive title appears in both the browser tab and the report heading. If omitted, the title remains `Untap Results`. Empty titles are rejected before browser startup.
 
-Untap still writes its normal `results.csv` and terminal summary. With `--html`, it also writes `results.html`. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
+Untap writes `results.csv` and, with `--html`, `results.html` in the unique run folder, plus its normal terminal summary. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
 
 Confirmed and ambiguous results now share one **Results** list sorted from highest report rating to lowest. A confirmed result uses its own Untappd rating. An ambiguous result uses the Untappd rating of its highest match-score candidate; a lower-scoring candidate never changes the result's list position even if that candidate has a higher beer rating. The ambiguous card's content and candidate ordering remain unchanged, while v84 removes its obsolete extra bottom margin so all top-level cards use the Results list's common spacing. Results without a usable sort rating appear after rated results. Canonical Untappd beer links remain unchanged.
 
@@ -26,7 +44,7 @@ The report is generated only from already completed `MatchResult` data. It makes
 After Untap has generated a v78+ HTML report, publish it into a local `untap-results` repository with:
 
 ```bash
-python3 untap_publish.py results.html ../untap-results
+python3 untap_publish.py results/2026-09-04_091530_nailo-new-arrivals/results.html ../untap-results
 ```
 
 The publisher reads the embedded `untap-*` metadata, validates the report, derives a permanent filename such as:
@@ -40,7 +58,7 @@ and regenerates the archive `index.html` with reports ordered newest-first. v84 
 When a report has intentionally been regenerated, replacement must be requested explicitly:
 
 ```bash
-python3 untap_publish.py results.html ../untap-results --replace
+python3 untap_publish.py results/2026-09-04_091530_nailo-new-arrivals/results.html ../untap-results --replace
 ```
 
 `--replace` matches an existing logical report by normalized descriptive title, even when the regenerated report has a later generation date. The existing archive filename is preserved, so replacement keeps the public report URL stable. The source and all existing archived reports still undergo the normal validation first. If replacement succeeds but the subsequent index update fails, the previous report is restored. If no report with that logical title exists, `--replace` behaves like an ordinary new publication. A filename collision belonging to a different title is never replaceable through this flag.

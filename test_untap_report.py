@@ -265,12 +265,13 @@ class HtmlReportTests(unittest.TestCase):
                  mock.patch.object(untap, "run_batch", return_value=fake_result), \
                  mock.patch.object(untap, "print_batch_results"), \
                  mock.patch.object(untap, "save_csv"), \
+                 mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), \
                  mock.patch.object(untap, "save_html_report") as save_report, \
                  contextlib.redirect_stdout(output):
                 untap.main()
 
             save_report.assert_called_once_with(
-                fake_result, untap.DEFAULT_HTML_REPORT, title=untap.DEFAULT_REPORT_TITLE
+                fake_result, "test-run/results.html", title=untap.DEFAULT_REPORT_TITLE
             )
         finally:
             if not menu.closed:
@@ -313,11 +314,11 @@ class HtmlReportTests(unittest.TestCase):
                 untap, "run_batch", return_value=fake_result
             ), mock.patch.object(untap, "print_batch_results"), mock.patch.object(
                 untap, "save_csv"
-            ), mock.patch.object(untap, "save_html_report") as save_report:
+            ), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "save_html_report") as save_report:
                 untap.main()
 
             save_report.assert_called_once_with(
-                fake_result, untap.DEFAULT_HTML_REPORT, title="September Bottle Share"
+                fake_result, "test-run/results.html", title="September Bottle Share"
             )
         finally:
             if not menu.closed:

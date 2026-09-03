@@ -8,6 +8,9 @@ modules; this file intentionally remains the thin orchestration boundary.
 import sys
 import re
 import math
+from typing import Optional
+from datetime import datetime
+from pathlib import Path
 from untap_parser import (
     normalize,
     show_parsed_menu,
@@ -24,11 +27,9 @@ from untap_matcher import (
     print_algolia_confirmation_summary,
 )
 from untap_batch import (
-    load_resume_csv,
     save_csv,
     read_queries_from_file,
     run_batch,
-    reusable_resume_count,
     print_batch_timing_summary,
 )
 from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
@@ -582,6 +583,24 @@ def print_batch_results(results):
 
 
 
+def create_run_directory(input_filename: str, title: Optional[str]) -> Path:
+    """Reserve a unique output directory, including concurrent same-second runs."""
+    label = title or Path(input_filename).stem
+    slug = re.sub(r"[^\w-]+", "-", label.lower())
+    slug = re.sub(r"-+", "-", slug).strip("-_")[:100].rstrip("-_") or "run"
+    root = Path("results")
+    root.mkdir(exist_ok=True)
+    name = f"{datetime.now():%Y-%m-%d_%H%M%S}_{slug}"
+    suffix = 0
+    while True:
+        destination = root / (name if not suffix else f"{name}-{suffix}")
+        try:
+            destination.mkdir()
+            return destination.resolve()
+        except FileExistsError:
+            suffix += 1
+
+
 def _print_cli_help():
     print("Usage:")
     print()
@@ -591,7 +610,7 @@ def _print_cli_help():
     print()
     print("  python3 untap.py --menu menu.txt")
     print()
-    print("  python3 untap.py --menu menu.txt --csv results.csv")
+    print("  Batch outputs are saved in a unique results/<timestamp>_<menu>/ folder.")
     print("  python3 untap.py --menu menu.txt --html")
     print('  python3 untap.py --menu menu.txt --html --report-title "September Bottle Share"')
     print()
@@ -604,7 +623,6 @@ def _print_cli_help():
     print("  --show-queries")
     print("  --formats / --help-formats")
     print("  --validate-menu menu.txt")
-    print("  --resume")
     print("  --html")
     print("  --report-title TITLE")
     print("  --probe-abv-sort")
@@ -630,8 +648,6 @@ def main() -> None:
     validate_menu_mode = None
     probe_abv_sort = False
     smoke_test_requested = False
-    csv_filename = "results.csv"
-    resume_requested = False
     html_requested = False
     report_title = None
     file_mode = None
@@ -713,20 +729,11 @@ def main() -> None:
             menu_mode = args[i + 1]
             i += 2
 
-        elif arg == "--csv":
-            if i + 1 >= len(args):
-                print(
-                    "--csv requires "
-                    "a filename"
-                )
-                sys.exit(1)
-
-            csv_filename = args[i + 1]
-            i += 2
-
-        elif arg == "--resume":
-            resume_requested = True
-            i += 1
+        elif arg.split("=", 1)[0] in ("--csv", "--resume", "--resume-from"):
+            print(f"{arg.split('=', 1)[0]} is not supported in v87. "
+                  "Every batch run searches the full input and saves results "
+                  "in a new results/<timestamp>_<menu>/ folder.")
+            sys.exit(1)
 
         elif arg == "--html":
             html_requested = True
@@ -790,7 +797,7 @@ def main() -> None:
         print("--validate-menu is a local-only command and cannot be combined with search input")
         sys.exit(1)
 
-    if smoke_test_requested and (file_mode or menu_mode or clean_args or validate_menu_mode or probe_abv_sort or resume_requested or html_requested):
+    if smoke_test_requested and (file_mode or menu_mode or clean_args or validate_menu_mode or probe_abv_sort or html_requested):
         print("--smoke-test is a standalone live integration check and cannot be combined with search input")
         sys.exit(1)
 
@@ -852,10 +859,6 @@ def main() -> None:
         print("--probe-abv-sort is for a single query, not --file/--menu")
         sys.exit(1)
 
-    if resume_requested and not menu_mode:
-        print("--resume currently requires --menu so rows can be matched safely")
-        sys.exit(1)
-
     if file_mode and menu_mode:
         print(
             "Use either --file or --menu, "
@@ -893,33 +896,13 @@ def main() -> None:
                 raise RuntimeError("validated menu items unexpectedly unavailable after preflight")
             items = preflight_menu_items
 
-            resume_rows = None
-            if resume_requested:
-                try:
-                    resume_rows = load_resume_csv(csv_filename)
-                except OSError as e:
-                    print(
-                        f"Could not read resume CSV "
-                        f"'{csv_filename}': {e}"
-                    )
-                    sys.exit(1)
-                except ValueError as e:
-                    print(f"Could not use resume CSV: {e}")
-                    sys.exit(1)
-
-                reusable = reusable_resume_count(resume_rows)
-                print(
-                    f"Resume: {reusable} previously confirmed "
-                    f"row{'s' if reusable != 1 else ''} available "
-                    f"from {csv_filename}"
-                )
+            run_directory = create_run_directory(menu_mode, report_title)
 
             results = run_batch(
                 page,
                 items,
                 min_score=min_score,
                 debug=debug,
-                resume_rows=resume_rows,
             )
 
             print_search_timing_summary()
@@ -934,14 +917,11 @@ def main() -> None:
                 results
             )
 
-            if csv_filename:
-                save_csv(
-                    results,
-                    csv_filename,
-                )
+            save_csv(results, str(run_directory / "results.csv"))
 
             if html_requested:
-                save_html_report(results, DEFAULT_HTML_REPORT, title=report_title or DEFAULT_REPORT_TITLE)
+                save_html_report(results, str(run_directory / DEFAULT_HTML_REPORT), title=report_title or DEFAULT_REPORT_TITLE)
+            print(f"Run outputs: {run_directory}")
 
         # ----------------------------------------------------
         # One-query-per-line mode
@@ -961,6 +941,7 @@ def main() -> None:
                 )
                 sys.exit(1)
 
+            run_directory = create_run_directory(file_mode, report_title)
             results = run_batch(
                 page,
                 queries,
@@ -980,14 +961,11 @@ def main() -> None:
                 results
             )
 
-            if csv_filename:
-                save_csv(
-                    results,
-                    csv_filename,
-                )
+            save_csv(results, str(run_directory / "results.csv"))
 
             if html_requested:
-                save_html_report(results, DEFAULT_HTML_REPORT, title=report_title or DEFAULT_REPORT_TITLE)
+                save_html_report(results, str(run_directory / DEFAULT_HTML_REPORT), title=report_title or DEFAULT_REPORT_TITLE)
+            print(f"Run outputs: {run_directory}")
 
         # ----------------------------------------------------
         # Single beer mode
