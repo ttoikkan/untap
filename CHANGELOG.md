@@ -230,3 +230,10 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - Save incrementally flushed batch diagnostics as `debug.txt` when `--debug` is used.
 - Clarify exact-base diagnostics, format displayed scores to three decimals, and split terminal status counts.
 - Preserve matching scores, decisions, request counts, CSV schema, and non-debug behavior.
+# v89 — Production context and HD label previews
+
+- Open available Untappd HD label images from report thumbnails in an accessible dialog.
+- Fetch the HD image only when requested and retain a plain thumbnail when unavailable.
+- Show “Listed as out of production on Untappd” on ambiguous candidates only for explicit false values.
+- Keep confirmed cards and true, missing, or unfamiliar values silent.
+- Preserve request counts, scores, ordering, confirmation, and CSV schema.

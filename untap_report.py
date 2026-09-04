@@ -45,16 +45,39 @@ def _format_count(value: Any) -> str:
         return escape(str(value))
 
 
-def _label_image(value: Any, name: Any) -> str:
-    """Render only HTTPS label images hosted by Untappd."""
+def _untappd_asset_url(value: Any) -> Optional[str]:
     text = str(value or "").strip()
     parsed = urlparse(text)
     if parsed.scheme != "https" or parsed.netloc.lower() != "assets.untappd.com":
+        return None
+    return text
+
+
+def _label_image(value: Any, hd_value: Any, name: Any) -> str:
+    """Render a thumbnail and an optional keyboard-accessible HD control."""
+    text = _untappd_asset_url(value)
+    if not text:
         return ""
     alt = escape(f"{name or 'Beer'} label", quote=True)
-    return ('<img class="beer-label" src="{src}" alt="{alt}" loading="lazy" '
-            'decoding="async" referrerpolicy="no-referrer" onerror="this.hidden=true">').format(
-                src=escape(text, quote=True), alt=alt)
+    image = ('<img class="beer-label" src="{src}" alt="{alt}" loading="lazy" '
+             'decoding="async" referrerpolicy="no-referrer" onerror="this.hidden=true">').format(
+                 src=escape(text, quote=True), alt=alt)
+    hd_text = _untappd_asset_url(hd_value)
+    if not hd_text:
+        return image
+    return ('<button class="label-preview-button" type="button" data-label-preview="{hd}" '
+            'aria-label="View larger {alt}">{image}</button>').format(
+                hd=escape(hd_text, quote=True), alt=alt, image=image)
+
+
+def _production_warning(value: Any) -> str:
+    """Treat only explicit false representations as evidence."""
+    is_false = value is False or (
+        not isinstance(value, bool) and isinstance(value, (int, float)) and value == 0
+    ) or (isinstance(value, str) and value.strip().casefold() in {"0", "false"})
+    if not is_false:
+        return ""
+    return '<p class="production-warning">Listed as out of production on Untappd</p>'
 
 
 def _format_abv(value: Any) -> str:
@@ -100,7 +123,6 @@ def _style_groups(results: Sequence[MatchResult]) -> List[str]:
 
     for result in results:
         if result.get("status") == "ok":
-            image = _label_image(result.get("image_url"), result.get("beer"))
             remember(result.get("type_name"))
         else:
             for candidate in _review_candidates(result):
@@ -200,7 +222,7 @@ def render_html_report(
     result_cards: List[str] = []
     for result in ordered_results:
         if result.get("status") == "ok":
-            image = _label_image(result.get("image_url"), result.get("beer"))
+            image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
             linked_name = _linked_name(result.get("beer"), result.get("url"))
             metadata = _meta_parts(
                 [
@@ -239,7 +261,8 @@ def render_html_report(
         candidate_cards: List[str] = []
 
         for candidate in _review_candidates(result):
-            image = _label_image(candidate.get("image_url"), candidate.get("name"))
+            image = _label_image(candidate.get("image_url"), candidate.get("image_hd_url"), candidate.get("name"))
+            production_warning = _production_warning(candidate.get("in_production"))
             score = candidate.get("score")
             score_text = f"{float(score):.3f}" if score is not None else "N/A"
             candidate_cards.append(
@@ -251,12 +274,14 @@ def render_html_report(
                     <h4>{name}</h4>
                     <p class="meta">{metadata}</p>
                     <p class="ratings-count">Rating {rating} · {ratings} ratings</p>
+                    {production_warning}
                   </div>
                 </li>
                 """.format(
                     score=score_text,
                     image=image,
                     image_class=" has-label" if image else "",
+                    production_warning=production_warning,
                     name=_linked_name(candidate.get("name"), candidate.get("url")),
                     metadata=_meta_parts(
                         [
@@ -373,10 +398,14 @@ def render_html_report(
     .beer-card {{ display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px; align-items: start; }}
     .beer-card.has-label {{ grid-template-columns: 72px 64px 1fr; }}
     .beer-label {{ width: 72px; height: 72px; object-fit: contain; border-radius: 10px; background: color-mix(in srgb, Canvas 88%, CanvasText 12%); }}
+    .label-preview-button {{ display: block; padding: 0; border: 0; border-radius: 10px; background: transparent; cursor: zoom-in; }}
+    .label-preview-button:hover {{ outline: 2px solid LinkText; outline-offset: 2px; }}
+    .label-preview-button:focus-visible {{ outline: 3px solid LinkText; outline-offset: 3px; }}
     .rating-badge {{ font-size: 1.35rem; font-weight: 750; font-variant-numeric: tabular-nums; }}
     .beer-content h3, .candidate-card h4 {{ margin-bottom: 5px; }}
     .beer-link {{ color: LinkText; text-decoration-thickness: .08em; text-underline-offset: .15em; }}
     .meta, .ratings-count, .review-reason {{ margin-bottom: 4px; opacity: .75; line-height: 1.4; }}
+    .production-warning {{ margin: 8px 0 0; font-weight: 650; line-height: 1.35; }}
     .review-group {{ padding: 16px; }}
     .review-heading {{ display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }}
     .review-heading h3 {{ margin-bottom: 8px; }}
@@ -385,6 +414,11 @@ def render_html_report(
     .candidate-card {{ display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 12px; }}
     .candidate-card.has-label {{ grid-template-columns: 56px 92px 1fr; }}
     .candidate-card .beer-label {{ width: 56px; height: 56px; border-radius: 8px; }}
+    .candidate-card .label-preview-button {{ border-radius: 8px; }}
+    .label-dialog {{ width: min(92vw, 820px); max-height: 92vh; padding: 44px 18px 18px; border: 1px solid color-mix(in srgb, CanvasText 24%, transparent); border-radius: 16px; background: Canvas; color: CanvasText; }}
+    .label-dialog::backdrop {{ background: rgb(0 0 0 / 78%); }}
+    .label-dialog img {{ display: block; width: 100%; max-height: calc(92vh - 62px); object-fit: contain; }}
+    .label-dialog-close {{ position: absolute; top: 10px; right: 10px; min-width: 34px; min-height: 34px; border: 1px solid color-mix(in srgb, CanvasText 30%, transparent); border-radius: 999px; background: Canvas; color: CanvasText; cursor: pointer; font-size: 1.2rem; }}
     .candidate-score {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
     .empty {{ opacity: .65; font-style: italic; }}
     @media (prefers-reduced-motion: reduce) {{
@@ -394,10 +428,12 @@ def render_html_report(
       main {{ padding: 18px 12px 36px; }}
       .beer-card {{ grid-template-columns: 54px 1fr; }}
       .beer-card.has-label {{ grid-template-columns: 54px 1fr; }}
-      .beer-card.has-label .beer-label {{ grid-row: span 2; width: 54px; height: 54px; }}
+      .beer-card.has-label .label-preview-button, .beer-card.has-label > .beer-label {{ grid-row: span 2; }}
+      .beer-card.has-label .beer-label {{ width: 54px; height: 54px; }}
       .candidate-card {{ grid-template-columns: 1fr; gap: 4px; }}
       .candidate-card.has-label {{ grid-template-columns: 48px 1fr; }}
-      .candidate-card.has-label .beer-label {{ width: 48px; height: 48px; grid-row: span 2; }}
+      .candidate-card.has-label .label-preview-button, .candidate-card.has-label > .beer-label {{ grid-row: span 2; }}
+      .candidate-card.has-label .beer-label {{ width: 48px; height: 48px; }}
     }}
   </style>
 </head>
@@ -416,6 +452,10 @@ def render_html_report(
       <div class="results-list">{results_html}</div>
     </section>
   </main>
+  <dialog class="label-dialog" id="label-dialog" aria-label="Beer label preview">
+    <button class="label-dialog-close" type="button" aria-label="Close label preview">×</button>
+    <img alt="" referrerpolicy="no-referrer">
+  </dialog>
   <script>
     (function () {{
       const filters = Array.from(document.querySelectorAll('input[data-style-filter]'));
@@ -452,6 +492,30 @@ def render_html_report(
       filters.forEach((filter) => filter.addEventListener('change', applyStyleFilters));
       statusFilters.forEach((filter) => filter.addEventListener('change', applyStyleFilters));
       applyStyleFilters();
+
+      const dialog = document.getElementById('label-dialog');
+      const dialogImage = dialog.querySelector('img');
+      const closeButton = dialog.querySelector('.label-dialog-close');
+      let opener = null;
+
+      document.querySelectorAll('[data-label-preview]').forEach((button) => {{
+        button.addEventListener('click', () => {{
+          opener = button;
+          dialogImage.src = button.dataset.labelPreview;
+          dialogImage.alt = button.querySelector('img').alt;
+          if (typeof dialog.showModal === 'function') dialog.showModal();
+          else window.open(button.dataset.labelPreview, '_blank', 'noopener,noreferrer');
+        }});
+      }});
+
+      closeButton.addEventListener('click', () => dialog.close());
+      dialog.addEventListener('click', (event) => {{
+        if (event.target === dialog) dialog.close();
+      }});
+      dialog.addEventListener('close', () => {{
+        dialogImage.removeAttribute('src');
+        if (opener) opener.focus();
+      }});
     }})();
   </script>
 </body>

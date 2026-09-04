@@ -498,6 +498,8 @@ def _algolia_hit_to_candidate(hit):
         "rating_count": hit.get("rating_count"),
         "type_name": hit.get("type_name"),
         "image_url": hit.get("beer_label") or hit.get("beer_label_hd"),
+        "image_hd_url": hit.get("beer_label_hd"),
+        "in_production": hit.get("in_production"),
         "ibu": hit.get("beer_ibu"),
         "source": "algolia",
     }
@@ -1971,6 +1973,8 @@ def _confirmed_info_from_algolia(candidate, brewery):
         "ibu": ibu,
         "url": url,
         "image_url": candidate.get("image_url"),
+        "image_hd_url": candidate.get("image_hd_url"),
+        "in_production": candidate.get("in_production"),
     }
 
 
@@ -2681,6 +2685,8 @@ def _alternative_from_candidate(item: CandidateRecord) -> AlternativeRecord:
         "type_name": item.get("type_name"),
         "url": item.get("url"),
         "image_url": item.get("image_url"),
+        "image_hd_url": item.get("image_hd_url"),
+        "in_production": item.get("in_production"),
     }
 
 
@@ -3458,6 +3464,8 @@ def _search_one_impl(
         )
     info["type_name"] = type_name
     info["image_url"] = best.get("image_url")
+    info["image_hd_url"] = best.get("image_hd_url")
+    info["in_production"] = best.get("in_production")
 
     info.update({
         "query": query,

@@ -127,3 +127,8 @@
 - Formats debug candidate scores to three decimals and distinguishes exact-base
   preference rules that are not applicable from those that are not selected.
 - Does not change scoring, candidate order, ambiguity, or acceptance policy.
+# v89
+
+- Carries existing `beer_label_hd` and `in_production` Algolia fields into
+  confirmed and ambiguity presentation records.
+- Does not use either field for scoring, ordering, ambiguity, or acceptance.

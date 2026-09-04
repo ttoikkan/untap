@@ -73,3 +73,9 @@
   no referrer, and hides broken images without hiding report content.
 - Adds a status filter that combines with the existing style filters.
 - Keeps CSV unchanged and adds no matcher or report-generation requests.
+# v89
+
+- Makes thumbnails with valid Untappd HD images keyboard-accessible preview controls.
+- Uses a native dialog with explicit, Escape, and backdrop closing plus focus restoration.
+- Adds a neutral notice to ambiguous candidates only when Untappd explicitly reports false.
+- Keeps missing or unfamiliar production metadata silent and matching-independent.

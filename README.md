@@ -1,4 +1,17 @@
-# Untap v88
+# Untap v89
+
+Untap v89 carries two more existing Algolia fields into report presentation,
+without changing matching. A thumbnail with a valid `beer_label_hd` URL becomes
+a keyboard-accessible preview button. The HD image is requested only when the
+user opens the native dialog; Escape, the close button, or the backdrop closes
+it and focus returns to the originating thumbnail. If the HD URL is absent or
+untrusted, the existing thumbnail remains non-clickable.
+
+When Untappd's `in_production` field is explicitly false, an ambiguous candidate
+shows **Listed as out of production on Untappd**. Confirmed cards never show the
+hint; true, missing, and unrecognized values are also silent. Production status
+is context for manual ambiguity review only: it never affects scores, ordering,
+or confirmation.
 
 Untap v88 adds optional remote beer-label thumbnails to HTML reports using the
 label URL already present in Untappd's Algolia search result. This does not add
