@@ -1,4 +1,11 @@
-# Untap v89
+# Untap v90
+
+Untap v90 displays explicit Untappd production metadata consistently on every
+confirmed beer and ambiguous candidate card: **Listed as in production on
+Untappd** or **Listed as out of production on Untappd**. Missing and unfamiliar
+values make no claim but reserve the same status-row height, keeping comparable
+cards aligned. The metadata remains informational and does not affect matching,
+scores, ordering, or CSV output.
 
 Untap v89 carries two more existing Algolia fields into report presentation,
 without changing matching. A thumbnail with a valid `beer_label_hd` URL becomes

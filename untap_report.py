@@ -70,14 +70,21 @@ def _label_image(value: Any, hd_value: Any, name: Any) -> str:
                 hd=escape(hd_text, quote=True), alt=alt, image=image)
 
 
-def _production_warning(value: Any) -> str:
-    """Treat only explicit false representations as evidence."""
+def _production_status(value: Any) -> str:
+    """Render explicit production metadata or a height-preserving empty row."""
     is_false = value is False or (
         not isinstance(value, bool) and isinstance(value, (int, float)) and value == 0
     ) or (isinstance(value, str) and value.strip().casefold() in {"0", "false"})
-    if not is_false:
-        return ""
-    return '<p class="production-warning">Listed as out of production on Untappd</p>'
+    is_true = value is True or (
+        not isinstance(value, bool) and isinstance(value, (int, float)) and value == 1
+    ) or (isinstance(value, str) and value.strip().casefold() in {"1", "true"})
+    if is_false:
+        text = "Listed as out of production on Untappd"
+    elif is_true:
+        text = "Listed as in production on Untappd"
+    else:
+        return '<p class="production-status production-status-empty" aria-hidden="true">&nbsp;</p>'
+    return f'<p class="production-status">{text}</p>'
 
 
 def _format_abv(value: Any) -> str:
@@ -223,6 +230,7 @@ def render_html_report(
     for result in ordered_results:
         if result.get("status") == "ok":
             image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
+            production_status = _production_status(result.get("in_production"))
             linked_name = _linked_name(result.get("beer"), result.get("url"))
             metadata = _meta_parts(
                 [
@@ -240,12 +248,14 @@ def render_html_report(
                 <h3>{name}</h3>
                 <p class="meta">{metadata}</p>
                 <p class="ratings-count">{ratings} ratings</p>
+                {production_status}
               </div>
             </article>
             """.format(
                 rating=_format_rating(result.get("rating")),
                 image=image,
                 image_class=" has-label" if image else "",
+                production_status=production_status,
                 name=linked_name,
                 metadata=metadata,
                 ratings=_format_count(result.get("ratings")),
@@ -262,7 +272,7 @@ def render_html_report(
 
         for candidate in _review_candidates(result):
             image = _label_image(candidate.get("image_url"), candidate.get("image_hd_url"), candidate.get("name"))
-            production_warning = _production_warning(candidate.get("in_production"))
+            production_status = _production_status(candidate.get("in_production"))
             score = candidate.get("score")
             score_text = f"{float(score):.3f}" if score is not None else "N/A"
             candidate_cards.append(
@@ -274,14 +284,14 @@ def render_html_report(
                     <h4>{name}</h4>
                     <p class="meta">{metadata}</p>
                     <p class="ratings-count">Rating {rating} · {ratings} ratings</p>
-                    {production_warning}
+                    {production_status}
                   </div>
                 </li>
                 """.format(
                     score=score_text,
                     image=image,
                     image_class=" has-label" if image else "",
-                    production_warning=production_warning,
+                    production_status=production_status,
                     name=_linked_name(candidate.get("name"), candidate.get("url")),
                     metadata=_meta_parts(
                         [
@@ -405,7 +415,7 @@ def render_html_report(
     .beer-content h3, .candidate-card h4 {{ margin-bottom: 5px; }}
     .beer-link {{ color: LinkText; text-decoration-thickness: .08em; text-underline-offset: .15em; }}
     .meta, .ratings-count, .review-reason {{ margin-bottom: 4px; opacity: .75; line-height: 1.4; }}
-    .production-warning {{ margin: 8px 0 0; font-weight: 650; line-height: 1.35; }}
+    .production-status {{ min-height: 1.35em; margin: 8px 0 0; opacity: .72; font-size: .9rem; line-height: 1.35; }}
     .review-group {{ padding: 16px; }}
     .review-heading {{ display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }}
     .review-heading h3 {{ margin-bottom: 8px; }}

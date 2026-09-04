@@ -27,24 +27,22 @@ class ProductionMetadataTests(unittest.TestCase):
         self.assertEqual(confirmed["image_hd_url"], HD)
         self.assertEqual(confirmed["in_production"], 0)
 
-    def test_only_explicit_false_values_show_production_warning(self):
+    def test_explicit_false_values_show_out_of_production_status(self):
         for value in (False, 0, 0.0, "0", "false", " FALSE "):
             with self.subTest(value=value):
-                self.assertIn("Listed as out of production", untap_report._production_warning(value))
-        for value in (None, "", True, 1, 1.0, "1", "true", "unknown", [], {}):
+                self.assertIn("Listed as out of production", untap_report._production_status(value))
+        for value in (None, "", "unknown", [], {}):
             with self.subTest(value=value):
-                self.assertEqual(untap_report._production_warning(value), "")
+                self.assertIn("production-status-empty", untap_report._production_status(value))
 
-    def test_warning_is_visible_only_for_ambiguous_candidates(self):
+    def test_warning_is_visible_for_confirmed_and_ambiguous_candidates(self):
         confirmed = {"status": "ok", "beer": "Old Beer", "brewery": "Brewery",
                      "rating": 4, "ratings": 10, "abv": 6, "in_production": False}
         ambiguous = {"status": "ambiguous", "query": "Maybe", "reason": "Close",
                      "alternatives": [{"name": "Old Candidate", "score": .9,
                                        "in_production": 0}]}
         html = untap_report.render_html_report([confirmed, ambiguous])
-        self.assertEqual(html.count("Listed as out of production on Untappd"), 1)
-        confirmed_html = untap_report.render_html_report([confirmed])
-        self.assertNotIn("Listed as out of production", confirmed_html)
+        self.assertEqual(html.count("Listed as out of production on Untappd"), 2)
 
 
 class HdPreviewTests(unittest.TestCase):

@@ -79,3 +79,9 @@
 - Uses a native dialog with explicit, Escape, and backdrop closing plus focus restoration.
 - Adds a neutral notice to ambiguous candidates only when Untappd explicitly reports false.
 - Keeps missing or unfamiliar production metadata silent and matching-independent.
+# v90
+
+- Displays both explicit Untappd production states on all beer and candidate cards.
+- Reserves an inaccessible blank status row when metadata is missing or unknown.
+- Uses subtle neutral presentation because Untappd status is contextual metadata,
+  not a guarantee of current retail availability.

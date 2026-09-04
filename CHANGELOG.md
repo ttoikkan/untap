@@ -237,3 +237,9 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - Show “Listed as out of production on Untappd” on ambiguous candidates only for explicit false values.
 - Keep confirmed cards and true, missing, or unfamiliar values silent.
 - Preserve request counts, scores, ordering, confirmation, and CSV schema.
+# v90 — Consistent production-status rows
+
+- Show explicit in-production and out-of-production Untappd states on confirmed
+  beer cards and ambiguous candidate cards.
+- Reserve the same silent row for missing or unfamiliar values to align card heights.
+- Keep production metadata independent of matching, scores, ordering, and CSV.
