@@ -497,6 +497,7 @@ def _algolia_hit_to_candidate(hit):
         "rating_score": hit.get("rating_score"),
         "rating_count": hit.get("rating_count"),
         "type_name": hit.get("type_name"),
+        "image_url": hit.get("beer_label") or hit.get("beer_label_hd"),
         "ibu": hit.get("beer_ibu"),
         "source": "algolia",
     }
@@ -1554,16 +1555,21 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
     """
     def rejected(reason):
         if debug:
-            print(f"  exact-base preference blocked: {reason}")
+            print(f"  exact-base preference not selected: {reason}")
         return None
 
     if debug:
         print(f"Exact-base preference: {len(candidates)} candidates")
         for candidate in candidates:
+            score = candidate.get("score")
+            score_text = f"{float(score):.3f}" if score is not None else "N/A"
             print(f"  - {candidate.get('name')!r} | brewery={candidate.get('brewery')!r} "
-                  f"| ABV={candidate.get('abv')!r} | score={candidate.get('score')!r}")
+                  f"| ABV={candidate.get('abv')!r} | score={score_text}")
     if len(candidates) < 2 or not expected_beer or not expected_brewery or expected_abv is None:
-        return rejected("requires multiple candidates and beer/brewery/ABV input")
+        if debug and len(candidates) < 2:
+            print("  exact-base preference not applicable: fewer than two candidates")
+            return None
+        return rejected("beer, brewery, and ABV input are required")
     target = normalize(expected_beer)
     best = candidates[0]
     if normalize(best.get("name") or "") != target or best.get("score", 0) < min_score:
@@ -1964,6 +1970,7 @@ def _confirmed_info_from_algolia(candidate, brewery):
         "abv": f"{abv:g}%",
         "ibu": ibu,
         "url": url,
+        "image_url": candidate.get("image_url"),
     }
 
 
@@ -2673,6 +2680,7 @@ def _alternative_from_candidate(item: CandidateRecord) -> AlternativeRecord:
         "ratings": item.get("rating_count"),
         "type_name": item.get("type_name"),
         "url": item.get("url"),
+        "image_url": item.get("image_url"),
     }
 
 
@@ -3345,7 +3353,7 @@ def _search_one_impl(
         candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
     )
     if debug and incomplete:
-        print("Exact-base preference blocked: incomplete or early-stopped expansion")
+        print("Exact-base preference not selected: incomplete or early-stopped expansion")
     if exact_base is not None:
         ambiguity_reason = None
 
@@ -3449,6 +3457,7 @@ def _search_one_impl(
             primary_algolia_page, best
         )
     info["type_name"] = type_name
+    info["image_url"] = best.get("image_url")
 
     info.update({
         "query": query,

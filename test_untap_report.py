@@ -199,7 +199,7 @@ class HtmlReportTests(unittest.TestCase):
     def test_inline_javascript_filters_cards_without_external_dependency(self):
         html = untap_report.render_html_report(self._results())
         self.assertIn("filter.addEventListener('change', applyStyleFilters)", html)
-        self.assertIn("card.hidden = !enabled.has(card.dataset.styleGroup)", html)
+        self.assertIn("enabled.has(card.dataset.styleGroup)", html)
         self.assertIn("applyStyleFilters();", html)
         self.assertNotIn("<script src=", html.lower())
 

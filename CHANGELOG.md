@@ -222,3 +222,11 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - Remove CLI `--csv` and `--resume`; reject obsolete flags with migration guidance.
 - Every batch searches the full input. Matching and report contents are unchanged.
 - Update publishing examples and add offline output-lifecycle regression tests.
+# v88 — Visual reports and clearer diagnostics
+
+- Display lazy remote Untappd label thumbnails on confirmed and ambiguous cards.
+- Restrict image rendering to HTTPS `assets.untappd.com` URLs and degrade cleanly.
+- Add an independent All results / Ambiguous / Failed report filter.
+- Save incrementally flushed batch diagnostics as `debug.txt` when `--debug` is used.
+- Clarify exact-base diagnostics, format displayed scores to three decimals, and split terminal status counts.
+- Preserve matching scores, decisions, request counts, CSV schema, and non-debug behavior.

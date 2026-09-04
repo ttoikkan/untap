@@ -45,6 +45,18 @@ def _format_count(value: Any) -> str:
         return escape(str(value))
 
 
+def _label_image(value: Any, name: Any) -> str:
+    """Render only HTTPS label images hosted by Untappd."""
+    text = str(value or "").strip()
+    parsed = urlparse(text)
+    if parsed.scheme != "https" or parsed.netloc.lower() != "assets.untappd.com":
+        return ""
+    alt = escape(f"{name or 'Beer'} label", quote=True)
+    return ('<img class="beer-label" src="{src}" alt="{alt}" loading="lazy" '
+            'decoding="async" referrerpolicy="no-referrer" onerror="this.hidden=true">').format(
+                src=escape(text, quote=True), alt=alt)
+
+
 def _format_abv(value: Any) -> str:
     if value is None or value == "":
         return "N/A"
@@ -88,6 +100,7 @@ def _style_groups(results: Sequence[MatchResult]) -> List[str]:
 
     for result in results:
         if result.get("status") == "ok":
+            image = _label_image(result.get("image_url"), result.get("beer"))
             remember(result.get("type_name"))
         else:
             for candidate in _review_candidates(result):
@@ -187,6 +200,7 @@ def render_html_report(
     result_cards: List[str] = []
     for result in ordered_results:
         if result.get("status") == "ok":
+            image = _label_image(result.get("image_url"), result.get("beer"))
             linked_name = _linked_name(result.get("beer"), result.get("url"))
             metadata = _meta_parts(
                 [
@@ -197,7 +211,8 @@ def render_html_report(
             )
             result_cards.append(
             """
-            <article class="beer-card"{style_attr}>
+            <article class="beer-card{image_class}" data-status="ok"{style_attr}>
+              {image}
               <div class="rating-badge">{rating}</div>
               <div class="beer-content">
                 <h3>{name}</h3>
@@ -207,6 +222,8 @@ def render_html_report(
             </article>
             """.format(
                 rating=_format_rating(result.get("rating")),
+                image=image,
+                image_class=" has-label" if image else "",
                 name=linked_name,
                 metadata=metadata,
                 ratings=_format_count(result.get("ratings")),
@@ -222,11 +239,13 @@ def render_html_report(
         candidate_cards: List[str] = []
 
         for candidate in _review_candidates(result):
+            image = _label_image(candidate.get("image_url"), candidate.get("name"))
             score = candidate.get("score")
             score_text = f"{float(score):.3f}" if score is not None else "N/A"
             candidate_cards.append(
                 """
-                <li class="candidate-card"{style_attr}>
+                <li class="candidate-card{image_class}"{style_attr}>
+                  {image}
                   <div class="candidate-score">Match {score}</div>
                   <div>
                     <h4>{name}</h4>
@@ -236,6 +255,8 @@ def render_html_report(
                 </li>
                 """.format(
                     score=score_text,
+                    image=image,
+                    image_class=" has-label" if image else "",
                     name=_linked_name(candidate.get("name"), candidate.get("url")),
                     metadata=_meta_parts(
                         [
@@ -263,7 +284,7 @@ def render_html_report(
         candidates_html = "".join(candidate_cards) or '<p class="empty">No linked candidate was available.</p>'
         result_cards.append(
             """
-            <article class="review-group">
+            <article class="review-group" data-status="{status_key}">
               <div class="review-heading">
                 <span class="status-pill">{status}</span>
                 <h3>{query}</h3>
@@ -271,7 +292,7 @@ def render_html_report(
               <p class="review-reason">{reason}</p>
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(status=escape(status), query=query, reason=reason, candidates=candidates_html)
+            """.format(status=escape(status), status_key=escape(str(result.get("status") or "unknown"), quote=True), query=query, reason=reason, candidates=candidates_html)
         )
 
     results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'
@@ -298,6 +319,18 @@ def render_html_report(
             + '</div></fieldset>'
         )
 
+    status_filters_html = (
+        '<fieldset class="style-filters status-filters"><legend>Show</legend>'
+        '<div class="style-chips">'
+        '<label class="style-chip"><input type="radio" name="status-filter" '
+        'data-status-filter value="all" checked><span>All results</span></label>'
+        '<label class="style-chip"><input type="radio" name="status-filter" '
+        'data-status-filter value="ambiguous"><span>Ambiguous</span></label>'
+        '<label class="style-chip"><input type="radio" name="status-filter" '
+        'data-status-filter value="failed"><span>Failed</span></label>'
+        '</div></fieldset>'
+    )
+
     return """<!doctype html>
 <html lang="en">
 <head>
@@ -322,6 +355,8 @@ def render_html_report(
     h3, h4, p {{ margin-top: 0; }}
     .summary {{ margin: 0; opacity: .72; }}
     .style-filters {{ margin: 22px 0 8px; padding: 14px 16px 16px; border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 16px; }}
+    .status-filters {{ margin-bottom: 0; }}
+    .status-filters + .style-filters {{ margin-top: 12px; }}
     .style-filters legend {{ padding: 0 7px; font-size: 1.08rem; font-weight: 700; }}
     .style-chips {{ display: flex; flex-wrap: wrap; gap: 10px; }}
     .style-chip {{ position: relative; cursor: pointer; }}
@@ -336,6 +371,8 @@ def render_html_report(
     .results-list, .candidate-list {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }}
     .beer-card, .candidate-card, .review-group {{ border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 14px; background: color-mix(in srgb, Canvas 94%, CanvasText 6%); }}
     .beer-card {{ display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px; align-items: start; }}
+    .beer-card.has-label {{ grid-template-columns: 72px 64px 1fr; }}
+    .beer-label {{ width: 72px; height: 72px; object-fit: contain; border-radius: 10px; background: color-mix(in srgb, Canvas 88%, CanvasText 12%); }}
     .rating-badge {{ font-size: 1.35rem; font-weight: 750; font-variant-numeric: tabular-nums; }}
     .beer-content h3, .candidate-card h4 {{ margin-bottom: 5px; }}
     .beer-link {{ color: LinkText; text-decoration-thickness: .08em; text-underline-offset: .15em; }}
@@ -346,6 +383,8 @@ def render_html_report(
     .status-pill {{ border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; font-size: .78rem; font-weight: 700; opacity: .78; }}
     .candidate-list {{ margin-top: 12px; }}
     .candidate-card {{ display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 12px; }}
+    .candidate-card.has-label {{ grid-template-columns: 56px 92px 1fr; }}
+    .candidate-card .beer-label {{ width: 56px; height: 56px; border-radius: 8px; }}
     .candidate-score {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
     .empty {{ opacity: .65; font-style: italic; }}
     @media (prefers-reduced-motion: reduce) {{
@@ -354,7 +393,11 @@ def render_html_report(
     @media (max-width: 520px) {{
       main {{ padding: 18px 12px 36px; }}
       .beer-card {{ grid-template-columns: 54px 1fr; }}
+      .beer-card.has-label {{ grid-template-columns: 54px 1fr; }}
+      .beer-card.has-label .beer-label {{ grid-row: span 2; width: 54px; height: 54px; }}
       .candidate-card {{ grid-template-columns: 1fr; gap: 4px; }}
+      .candidate-card.has-label {{ grid-template-columns: 48px 1fr; }}
+      .candidate-card.has-label .beer-label {{ width: 48px; height: 48px; grid-row: span 2; }}
     }}
   </style>
 </head>
@@ -365,6 +408,7 @@ def render_html_report(
       <p class="summary">{status_summary}</p>
     </header>
 
+    {status_filters}
     {style_filters}
 
     <section aria-labelledby="results-heading">
@@ -375,9 +419,10 @@ def render_html_report(
   <script>
     (function () {{
       const filters = Array.from(document.querySelectorAll('input[data-style-filter]'));
-      if (!filters.length) return;
+      const statusFilters = Array.from(document.querySelectorAll('input[data-status-filter]'));
 
-      const styledCards = Array.from(document.querySelectorAll('[data-style-group]'));
+      const beerCards = Array.from(document.querySelectorAll('.beer-card'));
+      const candidateCards = Array.from(document.querySelectorAll('.candidate-card'));
       const reviewGroups = Array.from(document.querySelectorAll('.review-group'));
 
       function applyStyleFilters() {{
@@ -385,18 +430,27 @@ def render_html_report(
           filters.filter((filter) => filter.checked).map((filter) => filter.value)
         );
 
-        styledCards.forEach((card) => {{
-          card.hidden = !enabled.has(card.dataset.styleGroup);
+        const selectedStatus = statusFilters.find((filter) => filter.checked).value;
+        const statusVisible = (card) => selectedStatus === 'all' || card.dataset.status === selectedStatus;
+
+        beerCards.forEach((card) => {{
+          const styleVisible = !card.dataset.styleGroup || enabled.has(card.dataset.styleGroup);
+          card.hidden = !styleVisible || !statusVisible(card);
+        }});
+
+        candidateCards.forEach((card) => {{
+          card.hidden = Boolean(card.dataset.styleGroup) && !enabled.has(card.dataset.styleGroup);
         }});
 
         reviewGroups.forEach((group) => {{
           const candidates = Array.from(group.querySelectorAll('.candidate-card'));
-          if (!candidates.length) return;
-          group.hidden = candidates.every((candidate) => candidate.hidden);
+          group.hidden = !statusVisible(group) ||
+            (candidates.length && candidates.every((candidate) => candidate.hidden));
         }});
       }}
 
       filters.forEach((filter) => filter.addEventListener('change', applyStyleFilters));
+      statusFilters.forEach((filter) => filter.addEventListener('change', applyStyleFilters));
       applyStyleFilters();
     }})();
   </script>
@@ -414,6 +468,7 @@ def render_html_report(
         failed_count=failed_count,
         status_summary=status_summary,
         style_filters=style_filters_html,
+        status_filters=status_filters_html,
         results_html=results_html,
     )
 

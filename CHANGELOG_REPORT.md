@@ -66,3 +66,10 @@
 - Needs-review candidates sort by match score descending and remain grouped by uncertain input.
 - Confirmed and review-candidate beer names link to canonical Untappd `/b/` URLs when available.
 - Uses only standard-library HTML/URL handling plus shared `MatchResult` type contracts; no network, Playwright, parsing, matching, batch, or transport dependency.
+# v88
+
+- Adds remote, lazy-loaded beer-label thumbnails from existing Algolia data.
+- Allows only HTTPS `assets.untappd.com` images, reserves image dimensions, sends
+  no referrer, and hides broken images without hiding report content.
+- Adds a status filter that combines with the existing style filters.
+- Keeps CSV unchanged and adds no matcher or report-generation requests.

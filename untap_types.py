@@ -40,6 +40,7 @@ class CandidateRecord(TypedDict, total=False):
     rating_score: Optional[float]
     rating_count: Optional[int]
     type_name: Optional[str]
+    image_url: Optional[str]
     object_id: str
     beer_id: Union[str, int]
 
@@ -55,6 +56,7 @@ class AlternativeRecord(TypedDict, total=False):
     ratings: Optional[int]
     type_name: Optional[str]
     url: Optional[str]
+    image_url: Optional[str]
 
 
 class MatchResult(TypedDict, total=False):
@@ -87,6 +89,7 @@ class MatchResult(TypedDict, total=False):
     ibu: Union[str, int, None]
     type_name: Optional[str]
     search_text: str
+    image_url: Optional[str]
 
     # Batch/CSV persistence fields added after matching.
     original_menu_text: Optional[str]

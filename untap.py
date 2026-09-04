@@ -8,7 +8,8 @@ modules; this file intentionally remains the thin orchestration boundary.
 import sys
 import re
 import math
-from typing import Optional
+import contextlib
+from typing import Any, Iterator, Optional, TextIO
 from datetime import datetime
 from pathlib import Path
 from untap_parser import (
@@ -511,7 +512,7 @@ def print_batch_results(results):
                     f"{score_text:>5}"
                 )
 
-    failed = [
+    unresolved = [
         r
         for r in results
         if r["status"] != "ok"
@@ -519,13 +520,13 @@ def print_batch_results(results):
 
     print()
 
-    print(
-        f"{len(successful)} beers found"
-    )
-
-    print(
-        f"{len(failed)} failed or uncertain"
-    )
+    failed_count = sum(r["status"] == "failed" for r in results)
+    other_count = len(unresolved) - len(ambiguous) - failed_count
+    summary = (f"{len(results)} beers · {len(successful)} confirmed · "
+               f"{len(ambiguous)} ambiguous · {failed_count} failed")
+    if other_count:
+        summary += f" · {other_count} other unresolved"
+    print(summary)
 
     rate_limited = next(
         (r for r in results if r.get("status") == "rate_limited"),
@@ -544,7 +545,7 @@ def print_batch_results(results):
 
     problems = [
         r
-        for r in failed
+        for r in unresolved
         if r["status"] != "ambiguous"
     ]
 
@@ -599,6 +600,56 @@ def create_run_directory(input_filename: str, title: Optional[str]) -> Path:
             return destination.resolve()
         except FileExistsError:
             suffix += 1
+
+
+class _TeeOutput:
+    def __init__(self, terminal: TextIO, log: TextIO) -> None:
+        self.terminal = terminal
+        self.log = log
+
+    def write(self, value: str) -> int:
+        self.terminal.write(value)
+        self.log.write(value)
+        self.log.flush()
+        return len(value)
+
+    def flush(self) -> None:
+        self.terminal.flush()
+        self.log.flush()
+
+
+@contextlib.contextmanager
+def debug_transcript(run_directory: Path, enabled: bool) -> Iterator[None]:
+    """Mirror batch debug output to an incrementally flushed run log."""
+    if not enabled:
+        yield
+        return
+    with (run_directory / "debug.txt").open("w", encoding="utf-8", newline="") as log:
+        target: Any = _TeeOutput(sys.stdout, log)
+        with contextlib.redirect_stdout(target):
+            yield
+
+
+def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
+                        debug: bool, html_requested: bool,
+                        report_title: Optional[str]) -> None:
+    with debug_transcript(run_directory, debug):
+        results = run_batch(page, items, min_score=min_score, debug=debug)
+        print_search_timing_summary()
+        print_search_transport_authority_summary()
+        print_search_transport_shadow_summary()
+        print_matcher_timing_summary()
+        print_detail_algolia_parity_summary()
+        print_algolia_confirmation_summary()
+        print_batch_timing_summary()
+        print_batch_results(results)
+        save_csv(results, str(run_directory / "results.csv"))
+        if html_requested:
+            save_html_report(
+                results, str(run_directory / DEFAULT_HTML_REPORT),
+                title=report_title or DEFAULT_REPORT_TITLE,
+            )
+        print(f"Run outputs: {run_directory}")
 
 
 def _print_cli_help():
@@ -898,30 +949,10 @@ def main() -> None:
 
             run_directory = create_run_directory(menu_mode, report_title)
 
-            results = run_batch(
-                page,
-                items,
-                min_score=min_score,
-                debug=debug,
+            _run_and_save_batch(
+                page, items, run_directory, min_score=min_score, debug=debug,
+                html_requested=html_requested, report_title=report_title,
             )
-
-            print_search_timing_summary()
-            print_search_transport_authority_summary()
-            print_search_transport_shadow_summary()
-            print_matcher_timing_summary()
-            print_detail_algolia_parity_summary()
-            print_algolia_confirmation_summary()
-            print_batch_timing_summary()
-
-            print_batch_results(
-                results
-            )
-
-            save_csv(results, str(run_directory / "results.csv"))
-
-            if html_requested:
-                save_html_report(results, str(run_directory / DEFAULT_HTML_REPORT), title=report_title or DEFAULT_REPORT_TITLE)
-            print(f"Run outputs: {run_directory}")
 
         # ----------------------------------------------------
         # One-query-per-line mode
@@ -942,30 +973,10 @@ def main() -> None:
                 sys.exit(1)
 
             run_directory = create_run_directory(file_mode, report_title)
-            results = run_batch(
-                page,
-                queries,
-                min_score=min_score,
-                debug=debug,
+            _run_and_save_batch(
+                page, queries, run_directory, min_score=min_score, debug=debug,
+                html_requested=html_requested, report_title=report_title,
             )
-
-            print_search_timing_summary()
-            print_search_transport_authority_summary()
-            print_search_transport_shadow_summary()
-            print_matcher_timing_summary()
-            print_detail_algolia_parity_summary()
-            print_algolia_confirmation_summary()
-            print_batch_timing_summary()
-
-            print_batch_results(
-                results
-            )
-
-            save_csv(results, str(run_directory / "results.csv"))
-
-            if html_requested:
-                save_html_report(results, str(run_directory / DEFAULT_HTML_REPORT), title=report_title or DEFAULT_REPORT_TITLE)
-            print(f"Run outputs: {run_directory}")
 
         # ----------------------------------------------------
         # Single beer mode

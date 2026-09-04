@@ -121,3 +121,9 @@
 ## v70
 - Promoted complete Algolia selected-candidate metadata to confirmed-result authority after v69 demonstrated 38/38 parity for name, rating, ratings count, and ABV on menu9.
 - Detail extraction is now a conservative fallback for incomplete/malformed required Algolia fields.
+# v88
+
+- Carries the existing Algolia `beer_label` URL through result presentation data.
+- Formats debug candidate scores to three decimals and distinguishes exact-base
+  preference rules that are not applicable from those that are not selected.
+- Does not change scoring, candidate order, ambiguity, or acceptance policy.

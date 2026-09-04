@@ -1,4 +1,21 @@
-# Untap v87
+# Untap v88
+
+Untap v88 adds optional remote beer-label thumbnails to HTML reports using the
+label URL already present in Untappd's Algolia search result. This does not add
+matching requests or affect candidate scores. Images are lazy-loaded only from
+`https://assets.untappd.com`, send no referrer, reserve their layout space, and
+disappear cleanly on failure. The report markup remains portable and fully
+usable offline, although label images naturally require a connection.
+
+Reports also gain an independent **Show** filter for all, ambiguous, or failed
+results. Style filters continue to combine with that selection.
+
+For batch runs, `--debug` now mirrors the terminal diagnostics into an
+incrementally flushed `debug.txt` beside `results.csv` and optional
+`results.html`. Without `--debug`, no log is created; single-beer searches
+remain terminal-only. Diagnostic scores display to three decimals, exact-base
+messages distinguish an inapplicable rule from a rejected preference, and the
+terminal summary reports confirmed, ambiguous, and failed counts separately.
 
 ## Per-run output folders (v87)
 
