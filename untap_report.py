@@ -317,6 +317,10 @@ def render_html_report(
             )
 
         candidates_html = "".join(candidate_cards) or '<p class="empty">No linked candidate was available.</p>'
+        search_warning = (
+            '<p class="review-reason">' + escape(str(result["search_warning"])) + '</p>'
+            if result.get("search_warning") else ""
+        )
         result_cards.append(
             """
             <article class="review-group" data-status="{status_key}">
@@ -325,9 +329,10 @@ def render_html_report(
                 <h3>{query}</h3>
               </div>
               <p class="review-reason">{reason}</p>
+              {search_warning}
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(status=escape(status), status_key=escape(str(result.get("status") or "unknown"), quote=True), query=query, reason=reason, candidates=candidates_html)
+            """.format(status=escape(status), status_key=escape(str(result.get("status") or "unknown"), quote=True), query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
         )
 
     results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'

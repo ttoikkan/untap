@@ -450,6 +450,8 @@ def print_batch_results(results):
                 f"{r['query']}: "
                 f"ambiguous — {display_reason}"
             )
+            if r.get("search_warning"):
+                print(r["search_warning"])
 
             print(
                 f"{'Rating':>6}  "

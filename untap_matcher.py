@@ -1608,6 +1608,22 @@ def print_shadow_alias_support(candidates, expected_beer, expected_brewery=None,
     return supported
 
 
+def print_style_shadow(candidates, expected_style):
+    """Observe clear stout/IPA contradictions without changing candidates."""
+    words = set(normalize(expected_style or "").split())
+    if "stout" in words:
+        opposite = {"ipa", "dipa", "tipa"}
+    elif words & {"ipa", "dipa", "tipa"}:
+        opposite = {"stout"}
+    else:
+        return
+    for item in candidates:
+        style = item.get("type_name") or ""
+        if set(normalize(style).split()) & opposite:
+            print(f"Style diagnostic: {item.get('name')!r} | menu={expected_style!r} "
+                  f"| Untappd={style!r} | possible contradiction; diagnostic only")
+
+
 def _exact_base_brewery_words(brewery):
     """Normalize only a terminal company designation for base acceptance.
 
@@ -3412,6 +3428,7 @@ def _search_one_impl(
     candidates = eligible
 
     if debug:
+        print_style_shadow(candidates, expected_style)
         print()
         print_shadow_alias_support(
             candidates, expected_beer, expected_brewery, expected_abv, expected_style
@@ -3424,6 +3441,13 @@ def _search_one_impl(
                          or diagnostics.get("ambiguity_established"))
         for diagnostics in (expansion_diagnostics, abv_sorted_diagnostics)
     )
+    search_warning = None
+    if any(d and d.get("capped") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
+        search_warning = "Search incomplete: the page limit was reached; additional candidates may exist."
+    elif any(d and d.get("errors") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
+        search_warning = "Search incomplete: an expansion error prevented checking all candidates."
+    elif any(d and d.get("ambiguity_early_stopped") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
+        search_warning = "Search stopped after establishing ambiguity; additional candidates may exist."
     if abv_exclusions:
         # Earlier explanations may refer to candidates that are no longer
         # eligible. Recompute from survivors, preserving incomplete-search doubt.
@@ -3459,6 +3483,7 @@ def _search_one_impl(
             "score": best["score"],
             "url": best.get("url"),
             "reason": f"Multiple {expected_abv:g}% variants found",
+            "search_warning": search_warning,
             "alternatives": [
                 _alternative_from_candidate(item) for item in candidates[:10]
             ],
@@ -3484,6 +3509,7 @@ def _search_one_impl(
             "score": best["score"],
             "url": best.get("url"),
             "reason": ambiguity_reason,
+            "search_warning": search_warning,
             "alternatives": [
                 _alternative_from_candidate(item) for item in candidates[:10]
             ],

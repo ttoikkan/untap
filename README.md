@@ -1,5 +1,19 @@
 # Untap v90
 
+## Konttori diagnostics (unreleased)
+
+Ambiguous HTML cards and batch terminal output retain a separate warning when
+search expansion reaches its page cap, encounters an error, or stops early
+after establishing ambiguity. The warning supplements the beer-family reason.
+Historical reports must be regenerated to show this information. The CSV schema
+is unchanged; search warnings are currently available in HTML and terminal output.
+
+With `--debug`, explicit stout-versus-IPA style contradictions are printed for
+ABV-compatible candidates. This deliberately narrow diagnostic does not filter
+or rescore candidates. Unknown styles and other style combinations are silent.
+Konttori fixtures preserve the current Just Fruit shared-prefix ambiguity and
+Messorem numbered-name recovery behavior for future policy comparisons.
+
 ## Read-only Algolia response inspection
 
 `untap_inspect.py` records the exact page-zero beer hits returned by ordinary

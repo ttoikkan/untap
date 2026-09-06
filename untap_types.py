@@ -84,6 +84,7 @@ class MatchResult(TypedDict, total=False):
     search_expanded: bool
     search_fallback: Optional[str]
     expanded_total_hits: Optional[int]
+    search_warning: Optional[str]
 
     # Confirmed Untappd detail fields.
     beer: str
