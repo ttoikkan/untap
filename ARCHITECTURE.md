@@ -166,3 +166,19 @@ policy or result schema changes are involved. CLI CSV naming and resume options
 are removed; historical batch resume helpers remain internal and are no longer
 reachable through the CLI. Earlier resume descriptions below document history.
 Debug remains terminal-only. Publishing accepts the selected run's HTML path.
+
+The standalone `untap_inspect.py` diagnostic reuses the matcher's established
+serial, self-healing page-zero search transport and the transport layer's strict
+response/query pairing. It deliberately stops before candidate construction,
+scoring, expansion, and detail extraction. Its raw hit JSON and derived field
+inventory are local observational artifacts ignored by Git.
+Optional all-page inspection replays the captured request serially, validates
+query/index/page metadata, and observes the existing 20-page safety cap. It is
+explicitly diagnostic and does not alter matcher expansion policy.
+
+The matcher retains `alias_alt` on Algolia candidates for a separate debug-only
+analysis after final brewery and ABV compatibility filtering. Exact normalized
+alias correspondence may be logged as unique or inconclusive evidence, but the
+result is not consumed by scoring, ordering, ambiguity, fallback, acceptance, or
+presentation. This keeps the field observational until its semantics have been
+validated across more real menus.

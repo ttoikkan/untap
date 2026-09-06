@@ -43,6 +43,7 @@ class CandidateRecord(TypedDict, total=False):
     image_url: Optional[str]
     image_hd_url: Optional[str]
     in_production: object
+    alias_alt: object
     object_id: str
     beer_id: Union[str, int]
 

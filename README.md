@@ -1,5 +1,36 @@
 # Untap v90
 
+## Read-only Algolia response inspection
+
+`untap_inspect.py` records the exact page-zero beer hits returned by ordinary
+Untappd searches without scoring, matching, expanding result pages, or visiting
+beer detail pages:
+
+```bash
+python3 untap_inspect.py --query "Sante Adairius Tomorrow, Today"
+python3 untap_inspect.py --query "Xül PB&J Mixtape" --query "Old Nation M-43"
+python3 untap_inspect.py --file queries.txt
+python3 untap_inspect.py --menu menu.txt
+python3 untap_inspect.py --query "Old Nation M-43" --all-pages
+```
+
+Each run creates a unique `inspections/<timestamp>_<input>/` directory containing
+`summary.txt` and `hits.json`. The summary highlights potentially useful fields
+and inventories every field, its presence rate, observed JSON types, and sample
+values. The JSON retains every page-zero hit field and value for later analysis.
+The default remains page zero only. `--all-pages` serially inspects additional
+pages using the captured request, validates pagination metadata, and stops at the
+same 20-page safety cap used by Untap's established expansion boundary. The tool
+stops after HTTP 429 and returns a nonzero exit status for incomplete inspections.
+Its output is observational evidence only and never changes matcher behavior.
+
+When the main command runs with `--debug`, it also performs shadow-only alias
+analysis on the final brewery- and ABV-compatible candidate set. It checks exact
+normalized matches against the menu beer and beer-plus-style text, reports one
+uniquely supported candidate or an inconclusive multi-candidate result, and then
+explicitly confirms that scores, ordering, and match status were unchanged.
+Algolia aliases are not used to make matching decisions.
+
 Untap v90 displays explicit Untappd production metadata consistently on every
 confirmed beer and ambiguous candidate card: **Listed as in production on
 Untappd** or **Listed as out of production on Untappd**. Missing and unfamiliar

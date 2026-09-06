@@ -237,6 +237,23 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - Show “Listed as out of production on Untappd” on ambiguous candidates only for explicit false values.
 - Keep confirmed cards and true, missing, or unfamiliar values silent.
 - Preserve request counts, scores, ordering, confirmation, and CSV schema.
+# Unreleased — Algolia inspection and alias diagnostics
+
+- Add a standalone read-only inspector for a query, query file, or validated menu.
+- Save exact page-zero hit dictionaries as JSON plus a field/type/presence summary.
+- Reuse the established serial self-healing search transport without matching,
+  scoring, expansion, detail-page requests, or policy changes.
+- Stop on HTTP 429 and keep inspection artifacts outside version control.
+- Add explicit `--all-pages` inspection with serial requests, pagination
+  validation, and a 20-page cap; retain page zero as the default.
+- Correct the summary heading so it describes both page-zero and all-page runs.
+- Preserve Algolia `alias_alt` metadata in internal candidates and report exact
+  alias support under `--debug` only after brewery and ABV compatibility checks.
+- Compare aliases with the menu beer and beer-plus-style forms, including a
+  narrow letter/number punctuation normalization such as `M-43` → `m43`.
+- Keep alias evidence strictly observational: it cannot affect candidate scores,
+  ordering, ambiguity, confirmation, fallback selection, or report contents.
+
 # v90 — Consistent production-status rows
 
 - Show explicit in-production and out-of-production Untappd states on confirmed

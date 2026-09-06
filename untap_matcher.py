@@ -500,6 +500,7 @@ def _algolia_hit_to_candidate(hit):
         "image_url": hit.get("beer_label") or hit.get("beer_label_hd"),
         "image_hd_url": hit.get("beer_label_hd"),
         "in_production": hit.get("in_production"),
+        "alias_alt": hit.get("alias_alt"),
         "ibu": hit.get("beer_ibu"),
         "source": "algolia",
     }
@@ -1535,6 +1536,76 @@ def _exclude_abv_conflicts(candidates, expected_abv, debug=False):
         else:
             eligible.append(candidate)
     return eligible
+
+
+def _normalize_alias_shadow_text(value):
+    """Normalize conservatively, joining punctuation-split letter/digit tokens."""
+    text = normalize(value or "")
+    text = re.sub(r"\b([a-z])\s+(?=\d)", r"\1", text)
+    text = re.sub(r"(?<=\d)\s+([a-z])\b", r"\1", text)
+    return text
+
+
+def shadow_alias_support(candidates, expected_beer, expected_brewery=None,
+                         expected_abv=None, expected_style=None):
+    """Return diagnostic-only Algolia alias support for eligible candidates.
+
+    Alias metadata is not sufficiently documented to affect scoring or matching.
+    Compare it only after the same brewery/ABV compatibility safeguards used by
+    the matcher. Both the menu beer and beer-plus-style forms are considered.
+    """
+    beer = _normalize_alias_shadow_text(expected_beer)
+    if not beer:
+        return []
+    targets = {beer}
+    if expected_style:
+        beer_style = _normalize_alias_shadow_text(f"{expected_beer or ''} {expected_style}")
+        if beer_style:
+            targets.add(beer_style)
+
+    supported = []
+    for candidate in candidates:
+        if not candidate_has_brewery_overlap(candidate, expected_brewery):
+            continue
+        if expected_abv is not None:
+            try:
+                candidate_abv = float(candidate.get("abv"))
+            except (TypeError, ValueError):
+                candidate_abv = math.nan
+            if (math.isfinite(candidate_abv)
+                    and abs(candidate_abv - float(expected_abv)) >= ABV_MISMATCH_DIFF):
+                continue
+        aliases = candidate.get("alias_alt")
+        if not isinstance(aliases, list):
+            continue
+        matching_aliases = [
+            alias for alias in aliases
+            if isinstance(alias, str) and _normalize_alias_shadow_text(alias) in targets
+        ]
+        if matching_aliases:
+            supported.append({"candidate": candidate, "aliases": matching_aliases})
+    return supported
+
+
+def print_shadow_alias_support(candidates, expected_beer, expected_brewery=None,
+                               expected_abv=None, expected_style=None):
+    """Print alias evidence without changing scores, ordering, or outcomes."""
+    supported = shadow_alias_support(
+        candidates, expected_beer, expected_brewery, expected_abv, expected_style
+    )
+    print("Algolia alias shadow analysis:")
+    if not supported:
+        print("  no eligible candidate received exact alias support")
+    elif len(supported) == 1:
+        item = supported[0]
+        print(f"  unique support: {item['candidate'].get('name')!r} via "
+              f"{item['aliases'][0]!r}")
+    else:
+        print(f"  inconclusive: {len(supported)} eligible candidates received alias support")
+        for item in supported:
+            print(f"  - {item['candidate'].get('name')!r} via {item['aliases'][0]!r}")
+    print("  shadow only: scores, ordering, and match status unchanged")
+    return supported
 
 
 def _exact_base_brewery_words(brewery):
@@ -3339,6 +3410,12 @@ def _search_one_impl(
             "search_fallback": fallback_query_used,
         }
     candidates = eligible
+
+    if debug:
+        print()
+        print_shadow_alias_support(
+            candidates, expected_beer, expected_brewery, expected_abv, expected_style
+        )
 
     # Never override uncertainty from an incomplete expansion.
     incomplete = any(

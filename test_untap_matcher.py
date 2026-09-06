@@ -171,6 +171,14 @@ if __name__ == "__main__":
     unittest.main()
 
 class AlgoliaCandidateAuthorityTests(unittest.TestCase):
+    def test_algolia_candidate_preserves_alias_metadata(self):
+        from untap_matcher import _algolia_hit_to_candidate
+        candidate = _algolia_hit_to_candidate({
+            "beer_name": "PB&J Mixtape", "brewery_name": "Xül Beer Company",
+            "beer_abv": 6.5, "alias_alt": ["xul pb and j mixtape sour"],
+        })
+        self.assertEqual(candidate["alias_alt"], ["xul pb and j mixtape sour"])
+
     def test_algolia_page0_candidates_preserve_native_abv_precision(self):
         from untap_matcher import _algolia_page0_candidates
 
@@ -251,6 +259,59 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
             expected_abv=6.5,
         )
         self.assertEqual([item["name"] for item in candidates], ["Fazy (2026)"])
+
+
+class ShadowAliasSupportTests(unittest.TestCase):
+    def test_beer_plus_style_alias_supports_one_candidate(self):
+        from untap_matcher import shadow_alias_support
+        candidates = [
+            {"name": "M-43 N.E. India Pale Ale", "brewery": "Old Nation Brewing Co.",
+             "abv": 6.8, "alias_alt": ["m43 ipa"]},
+            {"name": "M-43 Tart Strawberry", "brewery": "Old Nation Brewing Co.",
+             "abv": 6.8, "alias_alt": ["m43 tart strawberry 2020"]},
+        ]
+        supported = shadow_alias_support(
+            candidates, "M-43", "Old Nation", 6.8, "IPA"
+        )
+        self.assertEqual([item["candidate"]["name"] for item in supported],
+                         ["M-43 N.E. India Pale Ale"])
+
+    def test_alias_support_rejects_brewery_and_abv_contradictions(self):
+        from untap_matcher import shadow_alias_support
+        candidates = [
+            {"name": "Wrong brewery", "brewery": "Elsewhere", "abv": 6.8,
+             "alias_alt": ["m43 ipa"]},
+            {"name": "Wrong ABV", "brewery": "Old Nation Brewing Co.", "abv": 9.0,
+             "alias_alt": ["m43 ipa"]},
+        ]
+        self.assertEqual(shadow_alias_support(
+            candidates, "M-43", "Old Nation", 6.8, "IPA"
+        ), [])
+
+    def test_multiple_alias_matches_remain_inconclusive(self):
+        from untap_matcher import shadow_alias_support
+        candidates = [
+            {"name": "One", "brewery": "Brewery", "abv": 5.0,
+             "alias_alt": ["menu beer"]},
+            {"name": "Two", "brewery": "Brewery", "abv": 5.0,
+             "alias_alt": ["menu beer"]},
+        ]
+        self.assertEqual(len(shadow_alias_support(
+            candidates, "Menu Beer", "Brewery", 5.0
+        )), 2)
+
+    def test_debug_output_names_candidate_alias_and_non_authoritative_scope(self):
+        from untap_matcher import print_shadow_alias_support
+        output = io.StringIO()
+        with redirect_stdout(output):
+            print_shadow_alias_support(
+                [{"name": "M-43 N.E. India Pale Ale", "brewery": "Old Nation",
+                  "abv": 6.8, "alias_alt": ["m43 ipa"]}],
+                "M-43", "Old Nation", 6.8, "IPA",
+            )
+        rendered = output.getvalue()
+        self.assertIn("unique support: 'M-43 N.E. India Pale Ale' via 'm43 ipa'", rendered)
+        self.assertIn("scores, ordering, and match status unchanged", rendered)
 
 
 
