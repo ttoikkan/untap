@@ -237,7 +237,12 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - Show “Listed as out of production on Untappd” on ambiguous candidates only for explicit false values.
 - Keep confirmed cards and true, missing, or unfamiliar values silent.
 - Preserve request counts, scores, ordering, confirmation, and CSV schema.
-# Unreleased — Konttori regression diagnostics
+# v91 — Search inspection and diagnostics (2026-09-06)
+
+Validated with 202 offline tests and mypy, plus manual CM Ruoholahti,
+Musta Kynnys, Nailo, CM Pirkkala, Konttori, and Mallaskellari runs.
+
+## Search completeness and Konttori regression diagnostics
 
 - Preserve search-cap, expansion-error, and ambiguity early-stop warnings
   separately from ambiguity reasons in HTML and batch terminal output.
@@ -245,7 +250,7 @@ Live acceptance target: menu9 remains 38 confirmed + 1 deliberate Populus ambigu
 - Add offline Dragon's Milk, Just Fruit, and Messorem numbered-name fixtures.
 - Keep confirmation policy, request limits, and CSV schema unchanged.
 
-# Unreleased — Algolia inspection and alias diagnostics
+## Algolia inspection and alias diagnostics
 
 - Add a standalone read-only inspector for a query, query file, or validated menu.
 - Save exact page-zero hit dictionaries as JSON plus a field/type/presence summary.

@@ -1,6 +1,10 @@
-# Untap v90
+# Untap v91
 
-## Konttori diagnostics (unreleased)
+v91 adds Algolia response inspection, diagnostic alias/style observations, and
+visible incomplete-search warnings. The deterministic suite contains 202 tests.
+Menu-versus-Untappd ABV comparison notes are planned for a later release.
+
+## Search completeness and style diagnostics
 
 Ambiguous HTML cards and batch terminal output retain a separate warning when
 search expansion reaches its page cap, encounters an error, or stops early
