@@ -42,6 +42,23 @@ class InspectionFormattingTests(unittest.TestCase):
 
 
 class InspectionTransportTests(unittest.TestCase):
+    def test_replay_skips_mismatched_pair_and_finds_later_matching_result(self):
+        request_event = {"algolia_requests": [
+            {"query": "Beer", "indexName": "wrong-index"},
+            {"query": "Beer", "indexName": "beer"},
+        ]}
+        expected = {"index": "beer", "page": 1, "hits": [{"objectID": "2"}]}
+        payload = {"results": [
+            {"index": "wrong-index", "page": 0, "hits": [{"objectID": "1"}]},
+            expected,
+        ]}
+        self.assertIs(
+            untap_inspect._matching_replay_result(
+                payload, request_event, "Beer", page_number=1
+            ),
+            expected,
+        )
+
     def test_inspect_query_returns_unmodified_page_zero_hits(self):
         hit = {"beer_name": "Beer", "unknown": [1, {"x": False}]}
         transport = {"events": [object()], "transport": "browser-fetch", "error": None}
@@ -138,6 +155,24 @@ class InspectionCliTests(unittest.TestCase):
                 code = untap_inspect.main(["--file", str(source)])
             self.assertEqual(code, 2)
             browser.assert_not_called()
+
+    def test_non_utf8_file_fails_cleanly_before_browser_or_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "queries.txt"
+            source.write_bytes(b"Brewery \xff Beer\n")
+            previous = Path.cwd()
+            try:
+                os.chdir(tmp)
+                stderr = io.StringIO()
+                with mock.patch.object(untap_inspect, "untappd_browser_page") as browser, \
+                     contextlib.redirect_stderr(stderr):
+                    code = untap_inspect.main(["--file", str(source)])
+                self.assertEqual(code, 2)
+                browser.assert_not_called()
+                self.assertFalse(Path("inspections").exists())
+                self.assertIn("Could not read inspection input", stderr.getvalue())
+            finally:
+                os.chdir(previous)
 
 
 if __name__ == "__main__":
