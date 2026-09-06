@@ -234,7 +234,6 @@ def render_html_report(
             linked_name = _linked_name(result.get("beer"), result.get("url"))
             metadata = _meta_parts(
                 [
-                    result.get("brewery") or "Unknown brewery",
                     _format_abv(result.get("abv")),
                     result.get("type_name"),
                 ]
@@ -243,11 +242,12 @@ def render_html_report(
             """
             <article class="beer-card{image_class}" data-status="ok"{style_attr}>
               {image}
-              <div class="rating-badge">{rating}</div>
+              <div class="rating-column"><div class="rating-badge">{rating}</div>
+                <p class="ratings-count">{ratings} ratings</p></div>
               <div class="beer-content">
                 <h3>{name}</h3>
+                <p class="brewery">{brewery}</p>
                 <p class="meta">{metadata}</p>
-                <p class="ratings-count">{ratings} ratings</p>
                 {production_status}
               </div>
             </article>
@@ -257,6 +257,7 @@ def render_html_report(
                 image_class=" has-label" if image else "",
                 production_status=production_status,
                 name=linked_name,
+                brewery=escape(str(result.get("brewery") or "Unknown brewery")),
                 metadata=metadata,
                 ratings=_format_count(result.get("ratings")),
                 style_attr=_style_data_attribute(result.get("type_name")),
@@ -279,11 +280,13 @@ def render_html_report(
                 """
                 <li class="candidate-card{image_class}"{style_attr}>
                   {image}
-                  <div class="candidate-score">Match {score}</div>
+                  <div class="rating-column"><div class="rating-badge">{rating}</div>
+                    <p class="ratings-count">{ratings} ratings</p></div>
                   <div>
-                    <h4>{name}</h4>
+                    <div class="candidate-heading"><h4>{name}</h4>
+                      <span class="candidate-score">Match {score}</span></div>
+                    <p class="brewery">{brewery}</p>
                     <p class="meta">{metadata}</p>
-                    <p class="ratings-count">Rating {rating} · {ratings} ratings</p>
                     {production_status}
                   </div>
                 </li>
@@ -293,9 +296,9 @@ def render_html_report(
                     image_class=" has-label" if image else "",
                     production_status=production_status,
                     name=_linked_name(candidate.get("name"), candidate.get("url")),
+                    brewery=escape(str(candidate.get("brewery") or "Unknown brewery")),
                     metadata=_meta_parts(
                         [
-                            candidate.get("brewery") or "Unknown brewery",
                             _format_abv(candidate.get("abv")),
                             candidate.get("type_name"),
                         ]
@@ -409,32 +412,37 @@ def render_html_report(
     .style-chip input:focus-visible + span {{ outline: 3px solid LinkText; outline-offset: 3px; }}
     [hidden] {{ display: none !important; }}
     .results-list, .candidate-list {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }}
-    .beer-card, .candidate-card, .review-group {{ border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 14px; background: color-mix(in srgb, Canvas 94%, CanvasText 6%); }}
-    .beer-card {{ display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 14px; align-items: start; }}
-    .beer-card.has-label {{ grid-template-columns: 72px 64px 1fr; }}
+    .beer-card, .candidate-card, .review-group {{ border: 1px solid color-mix(in srgb, CanvasText 12%, transparent); border-radius: 14px; background: color-mix(in srgb, Canvas 94%, CanvasText 6%); }}
+    .beer-card {{ display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 14px; padding: 12px 14px; align-items: start; }}
+    .beer-card.has-label {{ grid-template-columns: 72px 64px minmax(0, 1fr); }}
     .beer-label {{ width: 72px; height: 72px; object-fit: contain; border-radius: 10px; background: color-mix(in srgb, Canvas 88%, CanvasText 12%); }}
     .label-preview-button {{ display: block; padding: 0; border: 0; border-radius: 10px; background: transparent; cursor: zoom-in; }}
     .label-preview-button:hover {{ outline: 2px solid LinkText; outline-offset: 2px; }}
     .label-preview-button:focus-visible {{ outline: 3px solid LinkText; outline-offset: 3px; }}
     .rating-badge {{ font-size: 1.35rem; font-weight: 750; font-variant-numeric: tabular-nums; }}
     .beer-content h3, .candidate-card h4 {{ margin-bottom: 5px; }}
-    .beer-link {{ color: LinkText; text-decoration-thickness: .08em; text-underline-offset: .15em; }}
+    .beer-link {{ color: LinkText; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, LinkText 55%, transparent); text-underline-offset: .18em; overflow-wrap: anywhere; }}
+    .beer-link:hover {{ text-decoration-color: LinkText; text-decoration-thickness: 2px; }}
+    .beer-link:focus-visible {{ outline: 2px solid LinkText; outline-offset: 3px; border-radius: 2px; }}
+    .brewery {{ margin-bottom: 4px; line-height: 1.4; opacity: .85; }}
+    .meta {{ font-size: .9rem; }}
+    .rating-column .ratings-count {{ font-size: .75rem; margin: 5px 0 0; }}
     .meta, .ratings-count, .review-reason {{ margin-bottom: 4px; opacity: .75; line-height: 1.4; }}
-    .production-status {{ min-height: 1.35em; margin: 8px 0 0; opacity: .72; font-size: .9rem; line-height: 1.35; }}
+    .production-status {{ min-height: 1.35em; margin: 6px 0 0; opacity: .72; font-size: .8rem; line-height: 1.35; }}
     .review-group {{ padding: 16px; }}
     .review-heading {{ display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }}
     .review-heading h3 {{ margin-bottom: 8px; }}
     .status-pill {{ border: 1px solid currentColor; border-radius: 999px; padding: 2px 8px; font-size: .78rem; font-weight: 700; opacity: .78; }}
     .candidate-list {{ margin-top: 12px; }}
-    .candidate-card {{ display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 12px; }}
-    .candidate-card.has-label {{ grid-template-columns: 56px 92px 1fr; }}
-    .candidate-card .beer-label {{ width: 56px; height: 56px; border-radius: 8px; }}
-    .candidate-card .label-preview-button {{ border-radius: 8px; }}
+    .candidate-card {{ display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 12px; align-items: start; }}
+    .candidate-card.has-label {{ grid-template-columns: 72px 64px minmax(0, 1fr); }}
+    .candidate-heading {{ display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-bottom: 5px; }}
+    .candidate-heading h4 {{ margin-bottom: 0; }}
     .label-dialog {{ width: min(92vw, 820px); max-height: 92vh; padding: 44px 18px 18px; border: 1px solid color-mix(in srgb, CanvasText 24%, transparent); border-radius: 16px; background: Canvas; color: CanvasText; }}
     .label-dialog::backdrop {{ background: rgb(0 0 0 / 78%); }}
     .label-dialog img {{ display: block; width: 100%; max-height: calc(92vh - 62px); object-fit: contain; }}
     .label-dialog-close {{ position: absolute; top: 10px; right: 10px; min-width: 34px; min-height: 34px; border: 1px solid color-mix(in srgb, CanvasText 30%, transparent); border-radius: 999px; background: Canvas; color: CanvasText; cursor: pointer; font-size: 1.2rem; }}
-    .candidate-score {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
+    .candidate-score {{ font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; border: 1px solid color-mix(in srgb, CanvasText 20%, transparent); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }}
     .empty {{ opacity: .65; font-style: italic; }}
     @media (prefers-reduced-motion: reduce) {{
       .style-chip span, .style-chip span::before {{ transition: none; }}
@@ -446,9 +454,9 @@ def render_html_report(
       .beer-card.has-label .label-preview-button, .beer-card.has-label > .beer-label {{ grid-row: span 2; }}
       .beer-card.has-label .beer-label {{ width: 54px; height: 54px; }}
       .candidate-card {{ grid-template-columns: 1fr; gap: 4px; }}
-      .candidate-card.has-label {{ grid-template-columns: 48px 1fr; }}
+      .candidate-card.has-label {{ grid-template-columns: 54px 1fr; }}
       .candidate-card.has-label .label-preview-button, .candidate-card.has-label > .beer-label {{ grid-row: span 2; }}
-      .candidate-card.has-label .beer-label {{ width: 48px; height: 48px; }}
+      .candidate-card.has-label .beer-label {{ width: 54px; height: 54px; }}
     }}
   </style>
 </head>

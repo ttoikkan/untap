@@ -85,3 +85,16 @@
 - Reserves an inaccessible blank status row when metadata is missing or unknown.
 - Uses subtle neutral presentation because Untappd status is contextual metadata,
   not a guarantee of current retail availability.
+# v92 — Card visual hierarchy
+
+- Give ambiguous candidates a rating/count column matching confirmed cards,
+  with match confidence in a separate label beside the name.
+- Top-align candidate thumbnails with their rating and content columns.
+- Use matching thumbnail sizes for confirmed and ambiguous cards: 72px on
+  desktop and 54px on mobile, with shared corner styling.
+
+- Group confirmed ratings counts beneath their rating scores.
+- Separate brewery names from smaller ABV/style metadata on beer and candidate cards.
+- Reduce vertical padding, soften borders and link underlines, and add explicit link focus styling.
+- Render production attribution as a smaller footnote while retaining its wording.
+- Preserve confirmed thumbnail sizes and distinguish candidate match scores from beer ratings.

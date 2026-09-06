@@ -1,4 +1,8 @@
-# Untap v91
+# Untap v92
+
+v92 refines report cards with consistent thumbnail sizes and rating/count
+columns, separate candidate match labels, clearer brewery/style hierarchy,
+and quieter production notes. Matching behavior is unchanged.
 
 v91 adds Algolia response inspection, diagnostic alias/style observations, and
 visible incomplete-search warnings. The deterministic suite contains 202 tests.

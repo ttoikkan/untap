@@ -1,3 +1,10 @@
+# v92 — Report card visual refinements (2026-09-06)
+
+- Use consistent thumbnail sizes and rating/count columns across confirmed and ambiguous cards.
+- Place candidate match confidence beside the beer name in a separate label.
+- Separate brewery and ABV/style lines, reduce production-note emphasis, and refine spacing, borders, and link focus styling.
+- Preserve matching and report ordering. Validated with 202 offline tests and manual visual review.
+
 # v86
 
 - Excludes candidates differing from explicit menu ABV by at least the existing 1.0 percentage-point mismatch threshold before final acceptance/ambiguity; keeps rejection diagnostics and returns an explicit failed ABV-conflict result if none survive.
