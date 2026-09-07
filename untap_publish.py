@@ -292,6 +292,8 @@ def publish_report(
     reports remain protected by default. ``replace=True`` replaces exactly one
     existing title match at its existing filename, preserving the public URL.
     """
+    if source_report.is_dir():
+        source_report = source_report / "results.html"
     metadata = read_report_metadata(source_report)
     if not archive_root.is_dir():
         raise PublishError(f"archive directory does not exist: {archive_root}")
@@ -361,7 +363,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Publish an Untap HTML report into a local static archive."
     )
-    parser.add_argument("report", type=Path, help="completed Untap HTML report")
+    parser.add_argument("report", type=Path, help="completed Untap HTML report or run directory containing results.html")
     parser.add_argument("archive", type=Path, help="local untap-results repository root")
     parser.add_argument(
         "--replace",
@@ -373,6 +375,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = _build_parser().parse_args(argv)
+    if args.report.is_dir():
+        args.report = args.report / "results.html"
     try:
         metadata = read_report_metadata(args.report)
         reports_dir = args.archive / "reports"

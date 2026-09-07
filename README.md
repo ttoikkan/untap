@@ -1,4 +1,41 @@
-# Untap v92
+# Untap v93
+
+## Personal review in reports (v93)
+
+Newly generated `results.html` files include personal review, both locally and
+when published. No separate review command or copy is needed. Regenerate and
+republish older reports to add these controls. Ambiguous candidates have **Confirm this beer**
+buttons. Selecting one updates the counts and sorts by its Untappd rating;
+**Change selection** restores the original alternatives. Choices are stored in
+the browser when available and can be exported as `untap-selections.json`.
+The report-content fingerprint and row index keep selections scoped to this
+particular report, including repeated menu entries.
+
+Candidates that share an Untappd beer ID with another confirmed menu item show
+an “Already matched” tag, with “Already matched to another menu item” as its
+tooltip and accessible label. This hint updates after confirmation and undo,
+and does not prevent selecting the candidate. A “Manually confirmed” tag sits
+beside “Change selection”; candidates within each ambiguity group share equal
+row heights.
+
+Choices are personal to each visitor's browser: they do not change the shared
+report, CSV, archive counts, or other visitors' views. The export is a record of
+choices, not an input to the CLI. Use **Import selections** to restore it in
+another browser on the exact same report. The whole file is validated before
+applying anything; imported rows replace choices for those rows, while other
+choices are kept. Keep the source report with the export.
+Browser choices may be unavailable after moving the file, regenerating the
+report, or clearing browser storage. Without JavaScript, the original report
+remains readable. Reports without ambiguous items show no review toolbar.
+The companion `untap_review.js` is bundled inline during report generation;
+publishing still requires only the HTML file.
+
+The publisher also accepts a run directory and automatically uses its
+`results.html`, for example:
+
+```bash
+python3 untap_publish.py results/<run-folder>/ ../untap-results --replace
+```
 
 v92 refines report cards with consistent thumbnail sizes and rating/count
 columns, separate candidate match labels, clearer brewery/style hierarchy,

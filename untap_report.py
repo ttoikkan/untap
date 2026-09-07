@@ -7,6 +7,7 @@ parsing, matching, browser automation, network requests, or CSV persistence.
 
 from datetime import date
 from html import escape
+from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
@@ -541,6 +542,7 @@ def render_html_report(
       }});
     }})();
   </script>
+  <script id="manual-review-script">{review_script}</script>
 </body>
 </html>
 """.format(
@@ -557,6 +559,7 @@ def render_html_report(
         style_filters=style_filters_html,
         status_filters=status_filters_html,
         results_html=results_html,
+        review_script=Path(__file__).with_name("untap_review.js").read_text(encoding="utf-8"),
     )
 
 

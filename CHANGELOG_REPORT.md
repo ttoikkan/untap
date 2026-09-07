@@ -85,6 +85,14 @@
 - Reserves an inaccessible blank status row when metadata is missing or unknown.
 - Uses subtle neutral presentation because Untappd status is contextual metadata,
   not a guarantee of current retail availability.
+# v93 — Personal review in reports
+
+- Embed confirm/change-selection controls, rating-based reordering, and updated visible counts in generated reports, locally and when published.
+- Save report-scoped choices in the browser and export them as JSON; original reports and CSV remain unchanged.
+- Show informational “Already matched” and “Manually confirmed” tags beside action buttons.
+- Give candidates within an ambiguity group equal-height rows, retaining thumbnail previews and filtering.
+- Keep choices personal to each browser; shared reports and archive counts are unchanged. Importing selections is not included.
+
 # v92 — Card visual hierarchy
 
 - Give ambiguous candidates a rating/count column matching confirmed cards,

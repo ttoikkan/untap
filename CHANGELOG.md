@@ -1,3 +1,15 @@
+# v93 — Personal review in reports (2026-09-07)
+
+- Import exported selections after validating the report fingerprint and every candidate; preserve choices for rows absent from the import.
+- Accept run directories in the publisher, resolving only their results.html with existing replacement safeguards.
+
+- Embed personal review controls in generated HTML reports, including published reports; no separate review-copy command is required.
+- Allow reversible manual confirmation of ambiguous candidates, updating visible counts and ordering by the selected beer's rating.
+- Preserve choices in browser storage when available, scoped by report fingerprint and row, and export a JSON record of selections.
+- Mark candidates already confirmed for another menu item with an informational “Already matched” tag; do not change scores or prevent selection.
+- Use compact manual-confirmation tags and equal-height candidate rows within ambiguity groups.
+- Keep choices personal to each visitor's browser; exports are not yet CLI inputs, and shared HTML, CSV, archive counts, and matching decisions remain unchanged.
+
 # v92 — Report card visual refinements (2026-09-06)
 
 - Use consistent thumbnail sizes and rating/count columns across confirmed and ambiguous cards.

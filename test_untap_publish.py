@@ -28,6 +28,30 @@ def _report_html(
 
 
 class PublishMetadataTests(unittest.TestCase):
+    def test_publish_accepts_run_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp) / "run"
+            run.mkdir()
+            source = run / "results.html"
+            source.write_text(_report_html(), encoding="utf-8")
+            archive = Path(tmp) / "archive"
+            (archive / "reports").mkdir(parents=True)
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(untap_publish.main([str(run), str(archive)]), 0)
+                self.assertEqual(untap_publish.main([str(run), str(archive), "--replace"]), 0)
+            published = next((archive / "reports").glob("*.html"))
+            self.assertEqual(published.read_bytes(), source.read_bytes())
+
+    def test_run_directory_without_results_fails_without_writes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp) / "run"
+            run.mkdir()
+            archive = Path(tmp) / "archive"
+            (archive / "reports").mkdir(parents=True)
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(untap_publish.main([str(run), str(archive)]), 2)
+            self.assertEqual(list(archive.rglob("*.html")), [])
+
     def test_reads_v78_metadata_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "results.html"

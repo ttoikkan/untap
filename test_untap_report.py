@@ -12,6 +12,14 @@ import untap_report
 
 
 class HtmlReportTests(unittest.TestCase):
+    def test_personal_review_is_bundled_inline(self):
+        html = untap_report.render_html_report(self._results())
+        script = Path(untap_report.__file__).with_name("untap_review.js").read_text(encoding="utf-8")
+        self.assertIn('<script id="manual-review-script">' + script + '</script>', html)
+        self.assertIn('Confirm this beer', html)
+        self.assertIn('They do not change the shared report or CSV', html)
+        self.assertNotIn('src="untap_review.js"', html)
+
     def test_review_groups_use_results_list_spacing_only(self):
         source = Path("untap_report.py").read_text(encoding="utf-8")
         self.assertIn(".review-group {{ padding: 16px; }}", source)
