@@ -6,6 +6,8 @@ parsing, matching, browser automation, network requests, or CSV persistence.
 """
 
 from datetime import date
+import hashlib
+import json
 from html import escape
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
@@ -16,6 +18,11 @@ from untap_types import AlternativeRecord, MatchResult
 
 DEFAULT_HTML_REPORT = "results.html"
 DEFAULT_REPORT_TITLE = "Untap Results"
+
+
+def selection_report_id(results: Sequence[MatchResult], title: str, report_date: str) -> str:
+    payload = {"results": results, "title": title.strip() or DEFAULT_REPORT_TITLE, "date": report_date}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode("utf-8")).hexdigest()
 
 
 def _canonical_untappd_beer_url(value: Any) -> Optional[str]:
@@ -229,9 +236,11 @@ def render_html_report(
 
     result_cards: List[str] = []
     for result in ordered_results:
-        if result.get("status") == "ok":
+        if result.get("status") == "ok" and not result.get("manually_confirmed"):
             image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
             production_status = _production_status(result.get("in_production"))
+            if result.get("manually_confirmed"):
+                production_status += '<p class="manual-note">Manually confirmed</p>'
             linked_name = _linked_name(result.get("beer"), result.get("url"))
             metadata = _meta_parts(
                 [
@@ -327,7 +336,7 @@ def render_html_report(
         )
         result_cards.append(
             """
-            <article class="review-group" data-status="{status_key}">
+            <article class="review-group" data-status="{status_key}" data-initial-selection="{initial_selection}">
               <div class="review-heading">
                 <span class="status-pill">{status}</span>
                 <h3>{query}</h3>
@@ -336,7 +345,7 @@ def render_html_report(
               {search_warning}
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(status=escape(status), status_key=escape(str(result.get("status") or "unknown"), quote=True), query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
+            """.format(status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("manually_confirmed") else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
         )
 
     results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'
@@ -542,6 +551,7 @@ def render_html_report(
       }});
     }})();
   </script>
+  <meta name="untap-selection-report-id" content="{selection_id}">
   <script id="manual-review-script">{review_script}</script>
 </body>
 </html>
@@ -559,6 +569,7 @@ def render_html_report(
         style_filters=style_filters_html,
         status_filters=status_filters_html,
         results_html=results_html,
+        selection_id=selection_report_id(results, clean_title, generated_date),
         review_script=Path(__file__).with_name("untap_review.js").read_text(encoding="utf-8"),
     )
 

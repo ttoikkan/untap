@@ -1,4 +1,72 @@
-# Untap v93
+# Untap v94
+
+## Saved run snapshots (v94)
+
+New batch runs also save a versioned `results.json`, even when HTML output is
+not requested. It retains full result and candidate records, including images,
+production status, and search warnings, plus report title/date and stable
+occurrence-aware menu-item IDs. CSV and HTML use the same saved result data.
+Keep this file for future offline report refreshes.
+
+The snapshot reserves a manual-decision list (empty for a new run).
+Multiple saved runs can be refreshed using the batch configuration below.
+Existing runs need a one-time rerun to obtain this lossless snapshot.
+
+Refresh one saved run offline (no Untappd requests):
+
+```bash
+python3 untap_refresh.py results/<run-folder>/
+```
+
+This creates a new sibling folder containing JSON, HTML and CSV, preserving
+the saved title, date and matching results. An optional `--output NEW_FOLDER`
+chooses the destination; existing folders are never overwritten.
+To also update the local archive, preserving an existing report's URL:
+
+```bash
+python3 untap_refresh.py results/<run-folder>/ --archive ../untap-results --replace
+```
+
+Git commit/push remain separate. If publication fails, the refreshed folder
+is retained. To apply exported choices, add `--selections ~/Downloads/untap-selections.json`.
+The entire export is validated against the snapshot before writing anything.
+Selected candidates become confirmed in HTML and CSV; JSON retains the original
+ambiguous result and decision history. HTML labels them “Manually confirmed”.
+Refreshes of that reviewed snapshot preserve the decisions.
+
+Older exports use an incompatible browser fingerprint: refresh the original
+snapshot with this version, open or publish its HTML, and export choices again
+before applying them. Browser-only choices are never read automatically.
+
+### Batch refresh
+
+Create a JSON configuration (paths are relative to that configuration file):
+
+```json
+{
+  "reports": [
+    {
+      "source": "results/<reviewed-run-folder>",
+      "archive": "../untap-results",
+      "replace": true
+    },
+    {
+      "source": "results/<another-run-folder>",
+      "archive": "../untap-results",
+      "replace": true
+    }
+  ]
+}
+```
+
+Run `python3 untap_refresh.py --batch refresh-reports.json`.
+Use reviewed snapshots as sources to retain applied manual choices. Entries
+may optionally include a `selections` path; omit `archive` and `replace` for
+refresh-only operation. The configuration is not rewritten to point to outputs.
+Malformed configuration is rejected before starting; individual run failures
+are reported while remaining entries continue. Any failure returns exit code 2.
+Successful entries are not rolled back. Each run gets a new output folder;
+Git commit and push remain explicit.
 
 ## Personal review in reports (v93)
 

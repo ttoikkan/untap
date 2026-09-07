@@ -273,6 +273,7 @@ class HtmlReportTests(unittest.TestCase):
                  mock.patch.object(untap, "run_batch", return_value=fake_result), \
                  mock.patch.object(untap, "print_batch_results"), \
                  mock.patch.object(untap, "save_csv"), \
+                 mock.patch.object(untap, "save_snapshot"), \
                  mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), \
                  mock.patch.object(untap, "save_html_report") as save_report, \
                  contextlib.redirect_stdout(output):
@@ -322,7 +323,7 @@ class HtmlReportTests(unittest.TestCase):
                 untap, "run_batch", return_value=fake_result
             ), mock.patch.object(untap, "print_batch_results"), mock.patch.object(
                 untap, "save_csv"
-            ), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "save_html_report") as save_report:
+            ), mock.patch.object(untap, "save_snapshot"), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "save_html_report") as save_report:
                 untap.main()
 
             save_report.assert_called_once_with(

@@ -1,3 +1,13 @@
+# v94 — Offline refresh and reviewed reports
+
+- Save versioned results.json snapshots with full results, report metadata, occurrence-aware menu IDs, and a reserved manual-decision list.
+- Preserve candidate metadata omitted from CSV for future offline regeneration; reject unsupported snapshot versions and refuse snapshot overwrites.
+- Add offline single-run refresh into a new folder, with optional local archive publication and explicit replacement preserving public URLs.
+- Apply snapshot-bound exports with --selections, retaining original ambiguous results in decision history and marking confirmed choices in HTML.
+- Add --batch configuration for sequential offline refresh/publication with configuration-relative paths, per-run failure isolation, and a success/failure summary.
+- Preserve change-selection and import/export controls in reports with applied manual decisions.
+- Older browser-fingerprint exports require refreshing the report and exporting again before offline application.
+
 # v93 — Personal review in reports (2026-09-07)
 
 - Import exported selections after validating the report fingerprint and every candidate; preserve choices for rows absent from the import.

@@ -34,6 +34,7 @@ from untap_batch import (
     print_batch_timing_summary,
 )
 from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
+from untap_snapshot import build_snapshot, save_snapshot
 from untap_untappd import (
     _reset_run_algolia_debug_stats,
     configure_search_timing,
@@ -645,10 +646,13 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
         print_algolia_confirmation_summary()
         print_batch_timing_summary()
         print_batch_results(results)
-        save_csv(results, str(run_directory / "results.csv"))
+        snapshot = build_snapshot(results, report_title or DEFAULT_REPORT_TITLE)
+        save_snapshot(snapshot, run_directory / "results.json")
+        saved_results = [item["result"] for item in snapshot["items"]]
+        save_csv(saved_results, str(run_directory / "results.csv"))
         if html_requested:
             save_html_report(
-                results, str(run_directory / DEFAULT_HTML_REPORT),
+                saved_results, str(run_directory / DEFAULT_HTML_REPORT),
                 title=report_title or DEFAULT_REPORT_TITLE,
             )
         print(f"Run outputs: {run_directory}")

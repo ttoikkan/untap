@@ -47,7 +47,8 @@
   try {
     const bytes = new TextEncoder().encode(list.innerHTML + originalSummary + document.title);
     const hash = await crypto.subtle.digest('SHA-256', bytes);
-    reportId = Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+    reportId = document.querySelector('meta[name="untap-selection-report-id"]')?.content ||
+      Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
     storageKey = 'untap-review-v1:' + reportId;
   } catch (_) {
     message.textContent = 'Browser saving is unavailable here. Export your selections before closing.';
@@ -160,6 +161,11 @@
     });
   }
   cards.forEach((card, index) => { if (card.dataset.status === 'ambiguous') addButtons(card, index); });
+  cards.forEach((card, index) => {
+    const url = card.dataset.initialSelection;
+    const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === url);
+    if (candidate) choose(card, index, candidate, url, false);
+  });
   toolbar.append(button('Export selections', () => {
     const payload = {format: 'untap-manual-review-trial-v1', report_id: reportId,
       title: document.title, selections: Object.entries(choices).map(([index, url]) => ({row: Number(index), url}))};
@@ -210,8 +216,9 @@
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
       cards.forEach((card, index) => {
-        if (card.dataset.status !== 'ambiguous' || typeof saved[index] !== 'string') return;
-        const candidate = Array.from(card.querySelectorAll('.candidate-card')).find(el => el.querySelector('.beer-link')?.href === saved[index]);
+        if (typeof saved[index] !== 'string') return;
+        const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === saved[index]);
+        if (candidate && selections.has(card) && selections.get(card) !== saved[index]) card.querySelector('.manual-action').click();
         if (candidate) choose(card, index, candidate, saved[index], false);
       });
       if (selections.size) message.textContent = 'Restored your choices for this report.';

@@ -72,6 +72,7 @@ class MatchResult(TypedDict, total=False):
     of the established runtime fields.
     """
 
+    manually_confirmed: bool
     query: str
     status: MatchStatus
     reason: str
