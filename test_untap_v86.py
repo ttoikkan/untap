@@ -210,6 +210,74 @@ class MatcherV86Tests(unittest.TestCase):
         self.assertEqual(result["query"], "Hudson Valley " + beer)
         self.assertAlmostEqual(result["score"], .985576923076923)
 
+    def test_separator_i_recovery(self):
+        beer = "Rosa Shock I The Laser Dude"
+        query = "Dude Rosa Shock The Laser Dude"
+        row = candidate("Rosa Shock | The Laser Dude", "Dude Brewing", 4.5)
+        def fallback(page, search, **kwargs):
+            self.assertEqual(kwargs["expected_beer"], beer)
+            rows = [row] if search == query else []
+            return dict(candidates=rows, weak_match=not rows, ambiguity_reason=None)
+        result, calls = self.run_search([], beer, "Dude", 4.5, hits=0, fallback=fallback)
+        self.assertEqual(calls[0].args[1], query)
+        self.assertEqual(result["status"], "ok")
+        for enabled in (False, True):
+            queries = matcher.build_search_fallback_queries(beer, expected_beer=beer,
+                expected_brewery="Dude", enable_trailing_relaxation=enabled)
+            self.assertEqual(query in queries, enabled)
+        for name in ("I Love Beer", "Beer I", "Rosa Shock i The Laser Dude", "Rosa Shock II The Laser Dude"):
+            self.assertIsNone(matcher.separator_i_recovery(name, "Dude"))
+
+    def test_mangolorian_combined_recovery(self):
+        beer = "THE MANGOLORIAN & GROGU (STAR WARS)"
+        query = "Mortalis MANGOLORIAN & GROGU"
+        def fallback(page, search, **kwargs):
+            self.assertEqual(kwargs["expected_beer"], beer)
+            rows = [candidate("Mangolorian & Grogu", "Mortalis Brewing Company", 8.0)] if search == query else []
+            return dict(candidates=rows, weak_match=not rows, ambiguity_reason=None)
+        result, calls = self.run_search([], beer, "Mortalis", 8.0, hits=0, fallback=fallback)
+        self.assertEqual(calls[0].args[1], query)
+        self.assertEqual(result["status"], "ok")
+        for enabled in (False, True):
+            queries = matcher.build_search_fallback_queries(beer, expected_beer=beer,
+                expected_brewery="Mortalis", enable_trailing_relaxation=enabled)
+            self.assertEqual(query in queries, enabled)
+        for name in ("The Mangolorian & Grogu (2026)", "The Mangolorian & Grogu",
+                     "Mangolorian & Grogu (Star Wars)", "The Beer (Star Wars)"):
+            self.assertIsNone(matcher.leading_the_annotation_recovery(name, "Mortalis"))
+
+    def test_mangolorian_recovery_rejects_wrong_identity(self):
+        beer = "THE MANGOLORIAN & GROGU (STAR WARS)"
+        for changes in ({"abv": 9.0}, {"abv": None}, {"brewery": "Other Brewing"},
+                        {"name": "Mangolorian & Grogu Peach"}):
+            row = dict(candidate("Mangolorian & Grogu", "Mortalis Brewing Company", 8.0), **changes)
+            def fallback(page, search, **kwargs):
+                rows = [row] if search == "Mortalis MANGOLORIAN & GROGU" else []
+                return dict(candidates=rows, weak_match=not rows, ambiguity_reason=None)
+            result, _ = self.run_search([], beer, "Mortalis", 8.0, hits=0, fallback=fallback)
+            self.assertEqual(result["status"], "failed")
+
+    def test_rice_lager_rejects_explicit_short_unrelated_brewery(self):
+        brewery = "EMPORIUM X LA FOSSE X JACKALHOP"
+        row = candidate("45 Days Rice Lager", "To Øl", 5.0, .567)
+        self.assertFalse(matcher.candidate_has_brewery_overlap(row, brewery))
+        self.assertTrue(matcher.candidate_has_brewery_overlap(row, "To Øl"))
+        self.assertTrue(matcher.candidate_has_brewery_overlap(
+            candidate("Rice Lager", "Emporium Microbrasserie", 4.5), brewery))
+        def fallback(page, query, **kwargs):
+            rows = [row] if query == "RICE LAGER" else []
+            return dict(candidates=rows, weak_match=not rows, ambiguity_reason=None)
+        result, _ = self.run_search([], "RICE LAGER", brewery, 4.5, hits=0, fallback=fallback)
+        self.assertEqual(result["status"], "failed")
+
+    def test_separator_i_rejects_wrong_abv(self):
+        beer = "Rosa Shock I The Laser Dude"
+        def fallback(page, query, **kwargs):
+            rows = [candidate("Rosa Shock | The Laser Dude", "Dude Brewing", 8.0)] if query == "Dude Rosa Shock The Laser Dude" else []
+            return dict(candidates=rows, weak_match=not rows, ambiguity_reason=None)
+        result, _ = self.run_search([], beer, "Dude", 4.5, hits=0, fallback=fallback)
+        self.assertEqual(result["status"], "failed")
+
     def test_leading_retry_requires_zero_hits(self):
         for enabled in [False, True]:
             queries = matcher.build_search_fallback_queries(

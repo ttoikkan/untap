@@ -1,4 +1,12 @@
-# Untap v95
+# Untap v96
+
+v96 adds a zero-hit recovery for an interior standalone capital
+`I` misread from `|`, as in Rosa Shock I The Laser Dude. It requires a
+brewery, at least two words on each side, and matching recovered name,
+brewery and explicit ABV. Original input and scoring remain unchanged.
+It also tries removing an extra leading The together with a one- or two-word
+terminal parenthetical annotation, using the same strict verification.
+Numeric annotations such as years are excluded from this combined recovery.
 
 ## Automatic registration (v95)
 

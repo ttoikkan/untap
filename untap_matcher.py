@@ -1446,7 +1446,16 @@ def candidate_has_brewery_overlap(candidate, expected_brewery):
     expected_words = _meaningful_brewery_words(expected_brewery)
     candidate_words = _meaningful_brewery_words(candidate_brewery)
     if not expected_words or not candidate_words:
-        return True
+        # An explicit short name (e.g. To Øl) is not missing identity.
+        # Compare complete token sets to avoid a shared short word authorizing
+        # an unrelated brewery. Generic-only labels remain unknown.
+        generic = {"brew", "brewing", "brewery", "company", "co", "inc",
+                   "llc", "ltd", "limited", "corp", "corporation", "plc", "x"}
+        expected_short = set(normalize(expected_brewery).split()) - generic
+        candidate_short = set(normalize(candidate_brewery).split()) - generic
+        if not expected_short or not candidate_short:
+            return True
+        return candidate_short <= expected_short or expected_short <= candidate_short
 
     return bool(expected_words & candidate_words)
 
@@ -1513,6 +1522,22 @@ def leading_word_recovery(expected_beer, expected_brewery):
     if len(words) < 5 or words[0].casefold() != "on":
         return None
     return final_query_cleanup(" ".join(words[1:]))
+
+
+def leading_the_annotation_recovery(beer, brewery):
+    """Discover a name hidden by extra The and a short trailing annotation."""
+    if not beer or not brewery:
+        return None
+    match = re.fullmatch(r"(?i:the)\s+(.+?)\s+\(([^()]+)\)\s*", beer.strip())
+    if not match:
+        return None
+    base, annotation = match.groups()
+    # Do not generalize this recovery to years, batch numbers or long suffixes.
+    if any(char.isdigit() for char in annotation) or not 1 <= len(annotation.split()) <= 2:
+        return None
+    if len(normalize(base).split()) < 2:
+        return None
+    return final_query_cleanup(base)
 
 
 def _exclude_abv_conflicts(candidates, expected_abv, debug=False):
@@ -1687,6 +1712,19 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
     return best
 
 
+def separator_i_recovery(beer, brewery):
+    """Recover one interior capital I possibly transcribed from a vertical bar."""
+    if not beer or not brewery:
+        return None
+    words = beer.split()
+    if words.count("I") != 1:
+        return None
+    index = words.index("I")
+    if index < 2 or len(words) - index - 1 < 2:
+        return None
+    return " ".join(words[:index] + words[index + 1:])
+
+
 def build_search_fallback_queries(
     original_query,
     expected_beer=None,
@@ -1732,6 +1770,20 @@ def build_search_fallback_queries(
     # token relaxation. A merely weak/nonzero search is not enough evidence
     # that the menu contains extra descriptive suffix text.
     if enable_trailing_relaxation:
+        annotated_recovered = leading_the_annotation_recovery(expected_beer, expected_brewery)
+        if annotated_recovered:
+            combined = final_query_cleanup(f"{normalized_brewery} {annotated_recovered}")
+            key = normalize(combined)
+            if key not in seen:
+                seen.add(key)
+                fallback_queries.append(combined)
+        separator_recovered = separator_i_recovery(expected_beer, expected_brewery)
+        if separator_recovered:
+            combined = final_query_cleanup(f"{normalized_brewery} {separator_recovered}")
+            key = normalize(combined)
+            if key not in seen:
+                seen.add(key)
+                fallback_queries.append(combined)
         recovered = leading_word_recovery(expected_beer, expected_brewery)
         if recovered:
             combined = final_query_cleanup(f"{normalized_brewery} {recovered}")
@@ -3219,6 +3271,14 @@ def _search_one_impl(
         fallback_candidates = fallback.get("candidates") or []
 
         recovered = leading_word_recovery(expected_beer, expected_brewery)
+        separator_recovered = separator_i_recovery(expected_beer, expected_brewery)
+        annotated_recovered = leading_the_annotation_recovery(expected_beer, expected_brewery)
+        if annotated_recovered and normalize(fallback_query) == normalize(final_query_cleanup(
+                f"{normalize_brewery_for_search(expected_brewery)} {annotated_recovered}")):
+            recovered = annotated_recovered
+        if separator_recovered and normalize(fallback_query) == normalize(final_query_cleanup(
+                f"{normalize_brewery_for_search(expected_brewery)} {separator_recovered}")):
+            recovered = separator_recovered
         recovery_query = final_query_cleanup(
             f"{normalize_brewery_for_search(expected_brewery)} {recovered}"
         ) if recovered else None

@@ -1,3 +1,12 @@
+# v96 — Guarded name recovery and brewery verification (2026-09-09)
+
+- Recover extra leading The combined with a short trailing parenthetical annotation after zero hits (Mangolorian & Grogu); require recovered name, brewery and explicit ABV agreement and retain original-input scoring. Numeric annotations are excluded.
+
+- Reject explicitly unrelated short brewery names in beer-only recovery instead of treating them as missing identity; regression covers To Øl versus the Emporium collaboration.
+
+- After zero primary hits, try removing one interior capital I that may represent a misread vertical-bar separator, requiring at least two words on each side and a known brewery.
+- Verify recovered name, brewery and explicit ABV; preserve original-input scoring and normal searches.
+
 # v95 — Automatic menu registration and refresh defaults (2026-09-08)
 
 - Support explicit archive/replace configuration defaults, with per-report overrides and inheritance for newly registered menus.
