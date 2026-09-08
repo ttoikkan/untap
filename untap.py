@@ -35,6 +35,7 @@ from untap_batch import (
 )
 from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
 from untap_snapshot import build_snapshot, save_snapshot
+from untap_registry import register_run_safely
 from untap_untappd import (
     _reset_run_algolia_debug_stats,
     configure_search_timing,
@@ -707,6 +708,7 @@ def main() -> None:
     smoke_test_requested = False
     html_requested = False
     report_title = None
+    register_refresh = None
     file_mode = None
     menu_mode = None
     min_score = DEFAULT_MIN_SCORE
@@ -792,6 +794,13 @@ def main() -> None:
                   "in a new results/<timestamp>_<menu>/ folder.")
             sys.exit(1)
 
+        elif arg == "--register-refresh":
+            if i + 1 >= len(args) or args[i + 1].startswith("--"):
+                print("--register-refresh requires a configuration path")
+                sys.exit(1)
+            register_refresh = args[i + 1]
+            i += 2
+
         elif arg == "--html":
             html_requested = True
             i += 1
@@ -845,6 +854,10 @@ def main() -> None:
         print(supported_formats_help())
         if not (clean_args or file_mode or menu_mode or validate_menu_mode or probe_abv_sort or smoke_test_requested or html_requested or report_title):
             return
+
+    if register_refresh and (not (file_mode or menu_mode) or not report_title or not html_requested):
+        print("--register-refresh requires batch input, --html and --report-title")
+        sys.exit(1)
 
     if report_title is not None and not html_requested:
         print("--report-title requires --html")
@@ -959,6 +972,8 @@ def main() -> None:
                 page, items, run_directory, min_score=min_score, debug=debug,
                 html_requested=html_requested, report_title=report_title,
             )
+            if register_refresh:
+                register_run_safely(register_refresh, run_directory)
 
         # ----------------------------------------------------
         # One-query-per-line mode
@@ -983,6 +998,8 @@ def main() -> None:
                 page, queries, run_directory, min_score=min_score, debug=debug,
                 html_requested=html_requested, report_title=report_title,
             )
+            if register_refresh:
+                register_run_safely(register_refresh, run_directory)
 
         # ----------------------------------------------------
         # Single beer mode

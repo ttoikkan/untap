@@ -3,6 +3,7 @@ import json
 import io
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from untap_refresh import refresh, main, apply_selections
@@ -12,6 +13,19 @@ from untap_publish import publish_report
 
 
 class RefreshTests(unittest.TestCase):
+    def test_batch_defaults_and_explicit_false_override(self):
+        from untap_refresh import refresh_batch
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            config = Path(tmp) / "batch.json"
+            config.write_text(json.dumps({"defaults": {"archive": "../archive", "replace": True},
+                "reports": [{"source": "one"}, {"source": "two", "replace": False}]}))
+            with patch("untap_refresh.main", return_value=0) as run:
+                self.assertEqual(refresh_batch(config), 0)
+            first, second = [call.args[0] for call in run.call_args_list]
+            self.assertIn("--archive", first)
+            self.assertIn("--replace", first)
+            self.assertNotIn("--replace", second)
+
     def test_batch_continues_after_missing_source(self):
         with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()) as log, contextlib.redirect_stderr(io.StringIO()):
             root = Path(tmp)

@@ -12,6 +12,7 @@ from untap_batch import save_csv
 from untap_publish import PublishError, publish_report
 from untap_report import render_html_report, selection_report_id, _sorted_report_results, _review_candidates
 from untap_snapshot import load_snapshot, save_snapshot
+from untap_refresh_config import config_defaults
 
 
 def apply_selections(snapshot, path: Path) -> None:
@@ -73,12 +74,14 @@ def refresh(source: Path, output: Optional[Path] = None, selections: Optional[Pa
 def refresh_batch(config_path: Path) -> int:
     """Validate configuration first, then run independent entries sequentially."""
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    if not isinstance(config, dict) or set(config) != {"reports"} or not isinstance(config["reports"], list) or not config["reports"]:
+    defaults = config_defaults(config)
+    if not config["reports"]:
         raise ValueError("Batch configuration requires a nonempty reports list")
     jobs = []
     for entry in config["reports"]:
         if not isinstance(entry, dict) or set(entry) - {"source", "archive", "selections", "replace"}:
             raise ValueError("Invalid batch entry or unknown field")
+        entry = {**defaults, **entry}
         if not isinstance(entry.get("source"), str) or not entry["source"].strip():
             raise ValueError("Each batch entry requires a source path")
         if type(entry.get("replace", False)) is not bool:

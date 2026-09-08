@@ -1,4 +1,23 @@
-# Untap v94
+# Untap v95
+
+## Automatic registration (v95)
+
+Add `--register-refresh refresh-reports.json` to your normal batch command
+with `--html --report-title "Menu title"`. After saving the run, Untap adds
+a source-only entry for a new menu, creating the configuration if absent.
+Add archive/replace and optional selections settings yourself; publication
+can also use explicit top-level defaults. Paths are relative to the configuration.
+
+Set `"defaults": {"archive": "../untap-results", "replace": true}` alongside
+`"reports"` to apply those settings to all entries, including newly registered
+menus. Per-entry values override defaults, including `"replace": false`.
+Source and selections paths are never inherited. Existing configurations without
+defaults retain their previous behavior.
+
+Existing menu titles use the publisher's identity rules and are left untouched,
+including their selections and archive settings. Missing or unreadable existing
+snapshots prevent registration rather than risking duplicates. A registration
+error is reported without discarding the completed run.
 
 ## Saved run snapshots (v94)
 

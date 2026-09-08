@@ -1,3 +1,10 @@
+# v95 — Automatic menu registration and refresh defaults (2026-09-08)
+
+- Support explicit archive/replace configuration defaults, with per-report overrides and inheritance for newly registered menus.
+
+- Add opt-in --register-refresh CONFIG for registering new batch menus after outputs are saved.
+- Preserve existing menu entries and never infer publication or selection settings.
+
 # v94 — Offline refresh and reviewed reports
 
 - Save versioned results.json snapshots with full results, report metadata, occurrence-aware menu IDs, and a reserved manual-decision list.
