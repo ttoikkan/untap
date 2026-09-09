@@ -1,6 +1,6 @@
-# Untap v96
+# Untap v97
 
-## Add a candidate by URL (v97, unreleased)
+## Add a candidate by URL (v97)
 
 Failed and ambiguous cards have **Add candidate by URL**. Paste a full HTTPS
 Untappd beer URL on the relevant card. The URL is saved as a pending candidate,

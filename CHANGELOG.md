@@ -1,4 +1,4 @@
-# v97 — In progress
+# v97 — User-added Untappd candidates (2026-09-09)
 
 - Add per-item pending Untappd URLs in failed/ambiguous report cards, with browser storage and export/import.
 - Add explicit --fetch-candidates during selection refresh, requiring exact beer-ID retrieval through existing search transport.
