@@ -1,10 +1,12 @@
 # Backlog
 
-## Manual Untappd URL override
+## Manual Untappd URL override — initial trial in v97
 
 Allow a user to supply an Untappd beer URL when the correct beer is absent
 from the report's candidates, particularly for failed searches or translated
-menu names. This is a planned feature, not implemented.
+menu names. The initial pending-URL/export/explicit-fetch workflow is implemented
+for v97 testing. Immediate in-browser retrieval and batch fetching remain out
+of scope.
 
 - Prefer a browser-led review workflow: show the retrieved beer details before
   explicit manual confirmation.

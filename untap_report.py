@@ -14,6 +14,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
 from untap_types import AlternativeRecord, MatchResult
+from untap_snapshot import build_snapshot
 
 
 DEFAULT_HTML_REPORT = "results.html"
@@ -173,7 +174,8 @@ def _review_candidates(result: MatchResult) -> List[AlternativeRecord]:
             str(item.get("name") or "").casefold(),
         )
     )
-    return candidates[:10]
+    return [item for item in candidates if not item.get("user_added")][:10] + [
+        item for item in candidates if item.get("user_added")]
 
 
 def _rating_value(value: Any) -> Optional[float]:
@@ -235,6 +237,8 @@ def render_html_report(
     style_groups = _style_groups(results)
 
     result_cards: List[str] = []
+    item_ids = {id(result): item["id"] for result, item in zip(
+        results, build_snapshot(results, clean_title)["items"])}
     for result in ordered_results:
         if result.get("status") == "ok" and not result.get("manually_confirmed"):
             image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
@@ -284,6 +288,18 @@ def render_html_report(
         for candidate in _review_candidates(result):
             image = _label_image(candidate.get("image_url"), candidate.get("image_hd_url"), candidate.get("name"))
             production_status = _production_status(candidate.get("in_production"))
+            if candidate.get("user_added"):
+                production_status += '<p class="manual-note">User-added candidate — verify against the menu.</p>'
+                production_status += '<p class="manual-note">' + escape(
+                    f"Check against menu: {result.get('input_brewery') or 'Unknown brewery'} · "
+                    f"{result.get('input_abv') or 'Unknown'}% ABV") + '</p>'
+                try:
+                    menu_abv = float(str(result.get("input_abv")).rstrip("%").replace(",", "."))
+                    candidate_abv = float(str(candidate.get("abv")).rstrip("%").replace(",", "."))
+                    if abs(menu_abv - candidate_abv) > .05:
+                        production_status += '<p class="manual-note"><strong>ABV differs from the menu — verify before confirming.</strong></p>'
+                except (TypeError, ValueError):
+                    production_status += '<p class="manual-note">ABV comparison unavailable — verify before confirming.</p>'
             score = candidate.get("score")
             score_text = f"{float(score):.3f}" if score is not None else "N/A"
             candidate_cards.append(
@@ -294,14 +310,14 @@ def render_html_report(
                     <p class="ratings-count">{ratings} ratings</p></div>
                   <div>
                     <div class="candidate-heading"><h4>{name}</h4>
-                      <span class="candidate-score">Match {score}</span></div>
+                      <span class="candidate-score">{score}</span></div>
                     <p class="brewery">{brewery}</p>
                     <p class="meta">{metadata}</p>
                     {production_status}
                   </div>
                 </li>
                 """.format(
-                    score=score_text,
+                    score="User-added" if candidate.get("user_added") else "Match " + score_text,
                     image=image,
                     image_class=" has-label" if image else "",
                     production_status=production_status,
@@ -336,7 +352,7 @@ def render_html_report(
         )
         result_cards.append(
             """
-            <article class="review-group" data-status="{status_key}" data-initial-selection="{initial_selection}">
+            <article class="review-group" data-item-id="{item_id}" data-status="{status_key}" data-initial-selection="{initial_selection}">
               <div class="review-heading">
                 <span class="status-pill">{status}</span>
                 <h3>{query}</h3>
@@ -345,7 +361,7 @@ def render_html_report(
               {search_warning}
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("manually_confirmed") else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
+            """.format(item_id=item_ids[id(result)], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("manually_confirmed") else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
         )
 
     results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'

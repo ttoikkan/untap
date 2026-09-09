@@ -5,11 +5,13 @@
   const originalSummary = summary.textContent;
   const cards = Array.from(list.children);
   const choices = {};
+  const pending = {};
+  const pendingForms = new Map();
   const original = new Map();
   const selections = new Map();
   const candidatesByRow = cards.map(card => card.dataset.status === 'ambiguous'
     ? Array.from(card.querySelectorAll('.candidate-card')) : []);
-  if (!cards.some(card => card.dataset.status === 'ambiguous')) return;
+  if (!cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status))) return;
   const styles = document.createElement('style');
   styles.textContent = `
     .manual-toolbar { margin: 20px 0; padding: 14px; border: 1px solid GrayText; border-radius: 12px; }
@@ -17,6 +19,8 @@
     .manual-action { font: inherit; padding: 7px 12px; border: 1px solid GrayText; border-radius: 8px; color: CanvasText; background: Canvas; cursor: pointer; margin: 6px 6px 0 0; }
     .manual-action:focus-visible { outline: 3px solid LinkText; outline-offset: 3px; }
     .manual-note { font-size: .85rem; margin: 6px 0; }
+    .candidate-url-input { box-sizing: border-box; width: min(100%, 36rem); font: inherit; padding: 8px; }
+    .pending-url { overflow-wrap: anywhere; }
     .manual-flash { outline: 2px solid LinkText; outline-offset: 3px; }
     .candidate-list { grid-auto-rows: 1fr; }
     .already-matched-note, .manually-confirmed-tag { display: inline-block; font-size: .75rem; padding: 3px 7px; border: 1px solid GrayText; border-radius: 999px; vertical-align: middle; margin: 6px 0 0 4px; }
@@ -105,11 +109,83 @@
     try {
       if (!storageKey) throw new Error();
       localStorage.setItem(storageKey, JSON.stringify(choices));
+      localStorage.setItem(storageKey + ':pending', JSON.stringify(pending));
       message.textContent = 'Choices saved in this browser. Export to keep them outside the browser.';
     } catch (_) {
       message.textContent = 'Browser saving is unavailable. Export your selections before closing.';
     }
   }
+  function parsedBeerUrl(value) {
+    const url = new URL(value.trim());
+    const match = url.pathname.match(/^\/b\/([A-Za-z0-9_-]+)\/([1-9][0-9]*)\/?$/);
+    if (url.protocol !== 'https:' || !['untappd.com', 'www.untappd.com'].includes(url.host) ||
+        url.username || url.password || url.search || url.hash || !match) {
+      throw new Error('Use an HTTPS Untappd beer URL without query parameters.');
+    }
+    return {id: match[2], url: 'https://untappd.com/b/' + match[1] + '/' + match[2]};
+  }
+  function validatePending(entries) {
+    if (!Array.isArray(entries) || entries.length > 20) throw new Error('At most 20 pending candidates are allowed.');
+    const seen = new Set();
+    return entries.map(entry => {
+      if (!entry || typeof entry.url !== 'string') throw new Error('Invalid pending URL.');
+      const card = cards.find(el => el.dataset.itemId === entry.item_id);
+      if (!card || !pendingForms.has(card)) throw new Error('Pending candidate has an invalid menu item.');
+      const parsed = parsedBeerUrl(entry.url);
+      const key = entry.item_id + ':' + parsed.id;
+      if (seen.has(key)) throw new Error('Duplicate pending candidate.');
+      seen.add(key);
+      const index = cards.indexOf(card);
+      if (candidatesByRow[index].some(el => {
+        try { return parsedBeerUrl(el.querySelector('.beer-link').href).id === parsed.id; }
+        catch (_) { return false; }
+      })) throw new Error('That beer is already an available candidate.');
+      return {item_id: entry.item_id, url: parsed.url};
+    });
+  }
+  const pendingEntries = () => Object.entries(pending).flatMap(([item_id, urls]) =>
+    urls.map(url => ({item_id, url})));
+  function showPending(card) {
+    const container = pendingForms.get(card);
+    container.replaceChildren();
+    (pending[card.dataset.itemId] || []).forEach(url => {
+      const line = document.createElement('p'); line.className = 'pending-url';
+      const link = document.createElement('a');
+      link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = 'Pending candidate: Untappd beer ' + parsedBeerUrl(url).id;
+      line.append(link, document.createTextNode(' — export and refresh to retrieve details. '),
+        button('Remove', () => {
+          pending[card.dataset.itemId] = pending[card.dataset.itemId].filter(value => value !== url);
+          showPending(card); persist();
+        }));
+      container.append(line);
+    });
+  }
+  cards.forEach(card => {
+    if (!['failed', 'ambiguous'].includes(card.dataset.status) || !card.dataset.itemId) return;
+    const section = document.createElement('div');
+    const form = document.createElement('form'); form.hidden = true;
+    const label = document.createElement('label'); label.textContent = 'Untappd beer URL ';
+    const input = document.createElement('input');
+    input.type = 'url'; input.required = true; input.className = 'candidate-url-input';
+    input.placeholder = 'https://untappd.com/b/beer-name/12345';
+    label.append(input);
+    const add = document.createElement('button'); add.type = 'submit'; add.className = 'manual-action'; add.textContent = 'Add';
+    const feedback = document.createElement('p'); feedback.setAttribute('role', 'status');
+    const container = document.createElement('div'); pendingForms.set(card, container);
+    form.append(label, add, feedback);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      try {
+        const entry = {item_id: card.dataset.itemId, url: input.value};
+        const entries = validatePending([...pendingEntries(), entry]);
+        pending[entry.item_id] = entries.filter(e => e.item_id === entry.item_id).map(e => e.url);
+        showPending(card); persist(); input.value = ''; form.hidden = true; feedback.textContent = '';
+      } catch (error) { feedback.textContent = error.message; }
+    });
+    section.append(button('Add candidate by URL', () => { form.hidden = !form.hidden; if (!form.hidden) input.focus(); }), form, container);
+    card.append(section);
+  });
   function focusCard(card, control) {
     const all = document.querySelector('input[data-status-filter][value="all"]');
     if (all) { all.checked = true; all.dispatchEvent(new Event('change')); }
@@ -168,7 +244,8 @@
   });
   toolbar.append(button('Export selections', () => {
     const payload = {format: 'untap-manual-review-trial-v1', report_id: reportId,
-      title: document.title, selections: Object.entries(choices).map(([index, url]) => ({row: Number(index), url}))};
+      title: document.title, selections: Object.entries(choices).map(([index, url]) => ({row: Number(index), url})),
+      pending_candidates: pendingEntries()};
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob); const link = document.createElement('a');
     link.href = url; link.download = 'untap-selections.json'; link.click();
@@ -189,6 +266,12 @@
         throw new Error('This is not a selections file for this exact report.');
       }
       const seen = new Set();
+      const importedPending = validatePending(payload.pending_candidates || []);
+      const mergedPending = new Map(pendingEntries().map(entry =>
+        [entry.item_id + ':' + parsedBeerUrl(entry.url).id, entry]));
+      importedPending.forEach(entry => mergedPending.set(
+        entry.item_id + ':' + parsedBeerUrl(entry.url).id, entry));
+      const combinedPending = validatePending(Array.from(mergedPending.values()));
       // Validate the entire file before changing any choices.
       const entries = payload.selections.map(entry => {
         if (!entry || !Number.isInteger(entry.row) || seen.has(entry.row) ||
@@ -206,6 +289,11 @@
         if (selections.has(card)) card.querySelector('.manual-action').click();
         choose(card, row, candidate, url, false);
       });
+      Object.keys(pending).forEach(key => delete pending[key]);
+      combinedPending.forEach(entry => {
+        (pending[entry.item_id] ||= []).push(entry.url);
+      });
+      pendingForms.forEach((_, card) => showPending(card));
       persist();
       message.textContent = 'Imported ' + entries.length + ' selections. Other choices were kept. ' + message.textContent;
     } catch (error) {
@@ -215,6 +303,13 @@
   if (storageKey) {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      const savedPending = JSON.parse(localStorage.getItem(storageKey + ':pending') || '{}');
+      const restoredPending = validatePending(Object.entries(savedPending).flatMap(([item_id, urls]) =>
+        urls.map(url => ({item_id, url}))));
+      restoredPending.forEach(entry => {
+        (pending[entry.item_id] ||= []).push(entry.url);
+      });
+      pendingForms.forEach((_, card) => showPending(card));
       cards.forEach((card, index) => {
         if (typeof saved[index] !== 'string') return;
         const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === saved[index]);

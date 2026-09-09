@@ -1,3 +1,9 @@
+# v97 — In progress
+
+- Add per-item pending Untappd URLs in failed/ambiguous report cards, with browser storage and export/import.
+- Add explicit --fetch-candidates during selection refresh, requiring exact beer-ID retrieval through existing search transport.
+- Preserve original results in candidate-addition history; render unscored user-added candidates for a separate manual confirmation step.
+
 # v96 — Guarded name recovery and brewery verification (2026-09-09)
 
 - Recover extra leading The combined with a short trailing parenthetical annotation after zero hits (Mangolorian & Grogu); require recovered name, brewery and explicit ABV agreement and retain original-input scoring. Numeric annotations are excluded.

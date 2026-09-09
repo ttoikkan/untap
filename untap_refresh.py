@@ -13,9 +13,10 @@ from untap_publish import PublishError, publish_report
 from untap_report import render_html_report, selection_report_id, _sorted_report_results, _review_candidates
 from untap_snapshot import load_snapshot, save_snapshot
 from untap_refresh_config import config_defaults
+from untap_manual_candidates import parse_beer_url, fetch_candidates
 
 
-def apply_selections(snapshot, path: Path) -> None:
+def apply_selections(snapshot, path: Path, fetch_pending: bool = False) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
     results = [item["result"] for item in snapshot["items"]]
     expected = selection_report_id(results, snapshot["report"]["title"], snapshot["report"]["date"])
@@ -23,6 +24,34 @@ def apply_selections(snapshot, path: Path) -> None:
             or payload.get("report_id") != expected or not isinstance(payload.get("selections"), list)):
         raise ValueError("Selections do not match this snapshot. Refresh the report with the current version, then export selections again.")
     ordered = _sorted_report_results(results)
+    pending = payload.get("pending_candidates", [])
+    if not isinstance(pending, list) or len(pending) > 20:
+        raise ValueError("At most 20 pending candidates are allowed")
+    additions = []
+    pending_seen = set()
+    for entry in pending:
+        if not isinstance(entry, dict):
+            raise ValueError("Invalid pending candidate")
+        item = next((i for i in snapshot["items"] if i["id"] == entry.get("item_id")), None)
+        if item is None or (item["result"].get("status") not in ("failed", "ambiguous")
+                            and not item["result"].get("manually_confirmed")):
+            raise ValueError("Pending candidate has an invalid menu item")
+        beer_id, url, _ = parse_beer_url(entry.get("url"))
+        pending_key = (item["id"], beer_id)
+        if pending_key in pending_seen:
+            raise ValueError("Duplicate pending candidate")
+        pending_seen.add(pending_key)
+        existing_ids = set()
+        for existing_candidate in _review_candidates(item["result"]):
+            try:
+                existing_ids.add(parse_beer_url(existing_candidate.get("url"))[0])
+            except ValueError:
+                pass
+        if beer_id in existing_ids:
+            raise ValueError("Pending beer is already an available candidate")
+        additions.append((item, beer_id, url))
+    if additions and not fetch_pending:
+        raise ValueError("Pending URLs require explicit --fetch-candidates (uses Untappd)")
     seen = set()
     validated = []
     for entry in payload["selections"]:
@@ -38,6 +67,17 @@ def apply_selections(snapshot, path: Path) -> None:
             raise ValueError("Selection is not an available ambiguous candidate")
         item = next(item for item in snapshot["items"] if item["result"] is result)
         validated.append((item, candidate, url))
+    # No network until every row and URL in the export has passed validation.
+    fetched = fetch_candidates([url for _, _, url in additions]) if additions else {}
+    for item, beer_id, url in additions:
+        target = item["result"]
+        snapshot.setdefault("candidate_additions", []).append({
+            "item_id": item["id"], "url": url, "original_result": deepcopy(target)})
+        field = "same_abv_variants" if target.get("same_abv_variants") else "alternatives"
+        target.setdefault(field, []).append(deepcopy(fetched[beer_id]))
+        if target.get("status") == "failed":
+            target["status"] = "ambiguous"
+            target["reason"] = "User-added candidate awaiting manual confirmation"
     for item, candidate, url in validated:
         original = deepcopy(item["result"])
         result = item["result"]
@@ -52,12 +92,13 @@ def apply_selections(snapshot, path: Path) -> None:
         snapshot["manual_decisions"].append({"item_id": item["id"], "url": url, "original_result": original})
 
 
-def refresh(source: Path, output: Optional[Path] = None, selections: Optional[Path] = None) -> Path:
+def refresh(source: Path, output: Optional[Path] = None, selections: Optional[Path] = None,
+            fetch_pending: bool = False) -> Path:
     """Keep the snapshot's data, IDs, title and date; create fresh presentation."""
     source = source / "results.json" if source.is_dir() else source
     snapshot = load_snapshot(source)
     if selections is not None:
-        apply_selections(snapshot, selections)
+        apply_selections(snapshot, selections, fetch_pending)
     results = [item["result"] for item in snapshot["items"]]
     # Render before creating output so invalid results cannot leave a report.
     html = render_html_report(results, snapshot["report"]["title"], snapshot["report"]["date"])
@@ -119,11 +160,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--batch", type=Path, help="JSON configuration listing saved runs to refresh")
     parser.add_argument("--output", type=Path, help="new output directory (must not exist)")
     parser.add_argument("--selections", type=Path, help="exported selections from this snapshot's report")
+    parser.add_argument("--fetch-candidates", action="store_true", help="explicitly fetch pending Untappd URLs in the export")
     parser.add_argument("--archive", type=Path, help="optionally update this local archive")
     parser.add_argument("--replace", action="store_true", help="allow replacing the same logical report in the archive")
     args = parser.parse_args(argv)
     if args.batch:
-        if args.source or args.output or args.selections or args.archive or args.replace:
+        if args.source or args.output or args.selections or args.archive or args.replace or args.fetch_candidates:
             parser.error("--batch cannot be combined with single-run arguments")
         try:
             return refresh_batch(args.batch)
@@ -132,10 +174,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return 2
     if args.source is None:
         parser.error("provide a source or --batch")
+    if args.fetch_candidates and not args.selections:
+        parser.error("--fetch-candidates requires --selections")
     if args.replace and args.archive is None:
         parser.error("--replace requires --archive")
     try:
-        output = refresh(args.source, args.output, args.selections)
+        output = refresh(args.source, args.output, args.selections, args.fetch_candidates)
         print(f"Refreshed run: {output.resolve()}")
         if args.archive is not None:
             published = publish_report(output / "results.html", args.archive, replace=args.replace)

@@ -51,6 +51,7 @@ class CandidateRecord(TypedDict, total=False):
 class AlternativeRecord(TypedDict, total=False):
     """Compact candidate representation surfaced in ambiguous results."""
 
+    user_added: bool
     name: str
     score: float
     abv: Optional[float]

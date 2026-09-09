@@ -1,5 +1,35 @@
 # Untap v96
 
+## Add a candidate by URL (v97, unreleased)
+
+Failed and ambiguous cards have **Add candidate by URL**. Paste a full HTTPS
+Untappd beer URL on the relevant card. The URL is saved as a pending candidate,
+not a confirmation; remove it on that card if needed. Export selections to keep
+pending candidates together with their report and stable menu-item IDs.
+
+Refresh that exact snapshot with explicit network permission:
+
+```bash
+python3 untap_refresh.py results/<source-run>/ \
+  --selections ~/Downloads/untap-selections.json --fetch-candidates
+```
+
+Ordinary refresh remains offline. This flag uses the existing search transport
+to search the URL name, accepting only the exact requested beer ID. A stale or
+unsearchable slug may fail; a similarly named beer is never substituted. URL
+inputs do not trigger arbitrary HTTP fetches. Retrieval failure leaves the
+source unchanged and creates no output folder.
+
+Open the newly refreshed HTML to inspect the user-added cards and their menu
+context. They have no automatic match score and remain unconfirmed. Confirm
+only after checking brewery, ABV and other evidence, then export again and
+apply to **the newly refreshed snapshot** using --selections as usual.
+Use --archive/--replace if you also want local publication. Fetching pending
+URLs is currently single-run only, not enabled in batch configurations.
+
+Regenerate or refresh existing reports to get the URL form. At most 20 pending
+candidates are accepted per export, deduplicated by item and Untappd beer ID.
+
 v96 adds a zero-hit recovery for an interior standalone capital
 `I` misread from `|`, as in Rosa Shock I The Laser Dude. It requires a
 brewery, at least two words on each side, and matching recovered name,
