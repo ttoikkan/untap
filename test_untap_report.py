@@ -12,6 +12,27 @@ import untap_report
 
 
 class HtmlReportTests(unittest.TestCase):
+    def test_review_context_uses_consistent_typography(self):
+        html = untap_report.render_html_report(self._results())
+        self.assertIn('.review-group > .menu-abv, .review-group > .review-reason { font-size: .9rem; margin: 0 0 4px; }', html)
+
+    def test_review_shows_menu_abv_separately_from_candidate_abv(self):
+        result = self._results()[2]
+        result["input_abv"] = "6.8"
+        html = untap_report.render_html_report([result])
+        self.assertIn('Menu ABV: 6.8%</p>', html)
+        self.assertIn('10%', html)
+
+    def test_review_menu_abv_handles_zero_missing_and_escaped_values(self):
+        for value, expected in [(0, "0%"), (None, "N/A"), ("", "N/A"),
+                                ("4,2%", "4,2%"), ("<test>", "&lt;test&gt;%")]:
+            for status in ("ambiguous", "failed"):
+                with self.subTest(value=value, status=status):
+                    html = untap_report.render_html_report([
+                        {"query": "Example", "status": status, "input_abv": value}
+                    ])
+                    self.assertIn(f'Menu ABV: {expected}</p>', html)
+
     def test_personal_review_is_bundled_inline(self):
         html = untap_report.render_html_report(self._results())
         script = Path(untap_report.__file__).with_name("untap_review.js").read_text(encoding="utf-8")

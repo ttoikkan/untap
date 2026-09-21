@@ -1,5 +1,8 @@
 /* Personal, reversible review. Does not modify the shared report or CSV. */
 (async function () {
+  const local = window.untapLocalReview || null;
+  let dirty = Boolean(local?.unsavedCandidates);
+  let busy = false;
   const list = document.querySelector('.results-list');
   const summary = document.querySelector('.summary');
   const originalSummary = summary.textContent;
@@ -11,11 +14,11 @@
   const selections = new Map();
   const candidatesByRow = cards.map(card => card.dataset.status === 'ambiguous'
     ? Array.from(card.querySelectorAll('.candidate-card')) : []);
-  if (!cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status))) return;
+  if (!local && !cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status))) return;
   const styles = document.createElement('style');
   styles.textContent = `
     .manual-toolbar { margin: 20px 0; padding: 14px; border: 1px solid GrayText; border-radius: 12px; }
-    .manual-toolbar p { margin-bottom: 8px; }
+    .manual-toolbar p { margin-bottom: 8px; overflow-wrap: anywhere; }
     .manual-action { font: inherit; padding: 7px 12px; border: 1px solid GrayText; border-radius: 8px; color: CanvasText; background: Canvas; cursor: pointer; margin: 6px 6px 0 0; }
     .manual-action:focus-visible { outline: 3px solid LinkText; outline-offset: 3px; }
     .manual-note { font-size: .85rem; margin: 6px 0; }
@@ -30,9 +33,14 @@
   toolbar.className = 'manual-toolbar';
   const explanation = document.createElement('p');
   explanation.textContent = 'Personal review — choices apply only in this browser. They do not change the shared report or CSV, or affect other visitors. Export selections to keep a record.';
+  if (local) explanation.textContent = 'Local review — URL additions fetch from Untappd immediately. Confirm your choices, then Save reviewed run to create new HTML, CSV and JSON. The source and published reports stay unchanged.';
   const message = document.createElement('p');
   message.setAttribute('role', 'status');
   toolbar.append(explanation, message);
+  if (dirty) message.textContent = 'Fetched candidates are ready for review. Save reviewed run to keep them.';
+  if (local) window.addEventListener('beforeunload', event => {
+    if (dirty || busy) { event.preventDefault(); event.returnValue = ''; }
+  });
   document.querySelector('header').after(toolbar);
   const button = (text, action) => {
     const el = document.createElement('button');
@@ -106,6 +114,11 @@
     });
   }
   function persist() {
+    if (local) {
+      dirty = true;
+      message.textContent = 'Unsaved choices — use Save reviewed run to keep them.';
+      return;
+    }
     try {
       if (!storageKey) throw new Error();
       localStorage.setItem(storageKey, JSON.stringify(choices));
@@ -145,6 +158,33 @@
   }
   const pendingEntries = () => Object.entries(pending).flatMap(([item_id, urls]) =>
     urls.map(url => ({item_id, url})));
+  async function localAction(action, additions = []) {
+    if (busy) return;
+    busy = true;
+    const controls = Array.from(document.querySelectorAll('button, input'));
+    const disabled = controls.map(control => control.disabled);
+    controls.forEach(control => { control.disabled = true; });
+    message.textContent = action === 'fetch' ? 'Retrieving candidate from Untappd…' : 'Saving reviewed run…';
+    try {
+      const payload = {format: 'untap-manual-review-trial-v1', report_id: reportId,
+        selections: Object.entries(choices).map(([index, url]) => ({row: Number(index), url})),
+        pending_candidates: additions};
+      const response = await fetch(local.endpoint, {method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-Untap-Token': local.token},
+        body: JSON.stringify({action, payload})});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Local review request failed');
+      dirty = false;
+      if (result.reload) { busy = false; window.location.reload(); return; }
+      message.textContent = 'Saved reviewed run: ' + result.saved + '. Source and published reports are unchanged.';
+    } catch (error) {
+      message.textContent = 'Could not complete local review: ' + error.message + '. Your current choices are unchanged.';
+    } finally {
+      busy = false;
+      controls.forEach((control, index) => { control.disabled = disabled[index]; });
+    }
+  }
+  if (local) toolbar.append(button('Save reviewed run', () => localAction('save')));
   function showPending(card) {
     const container = pendingForms.get(card);
     container.replaceChildren();
@@ -170,15 +210,16 @@
     input.type = 'url'; input.required = true; input.className = 'candidate-url-input';
     input.placeholder = 'https://untappd.com/b/beer-name/12345';
     label.append(input);
-    const add = document.createElement('button'); add.type = 'submit'; add.className = 'manual-action'; add.textContent = 'Add';
+    const add = document.createElement('button'); add.type = 'submit'; add.className = 'manual-action'; add.textContent = local ? 'Fetch candidate' : 'Add';
     const feedback = document.createElement('p'); feedback.setAttribute('role', 'status');
     const container = document.createElement('div'); pendingForms.set(card, container);
     form.append(label, add, feedback);
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
       event.preventDefault();
       try {
         const entry = {item_id: card.dataset.itemId, url: input.value};
         const entries = validatePending([...pendingEntries(), entry]);
+        if (local) { await localAction('fetch', entries); return; }
         pending[entry.item_id] = entries.filter(e => e.item_id === entry.item_id).map(e => e.url);
         showPending(card); persist(); input.value = ''; form.hidden = true; feedback.textContent = '';
       } catch (error) { feedback.textContent = error.message; }
@@ -242,7 +283,7 @@
     const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === url);
     if (candidate) choose(card, index, candidate, url, false);
   });
-  toolbar.append(button('Export selections', () => {
+  if (!local) toolbar.append(button('Export selections', () => {
     const payload = {format: 'untap-manual-review-trial-v1', report_id: reportId,
       title: document.title, selections: Object.entries(choices).map(([index, url]) => ({row: Number(index), url})),
       pending_candidates: pendingEntries()};
@@ -254,7 +295,7 @@
   updateAlreadyMatchedHints();
   const importFile = document.createElement('input');
   importFile.type = 'file'; importFile.accept = '.json,application/json'; importFile.hidden = true;
-  toolbar.append(importFile, button('Import selections', () => importFile.click()));
+  if (!local) toolbar.append(importFile, button('Import selections', () => importFile.click()));
   importFile.addEventListener('change', async () => {
     const file = importFile.files[0];
     if (!file) return;
@@ -300,7 +341,7 @@
       message.textContent = 'Could not import selections: ' + error.message;
     } finally { importFile.value = ''; }
   });
-  if (storageKey) {
+  if (storageKey && !local) {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
       const savedPending = JSON.parse(localStorage.getItem(storageKey + ':pending') || '{}');

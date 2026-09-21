@@ -1,4 +1,29 @@
-# Untap v97
+# Untap v98
+
+## Local browser review (v98)
+
+```bash
+python3 untap_local_review.py results/<saved-run-folder>/
+```
+
+This opens one saved snapshot in your browser through a temporary server bound
+only to 127.0.0.1. Leave the command running while reviewing. Use `--no-open`
+to print the private session URL without opening the browser automatically.
+
+- **Add candidate by URL → Fetch candidate** retrieves the exact beer using
+  the existing Untappd transport and reloads the report. Retrieval is explicit;
+  adding a candidate does not confirm it. Existing choices are carried forward.
+- Confirm or change selections as usual, without exporting or importing JSON.
+- **Save reviewed run** writes HTML, CSV and JSON to a new sibling folder and
+  displays its path. The original run is untouched. Saving does not fetch.
+- Save before closing the session. Unsaved browser choices and fetched candidates
+  are not durable. Ctrl-C stops the server; reopen a saved output to continue.
+
+Publishing, Git operations and refresh-configuration changes remain separate.
+Published reports retain the existing export/import workflow. Local session
+credentials are not embedded in the saved HTML. The server exposes only its
+session page and actions, not arbitrary files; write requests require its token
+and same-origin checks.
 
 ## Add a candidate by URL (v97)
 

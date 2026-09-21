@@ -346,6 +346,7 @@ def render_html_report(
             )
 
         candidates_html = "".join(candidate_cards) or '<p class="empty">No linked candidate was available.</p>'
+        menu_abv_text = escape(_format_abv(result.get("input_abv")))
         search_warning = (
             '<p class="review-reason">' + escape(str(result["search_warning"])) + '</p>'
             if result.get("search_warning") else ""
@@ -357,11 +358,12 @@ def render_html_report(
                 <span class="status-pill">{status}</span>
                 <h3>{query}</h3>
               </div>
+              <p class="meta menu-abv">Menu ABV: {menu_abv}</p>
               <p class="review-reason">{reason}</p>
               {search_warning}
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(item_id=item_ids[id(result)], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("manually_confirmed") else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
+            """.format(menu_abv=menu_abv_text, item_id=item_ids[id(result)], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("manually_confirmed") else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
         )
 
     results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'
@@ -454,6 +456,7 @@ def render_html_report(
     .meta {{ font-size: .9rem; }}
     .rating-column .ratings-count {{ font-size: .75rem; margin: 5px 0 0; }}
     .meta, .ratings-count, .review-reason {{ margin-bottom: 4px; opacity: .75; line-height: 1.4; }}
+    .review-group > .menu-abv, .review-group > .review-reason {{ font-size: .9rem; margin: 0 0 4px; }}
     .production-status {{ min-height: 1.35em; margin: 6px 0 0; opacity: .72; font-size: .8rem; line-height: 1.35; }}
     .review-group {{ padding: 16px; }}
     .review-heading {{ display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }}

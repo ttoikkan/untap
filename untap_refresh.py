@@ -18,6 +18,10 @@ from untap_manual_candidates import parse_beer_url, fetch_candidates
 
 def apply_selections(snapshot, path: Path, fetch_pending: bool = False) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
+    apply_selection_payload(snapshot, payload, fetch_pending)
+
+
+def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> None:
     results = [item["result"] for item in snapshot["items"]]
     expected = selection_report_id(results, snapshot["report"]["title"], snapshot["report"]["date"])
     if (not isinstance(payload, dict) or payload.get("format") != "untap-manual-review-trial-v1"
@@ -99,6 +103,11 @@ def refresh(source: Path, output: Optional[Path] = None, selections: Optional[Pa
     snapshot = load_snapshot(source)
     if selections is not None:
         apply_selections(snapshot, selections, fetch_pending)
+    return write_reviewed_run(snapshot, source, output)
+
+
+def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None) -> Path:
+    """Write self-contained reviewed outputs without changing their source."""
     results = [item["result"] for item in snapshot["items"]]
     # Render before creating output so invalid results cannot leave a report.
     html = render_html_report(results, snapshot["report"]["title"], snapshot["report"]["date"])

@@ -1,3 +1,11 @@
+# v98 — Local browser review (2026-09-21)
+
+- Show the original menu ABV explicitly above ambiguous and failed candidates, separately from Untappd values.
+- Harmonize menu ABV and ambiguity-reason typography and spacing.
+- Add a one-run loopback review session with explicit candidate fetching and browser-driven saving, without export/import.
+- Reuse exact-ID candidate retrieval and snapshot validation; save separate HTML/CSV/JSON runs without publication or source edits.
+- Keep published report controls unchanged and restrict local actions with host, origin, token and request-size checks.
+
 # v97 — User-added Untappd candidates (2026-09-09)
 
 - Add per-item pending Untappd URLs in failed/ambiguous report cards, with browser storage and export/import.
