@@ -1,3 +1,11 @@
+# v99 — Guarded matching recovery (2026-09-30)
+
+- Expand standalone DDH to Double Dry Hopped for scoring without changing search or display text; retain hop and vintage distinctions.
+- Retain bounded XTRM Turbo fallback candidates with additional name tokens for manual review when brewery and exact menu ABV agree. These candidates cannot be automatically confirmed.
+- Add offline October-menu regressions for Fort Point, the Bas-Canada/Fidens collaborations, Boston Lager, Imprint and the Humble Sea ABV conflict.
+- Keep the Imprint inserted-Apricot variant manual: the existing exact-base rule recognizes suffixes, not inserted ingredients.
+- Live Pien regression: 30 confirmed, 2 ambiguous, 0 failed (previously 29/2/1); only Fort Point and Fidens changed match status or selected URL. CM Ruoholahti was not live-retested for this release; its targeted cases are covered by offline regressions.
+
 # v98 — Local browser review (2026-09-21)
 
 - Show the original menu ABV explicitly above ambiguous and failed candidates, separately from Untappd values.

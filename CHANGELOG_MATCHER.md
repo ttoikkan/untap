@@ -1,3 +1,9 @@
+# v99 — Guarded matching recovery (2026-09-30)
+
+- Comparison-only DDH expansion improves Fort Point scoring; preserve release uncertainty.
+- Review-only recovery for XTRM Turbo suffix searches requires a substantial matching prefix, bounded alphabetic additions, brewery overlap and exact ABV. No new search requests are introduced.
+- Preserve conflicting-ABV rejection and manual vintage/inserted-ingredient decisions.
+
 # v73
 
 - The matcher-facing page-0 transport wrapper now self-heals one non-429 direct transport failure through a single UI recapture before returning a result.

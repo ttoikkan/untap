@@ -1,4 +1,14 @@
-# Untap v98
+# Untap v99
+
+## Matcher refinements (v99)
+
+Standalone `DDH` is compared as `Double Dry Hopped`, while hop varieties and
+release years remain distinct. When a zero-hit `XTRM Turbo` search recovers a
+plausible name extension with brewery and exact ABV agreement, that candidate
+is offered for manual confirmation rather than discarded. It is never
+automatically confirmed by this recovery rule. ABV conflicts and vintage
+ambiguities remain protected; inserted-ingredient cases such as Imprint's
+Apricot variant still require review.
 
 ## Local browser review (v98)
 

@@ -287,6 +287,11 @@ def extract_abv_number(text):
         return None
 
 
+def expand_beer_abbreviations(value):
+    """Expand standalone DDH for comparison only; preserve search/display text."""
+    return re.sub(r"\bddh\b", "double dry hopped", value or "", flags=re.IGNORECASE)
+
+
 def score_candidate(
     query,
     name,
@@ -295,9 +300,9 @@ def score_candidate(
     expected_brewery=None,
     expected_abv=None,
 ):
-    query_norm = normalize(query)
-    name_norm = normalize(name)
-    block_norm = normalize(block_text)
+    query_norm = normalize(expand_beer_abbreviations(query))
+    name_norm = normalize(expand_beer_abbreviations(name))
+    block_norm = normalize(expand_beer_abbreviations(block_text))
 
     query_words = {
         word
@@ -321,8 +326,8 @@ def score_candidate(
     # not with the combined brewery + beer search query.
     beer_target = expected_beer or query
     name_score = similarity(
-        beer_target,
-        name,
+        expand_beer_abbreviations(beer_target),
+        expand_beer_abbreviations(name),
     )
 
     score = (
@@ -1204,6 +1209,16 @@ def detect_candidate_ambiguity(
     best = candidates[0]
     second = candidates[1]
 
+    # DDH scoring equivalence must not hide a dated sibling of the same beer.
+    if expected_beer and re.search(r"\bddh\b", expected_beer, re.IGNORECASE):
+        expanded = normalize(expand_beer_abbreviations(expected_beer))
+        siblings = [item for item in candidates
+                    if normalize(expand_beer_abbreviations(item.get("name"))) == expanded
+                    or candidate_adds_release_qualifier(expected_beer, item.get("name"))]
+        if len(siblings) > 1 and any(candidate_adds_release_qualifier(expected_beer, item.get("name"))
+                                     for item in siblings):
+            return "Multiple release variants found; manual confirmation required"
+
     # Near-tie: the ranking itself cannot separate two plausible matches.
     if (
         best["score"] >= DEFAULT_MIN_SCORE
@@ -1307,8 +1322,8 @@ def candidate_adds_release_qualifier(expected_beer, candidate_name):
     if not RELEASE_YEAR_RE.search(candidate_name):
         return False
 
-    expected_norm = normalize(expected_beer)
-    candidate_norm = normalize(candidate_name)
+    expected_norm = normalize(expand_beer_abbreviations(expected_beer))
+    candidate_norm = normalize(expand_beer_abbreviations(candidate_name))
 
     if not expected_norm or not candidate_norm:
         return False
@@ -1498,6 +1513,25 @@ def candidate_matches_trailing_relaxed_identity(candidate, expected_beer):
     if not expected_norm or not candidate_norm:
         return False
     return expected_norm == candidate_norm or expected_norm.startswith(candidate_norm + " ")
+
+
+def candidate_needs_trailing_review(candidate, expected_beer, expected_brewery, expected_abv):
+    """Retain a bounded XTRM Turbo recovery for review, never confirmation."""
+    target = normalize(expected_beer or "")
+    if not target.endswith(" xtrm turbo"):
+        return False
+    base = target[:-len(" xtrm turbo")]
+    name = normalize(candidate.get("name") or "")
+    if len(base.split()) < 3 or not name.startswith(base + " "):
+        return False
+    extra = name[len(base) + 1:].split()
+    if not 1 <= len(extra) <= 4 or any(not word.isalpha() for word in extra):
+        return False
+    abv = candidate.get("abv")
+    return (candidate_has_brewery_overlap(candidate, expected_brewery)
+            and expected_abv is not None and abv is not None
+            and math.isfinite(float(abv))
+            and abs(float(abv) - expected_abv) <= EXACT_ABV_EPSILON)
 
 
 def trailing_relaxation_search_queries(expected_beer, expected_brewery):
@@ -3246,6 +3280,7 @@ def _search_one_impl(
     )
 
     fallback_query_used = None
+    fallback_review_required = False
     fallback_started = perf_counter() if debug_timing_enabled() and fallback_queries else None
 
     for fallback_attempt_number, fallback_query in enumerate(
@@ -3317,7 +3352,8 @@ def _search_one_impl(
             compatible_candidates = [
                 item for item in fallback_candidates
                 if candidate_has_brewery_overlap(item, expected_brewery)
-                and candidate_matches_trailing_relaxed_identity(item, expected_beer)
+                and (candidate_matches_trailing_relaxed_identity(item, expected_beer)
+                     or candidate_needs_trailing_review(item, expected_beer, expected_brewery, expected_abv))
             ]
             if debug and len(compatible_candidates) != len(fallback_candidates):
                 print(
@@ -3336,6 +3372,12 @@ def _search_one_impl(
                 not compatible_candidates
                 or compatible_candidates[0].get("score", 0) < min_score
             )
+            fallback["review_required"] = any(
+                not candidate_matches_trailing_relaxed_identity(item, expected_beer)
+                for item in compatible_candidates
+            )
+            if fallback["review_required"]:
+                fallback["ambiguity_reason"] = "Recovered candidate name differs from the menu; manual confirmation required"
 
         # A beer-name-only fallback deliberately discards brewery search tokens.
         # If the menu supplied brewery identity, do not let an explicitly
@@ -3434,6 +3476,7 @@ def _search_one_impl(
             expansion_diagnostics = fallback.get("expansion_diagnostics")
             abv_sorted_diagnostics = fallback.get("abv_sorted_diagnostics")
             fallback_query_used = fallback_query
+            fallback_review_required = bool(fallback.get("review_required"))
             # The winning candidate now comes from this fallback query, not
             # the original one -- use its initial Algolia page (if any) for
             # later brewery-metadata recovery instead of the stale original.
@@ -3453,6 +3496,7 @@ def _search_one_impl(
             expansion_diagnostics = fallback.get("expansion_diagnostics")
             abv_sorted_diagnostics = fallback.get("abv_sorted_diagnostics")
             fallback_query_used = fallback_query
+            fallback_review_required = bool(fallback.get("review_required"))
             primary_algolia_page = fallback.get("initial_algolia_page")
 
     if fallback_started is not None:
@@ -3516,15 +3560,17 @@ def _search_one_impl(
             if incomplete and ambiguity_reason
             else detect_candidate_ambiguity(candidates, expected_beer, expected_abv)
         )
-    exact_base = None if incomplete else exact_base_candidate(
+    exact_base = None if incomplete or fallback_review_required else exact_base_candidate(
         candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
     )
     if debug and incomplete:
         print("Exact-base preference not selected: incomplete or early-stopped expansion")
     if exact_base is not None:
         ambiguity_reason = None
+    if fallback_review_required:
+        ambiguity_reason = "Recovered candidate name differs from the menu; manual confirmation required"
 
-    same_abv_variants = [] if exact_base is not None else same_abv_family_variants(
+    same_abv_variants = [] if exact_base is not None or fallback_review_required else same_abv_family_variants(
         candidates,
         expected_beer,
         expected_abv,
