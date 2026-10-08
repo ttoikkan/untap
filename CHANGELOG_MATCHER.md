@@ -1,3 +1,7 @@
+# v100 — Explicit series-number matching (2026-10-08)
+
+- Add guarded exact numbered-name acceptance for Banishing 3 versus differently numbered siblings. Require complete discovery, unique exact top name, matching brewery and exact ABV; no scoring changes or year-rule changes.
+
 # v99 — Guarded matching recovery (2026-09-30)
 
 - Comparison-only DDH expansion improves Fort Point scoring; preserve release uncertainty.

@@ -1,3 +1,10 @@
+# v100 — Explicit series-number matching (2026-10-08)
+
+- Prefer a unique exact numbered beer name over otherwise identical differently numbered siblings, with matching brewery and exact ABV. Limited to terminal series numbers 1–999; scores and search queries are unchanged.
+- Preserve uncertainty for missing series numbers, duplicate exact names, added qualifiers, conflicting metadata, incomplete searches and review-only recoveries. Year handling is unchanged.
+- Add Banishing 3 regressions based on the October CM Pirkkala menu.
+- User-confirmed live verification: Banishing 3 now resolves correctly in the Pirkkala run.
+
 # v99 — Guarded matching recovery (2026-09-30)
 
 - Expand standalone DDH to Double Dry Hopped for scoring without changing search or display text; retain hop and vintage distinctions.

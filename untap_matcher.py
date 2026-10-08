@@ -1694,6 +1694,37 @@ def _exact_base_brewery_words(brewery):
     return _meaningful_brewery_words(name)
 
 
+def exact_numbered_candidate(candidates, expected_beer, expected_brewery, expected_abv,
+                             min_score=DEFAULT_MIN_SCORE, debug=False):
+    """Resolve an exact numbered name only against differently numbered siblings.
+
+    Limit this rule to a single terminal positive series number (1-999),
+    excluding years, duplicate exact names and additional variant qualifiers.
+    The caller must have completed discovery and excluded review-only recovery.
+    """
+    target = normalize(expected_beer or "")
+    match = re.fullmatch(r"([^\d]+?) ([1-9]\d{0,2})", target)
+    if len(candidates) < 2 or not match or expected_abv is None or not math.isfinite(float(expected_abv)):
+        return None
+    brewery = _exact_base_brewery_words(expected_brewery)
+    best = candidates[0]
+    if not brewery or normalize(best.get("name") or "") != target or best.get("score", 0) < min_score:
+        return None
+    prefix, number = match.groups()
+    for index, candidate in enumerate(candidates):
+        sibling = re.fullmatch(r"([^\d]+?) ([1-9]\d{0,2})", normalize(candidate.get("name") or ""))
+        if not sibling or sibling.group(1) != prefix or (index and sibling.group(2) == number):
+            return None
+        if _exact_base_brewery_words(candidate.get("brewery")) != brewery:
+            return None
+        abv = candidate.get("abv")
+        if abv is None or not math.isfinite(float(abv)) or abs(float(abv) - expected_abv) > EXACT_ABV_EPSILON:
+            return None
+    if debug:
+        print(f"Exact numbered-name preference accepted: {best['name']!r}")
+    return best
+
+
 def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_abv,
                          min_score=DEFAULT_MIN_SCORE, debug=False):
     """Prefer an exact base only over recognized flavor/process extensions.
@@ -3563,6 +3594,10 @@ def _search_one_impl(
     exact_base = None if incomplete or fallback_review_required else exact_base_candidate(
         candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
     )
+    if exact_base is None and not incomplete and not fallback_review_required:
+        exact_base = exact_numbered_candidate(
+            candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
+        )
     if debug and incomplete:
         print("Exact-base preference not selected: incomplete or early-stopped expansion")
     if exact_base is not None:

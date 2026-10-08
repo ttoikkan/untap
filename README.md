@@ -1,4 +1,12 @@
-# Untap v99
+# Untap v100
+
+## Explicit series numbers (v100)
+
+A unique exact name such as `Banishing 3` can now be confirmed over otherwise
+identical differently numbered siblings when brewery and exact ABV agree.
+This rule only handles terminal series numbers 1–999 and complete searches;
+unnumbered input, duplicate exact names, added qualifiers and vintage handling
+remain unchanged. Candidate scores are not modified.
 
 ## Matcher refinements (v99)
 
