@@ -1,3 +1,11 @@
+# v104 — Continue unfinished runs (2026-10-11)
+
+- Remove the partial journal and input manifest only after a complete run's HTML/JSON and optional CSV save successfully. Retain both after interruption, rate limiting or save failure.
+- Add `--continue RUN` to search only rate-limited and unattempted rows into a new sibling folder. Preserve completed results, input identities, manual decisions, candidate additions and report title; never overwrite the source.
+- Recover abrupt shutdowns from a full input manifest plus flushed per-result journal. Support legacy v103 journals with the exact original TSV via `--recovery-menu`; validate row identities and reject malformed data before browser startup.
+
+- Validation: 277 deterministic tests and all 18 runtime module type checks pass, including repeated rate limits, interruptions, crash recovery, source preservation and cleanup after successful saves.
+
 # v103 — Run integrity and maintenance (2026-10-11)
 
 - Require manual review when a yearless menu’s unique exact name/brewery/ABV match is explicitly retired and a pure vintage-qualified same-brewery, same-ABV sibling is explicitly current. Unknown production statuses and rating counts do not decide identity. Name the existing bounded exact-base flavor/process vocabulary without expanding it.

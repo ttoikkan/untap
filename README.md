@@ -1,4 +1,24 @@
-# Untap v103
+# Untap v104
+
+## Continue unfinished runs (v104)
+
+```bash
+python3 untap.py --continue results/<unfinished-run>/
+python3 untap.py --continue results/<unfinished-run>/ --debug --csv
+```
+
+Continuation searches only **rate-limited** and **not attempted** rows, preserving completed matches (including ambiguous and failed results), manual decisions, alternatives and item IDs. It creates a new sibling folder, keeps the saved report title, and never modifies the source run. Wait for the rate limit to clear before continuing. Normal searches still rerun the full menu.
+
+New runs retain a full `results.input.json` manifest and a flushed `results.partial.jsonl` journal until all final outputs save successfully. A complete run removes both temporary recovery files. Incomplete runs and save failures retain them. Continuation prefers `results.json`; if a crash prevented it, the manifest and journal recover completed progress. A torn final journal line is ignored with a warning; mismatched identities and malformed complete lines are rejected before searching.
+
+For a v103 journal without an input manifest:
+
+```bash
+python3 untap.py --continue results/<crashed-v103-run>/ --recovery-menu original-menu.tsv
+```
+
+Use the exact original TSV in the original order. The legacy recovery title defaults to its filename stem. Legacy snapshots that silently omitted rows cannot be continued safely; rerun the menu. This continuation mechanism replaces no completed decisions and is separate from the removed CSV resume feature.
+
 
 ## Integrity and CLI validation (v103)
 
@@ -418,7 +438,7 @@ With `--debug-timing`, the transport summary reports UI bootstrap searches, UI r
 
 ## Full mypy coverage
 
-Local static validation runs mypy across all 17 runtime modules:
+Local static validation runs mypy across all 18 runtime modules:
 
 ```bash
 python3 -m mypy untap*.py

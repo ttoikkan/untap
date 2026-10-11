@@ -11,8 +11,7 @@ import json
 import os
 import re
 import math
-import contextlib
-from typing import Any, Iterator, Optional, TextIO
+from typing import Optional
 from datetime import datetime
 from pathlib import Path
 from untap_parser import (
@@ -35,6 +34,8 @@ from untap_batch import (
     read_queries_from_file,
     run_batch,
     unattempted_result,
+    debug_transcript,
+    _TeeOutput,
     print_batch_timing_summary,
 )
 from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
@@ -610,42 +611,8 @@ def create_run_directory(input_filename: str, title: Optional[str]) -> Path:
             suffix += 1
 
 
-class _TeeOutput:
-    def __init__(self, terminal: TextIO, log: TextIO) -> None:
-        self.terminal = terminal
-        self.log = log
-
-    def write(self, value: str) -> int:
-        self.terminal.write(value)
-        self.log.write(value)
-        self.log.flush()
-        return len(value)
-
-    @property
-    def encoding(self):
-        return self.terminal.encoding
-
-    def isatty(self) -> bool:
-        return self.terminal.isatty()
-
-    def fileno(self) -> int:
-        return self.terminal.fileno()
-
-    def flush(self) -> None:
-        self.terminal.flush()
-        self.log.flush()
 
 
-@contextlib.contextmanager
-def debug_transcript(run_directory: Path, enabled: bool) -> Iterator[None]:
-    """Mirror batch debug output to an incrementally flushed run log."""
-    if not enabled:
-        yield
-        return
-    with (run_directory / "debug.txt").open("w", encoding="utf-8", newline="") as log:
-        target: Any = _TeeOutput(sys.stdout, log)
-        with contextlib.redirect_stdout(target):
-            yield
 
 
 def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
@@ -653,6 +620,7 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
                         report_title: Optional[str], csv_requested: bool = False) -> None:
     results = []
     completed = False
+    save_snapshot(build_snapshot([unattempted_result(item, "Search has not completed") for item in items], report_title or DEFAULT_REPORT_TITLE), run_directory / "results.input.json")
     with debug_transcript(run_directory, debug), (run_directory / "results.partial.jsonl").open("x", encoding="utf-8") as journal:
         def checkpoint(result):
             journal.write(json.dumps(result, ensure_ascii=False, allow_nan=False) + "\n")
@@ -677,6 +645,9 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
                 save_csv(saved_results, str(run_directory / "results.csv"))
             save_html_report(saved_results, str(run_directory / DEFAULT_HTML_REPORT),
                              title=report_title or DEFAULT_REPORT_TITLE)
+            if completed and not any(result.get("status") in ("rate_limited", "not_attempted") for result in results):
+                (run_directory / "results.partial.jsonl").unlink(missing_ok=True)
+                (run_directory / "results.input.json").unlink(missing_ok=True)
             print(f"Run outputs: {run_directory}")
             if not completed:
                 print("Batch interrupted: completed results were saved; remaining rows are marked not attempted.")
@@ -698,6 +669,7 @@ def _print_cli_help():
     print("  python3 untap.py --file beers.txt")
     print()
     print("  python3 untap.py --menu menu.txt")
+    print("  python3 untap.py --continue results/<unfinished-run>/")
     print()
     print("  --csv additionally exports results.csv for spreadsheet use.")
     print("  HTML and JSON are saved by default.")
@@ -747,6 +719,8 @@ def _parse_cli_args(args):
         allow_abbrev=False,
     )
     parser.add_argument("query", nargs="*", help="single-beer search text")
+    parser.add_argument("--recovery-menu", metavar="FILE", help="original TSV for recovery of a v103 journal without a manifest")
+    parser.add_argument("--continue", dest="continue_source", metavar="RUN", help="continue only rate-limited or unattempted rows into a new run")
     parser.add_argument("--menu", metavar="FILE", help="brewery, beer, ABV, style TSV menu")
     parser.add_argument("--file", metavar="FILE", help="one search query per line")
     parser.add_argument("--validate-menu", metavar="FILE", help="validate TSV locally without searching")
@@ -763,6 +737,10 @@ def _parse_cli_args(args):
     parser.add_argument("--register-refresh", metavar="CONFIG")
     parser.add_argument("--min-score", type=_score_argument, default=DEFAULT_MIN_SCORE)
     options = parser.parse_intermixed_args(args)
+    if options.recovery_menu and not options.continue_source:
+        parser.error("--recovery-menu requires --continue")
+    if options.continue_source and (options.query or options.menu or options.file or options.validate_menu or options.smoke_test or options.probe_abv_sort or options.formats or options.register_refresh or options.report_title):
+        parser.error("--continue takes a saved run and cannot be combined with new input, title, validation or registration options")
     if options.query and (options.menu or options.file or options.validate_menu):
         parser.error("positional search text cannot accompany --menu, --file or --validate-menu; --csv takes no filename")
     if options.menu and options.file:
@@ -780,6 +758,20 @@ def main() -> None:
         _print_cli_help()
         sys.exit(1)
     options = _parse_cli_args(args)
+    if options.continue_source:
+        from untap_continue import continue_run
+        configure_search_timing(options.debug_timing or bool(options.shadow_search_transport))
+        configure_search_transport_shadow(options.shadow_search_transport)
+        reset_search_transport_authority_state()
+        try:
+            output = continue_run(Path(options.continue_source), min_score=options.min_score,
+                                  debug=options.debug, csv_requested=options.csv,
+                                  recovery_menu=Path(options.recovery_menu) if options.recovery_menu else None)
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            print(f"Could not continue run: {exc}")
+            sys.exit(1)
+        print(f"Continued run: {output}")
+        return
     debug = options.debug
     debug_timing = options.debug_timing or bool(options.shadow_search_transport)
     shadow_search_transport_limit = options.shadow_search_transport

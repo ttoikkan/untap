@@ -1,6 +1,9 @@
 import csv
+import sys
+import contextlib
+from pathlib import Path
 from time import perf_counter
-from typing import Callable, Any, List, Mapping, Optional, Sequence, TypedDict, Union, cast
+from typing import Callable, Any, Iterator, TextIO, List, Mapping, Optional, Sequence, TypedDict, Union, cast
 
 from untap_types import MatchResult, NormalizedMenuRecord
 
@@ -353,3 +356,40 @@ def run_batch(
         _BATCH_TIMING_STATS["batch_seconds"] = perf_counter() - batch_started
 
     return results
+
+
+class _TeeOutput:
+    def __init__(self, terminal: TextIO, log: TextIO) -> None:
+        self.terminal = terminal
+        self.log = log
+
+    def write(self, value: str) -> int:
+        self.terminal.write(value)
+        self.log.write(value)
+        self.log.flush()
+        return len(value)
+
+    @property
+    def encoding(self):
+        return self.terminal.encoding
+
+    def isatty(self) -> bool:
+        return self.terminal.isatty()
+
+    def fileno(self) -> int:
+        return self.terminal.fileno()
+
+    def flush(self) -> None:
+        self.terminal.flush()
+        self.log.flush()
+
+@contextlib.contextmanager
+def debug_transcript(run_directory: Path, enabled: bool) -> Iterator[None]:
+    """Mirror batch debug output to an incrementally flushed run log."""
+    if not enabled:
+        yield
+        return
+    with (run_directory / "debug.txt").open("w", encoding="utf-8", newline="") as log:
+        target: Any = _TeeOutput(sys.stdout, log)
+        with contextlib.redirect_stdout(target):
+            yield

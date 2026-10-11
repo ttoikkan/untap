@@ -1,6 +1,6 @@
 # Untap architecture contract
 
-Current through v103. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
+Current through v104. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
 
 ## Dependency flow
 
@@ -198,3 +198,7 @@ Dependency tests discover every runtime module and check transitive boundaries. 
 ## Exact-base qualifier allowlist
 
 `EXACT_BASE_FLAVOR_QUALIFIERS` and `EXACT_BASE_PROCESS_QUALIFIER_RE` preserve the bounded v86 flavor/process extensions observed in regression menus. They serve only the exact-base acceptance rule, not general flavor removal or scoring. Unknown qualifiers fail that rule; expanding the vocabulary requires explicit policy review and matching fixtures. The v103 production/vintage guard is independent: it requires explicit opposite production statuses and a pure trailing vintage on the same brewery/name family and exact ABV. Ratings are not identity evidence.
+
+## Continuation (v104)
+
+`untap_continue.py` owns saved-run preflight, journal recovery and continuation into fresh folders. It calls batch and transport boundaries only for rate-limited/unattempted rows. It preserves saved item IDs and review history. The CLI performs option validation and transport configuration before dispatch. `untap_batch.debug_transcript` shares debug stream handling across normal and continued batches. Input manifests and journals remain until complete final output succeeds; incomplete runs remain publication/registration-blocked.
