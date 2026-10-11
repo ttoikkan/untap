@@ -12,9 +12,9 @@
   const pendingForms = new Map();
   const original = new Map();
   const selections = new Map();
-  const candidatesByRow = cards.map(card => card.dataset.status === 'ambiguous'
+  const candidatesByRow = cards.map(card => (card.dataset.status === 'ambiguous' || card.dataset.automaticSelection)
     ? Array.from(card.querySelectorAll('.candidate-card')) : []);
-  if (!local && !cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status))) return;
+  if (!local && !cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status) || card.dataset.automaticSelection)) return;
   const styles = document.createElement('style');
   styles.textContent = `
     .manual-toolbar { margin: 20px 0; padding: 14px; border: 1px solid GrayText; border-radius: 12px; }
@@ -101,7 +101,7 @@
     }).forEach(card => list.append(card));
     const count = status => cards.filter(card => card.dataset.status === status).length;
     const other = cards.length - count('ok') - count('ambiguous') - count('failed');
-    summary.textContent = `${cards.length} beers · ${count('ok')} confirmed (${selections.size} manually) · ${count('ambiguous')} ambiguous` +
+    summary.textContent = `${cards.length} beers · ${count('ok')} confirmed (${Object.keys(choices).length} manually) · ${count('ambiguous')} ambiguous` +
       (count('failed') ? ` · ${count('failed')} failed` : '') + (other ? ` · ${other} unresolved` : '');
     // Existing filtering handlers retain references to the original group elements.
     const all = document.querySelector('input[data-status-filter]:checked');
@@ -238,7 +238,7 @@
     card.classList.add('manual-flash');
     setTimeout(() => card.classList.remove('manual-flash'), 1500);
   }
-  function choose(card, index, candidate, url, interactive = true) {
+  function choose(card, index, candidate, url, interactive = true, automatic = false) {
     if (selections.has(card)) return;
     original.set(card, {nodes: Array.from(card.childNodes), className: card.className});
     card.replaceChildren();
@@ -249,9 +249,10 @@
     const nodes = Array.from(candidate.childNodes);
     nodes.forEach(node => card.append(node));
     const content = card.lastElementChild;
-    content.querySelectorAll('.manual-action, .already-matched-note').forEach(el => el.remove());
+    content.querySelectorAll('.manual-action, .already-matched-note, .automatic-choice-note').forEach(el => el.remove());
     const note = document.createElement('span'); note.className = 'manual-note manually-confirmed-tag';
-    note.textContent = 'Manually confirmed';
+    note.textContent = automatic ? '' : 'Manually confirmed';
+    note.hidden = automatic;
     const undo = button('Change selection', () => {
       note.remove(); undo.remove();
       nodes.forEach(node => candidate.append(node));
@@ -259,11 +260,24 @@
       card.replaceChildren(...previous.nodes); card.className = previous.className;
       card.dataset.status = 'ambiguous'; delete card.dataset.styleGroup;
       selections.delete(card); delete choices[index];
-      addButtons(card, index); refresh(); persist();
+      addButtons(card, index);
+      if (card.dataset.automaticSelection) {
+        const autoCandidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === card.dataset.automaticSelection);
+        card.querySelectorAll('.cancel-selection').forEach(el => el.remove());
+        const cancel = button('Cancel', () => {
+          cancel.remove();
+          choose(card, index, autoCandidate, card.dataset.automaticSelection, false, true);
+          refresh(); persist();
+        });
+        cancel.classList.add('cancel-selection');
+        card.append(cancel);
+      }
+      refresh(); if (!automatic) persist();
       focusCard(card, card.querySelector('.manual-action'));
     });
     content.append(undo, note);
-    selections.set(card, url); choices[index] = url;
+    selections.set(card, url);
+    if (!automatic) choices[index] = url;
     refresh();
     if (interactive) { persist(); focusCard(card, undo); }
   }
@@ -274,14 +288,18 @@
       if (!link) return;
       const url = new URL(link.href);
       if (url.protocol !== 'https:' || !['untappd.com', 'www.untappd.com'].includes(url.hostname) || !/\/b\/[^/]+\/\d+\/?$/.test(url.pathname)) return;
+      if (card.dataset.automaticSelection === url.href && !candidate.querySelector('.automatic-choice-note')) {
+        const label = document.createElement('p'); label.className = 'manual-note automatic-choice-note';
+        label.textContent = 'Automatic selection'; candidate.lastElementChild.append(label);
+      }
       candidate.lastElementChild.append(button('Confirm this beer', () => choose(card, index, candidate, url.href)));
     });
   }
-  cards.forEach((card, index) => { if (card.dataset.status === 'ambiguous') addButtons(card, index); });
+  cards.forEach((card, index) => { if (card.dataset.status === 'ambiguous' || card.dataset.automaticSelection) addButtons(card, index); });
   cards.forEach((card, index) => {
     const url = card.dataset.initialSelection;
     const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === url);
-    if (candidate) choose(card, index, candidate, url, false);
+    if (candidate) choose(card, index, candidate, url, false, Boolean(card.dataset.automaticSelection));
   });
   if (!local) toolbar.append(button('Export selections', () => {
     const payload = {format: 'untap-manual-review-trial-v1', report_id: reportId,
@@ -326,7 +344,7 @@
         return {card: cards[entry.row], candidate, row: entry.row, url: entry.url};
       });
       entries.forEach(({card, candidate, row, url}) => {
-        if (selections.get(card) === url) return;
+        if (choices[row] === url) return;
         if (selections.has(card)) card.querySelector('.manual-action').click();
         choose(card, row, candidate, url, false);
       });
@@ -354,10 +372,10 @@
       cards.forEach((card, index) => {
         if (typeof saved[index] !== 'string') return;
         const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === saved[index]);
-        if (candidate && selections.has(card) && selections.get(card) !== saved[index]) card.querySelector('.manual-action').click();
+        if (candidate && selections.has(card) && choices[index] !== saved[index]) card.querySelector('.manual-action').click();
         if (candidate) choose(card, index, candidate, saved[index], false);
       });
-      if (selections.size) message.textContent = 'Restored your choices for this report.';
+      if (Object.keys(choices).length) message.textContent = 'Restored your choices for this report.';
     } catch (_) { message.textContent = 'Saved choices could not be loaded; the original report is shown.'; }
   }
   // Run after the report's existing handlers, including after future filter changes.

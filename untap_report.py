@@ -240,7 +240,8 @@ def render_html_report(
     item_ids = {id(result): item["id"] for result, item in zip(
         results, build_snapshot(results, clean_title)["items"])}
     for result in ordered_results:
-        if result.get("status") == "ok" and not result.get("manually_confirmed"):
+        if result.get("status") == "ok" and not result.get("manually_confirmed") and not any(
+                c.get("url") != result.get("url") for c in _review_candidates(result)):
             image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
             production_status = _production_status(result.get("in_production"))
             if result.get("manually_confirmed"):
@@ -353,7 +354,7 @@ def render_html_report(
         )
         result_cards.append(
             """
-            <article class="review-group" data-item-id="{item_id}" data-status="{status_key}" data-initial-selection="{initial_selection}">
+            <article class="review-group" data-item-id="{item_id}" data-status="{status_key}" data-initial-selection="{initial_selection}" data-automatic-selection="{automatic_selection}">
               <div class="review-heading">
                 <span class="status-pill">{status}</span>
                 <h3>{query}</h3>
@@ -363,7 +364,7 @@ def render_html_report(
               {search_warning}
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(menu_abv=menu_abv_text, item_id=item_ids[id(result)], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("manually_confirmed") else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
+            """.format(automatic_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" and not result.get("manually_confirmed") else "", menu_abv=menu_abv_text, item_id=item_ids[id(result)], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
         )
 
     results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'

@@ -1,4 +1,14 @@
-# Untap v100
+# Untap v101
+
+## Guarded exact identities (v101)
+
+After a complete search, exactly one candidate matching the explicit menu name,
+brewery and ABV can be confirmed regardless of its score ranking. Existing name
+and brewery normalization and the exact-ABV tolerance are used. Differently named
+vintage, batch and ingredient variants do not block that match. Two candidates
+matching all three identifiers, or missing data that could conceal a second such
+match, prevent this override. Incomplete searches and review-only recovered
+candidates still require caution; no candidate scores are changed.
 
 ## Explicit series numbers (v100)
 
@@ -424,3 +434,5 @@ python3 untap.py --menu menu9.txt --debug-timing
 ```
 
 The deterministic v83 suite contains 137 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
+
+Automatically confirmed beers with retained alternatives offer **Change selection**. The candidate list highlights the automatic choice; **Cancel** keeps it. Confirming a candidate marks it **Manually confirmed** and uses the existing export or local **Save reviewed run** workflow. Refreshing an older report cannot recover candidates absent from its JSON; rerun the menu to retain them.

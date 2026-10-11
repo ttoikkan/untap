@@ -67,8 +67,8 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
         seen.add(row)
         result = ordered[row]
         candidate = next((c for c in _review_candidates(result) if c.get("url") == url), None)
-        if (result.get("status") != "ambiguous" and not result.get("manually_confirmed")) or not isinstance(url, str) or not url.startswith("https://untappd.com/b/") or candidate is None:
-            raise ValueError("Selection is not an available ambiguous candidate")
+        if (result.get("status") not in ("ambiguous", "ok")) or not isinstance(url, str) or not url.startswith("https://untappd.com/b/") or candidate is None:
+            raise ValueError("Selection is not an available review candidate")
         item = next(item for item in snapshot["items"] if item["result"] is result)
         validated.append((item, candidate, url))
     # No network until every row and URL in the export has passed validation.

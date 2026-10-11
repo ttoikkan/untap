@@ -1694,6 +1694,45 @@ def _exact_base_brewery_words(brewery):
     return _meaningful_brewery_words(name)
 
 
+def unique_exact_identity_candidate(candidates, expected_beer, expected_brewery, expected_abv,
+                                    debug=False):
+    """Return the sole candidate matching the explicit name, brewery and ABV.
+
+    Differently named releases and qualifiers do not veto an exact identity.
+    Missing data blocks only when the alternative could match all identifiers.
+    Complete discovery and non-review-only recovery are enforced by the caller.
+    """
+    def rejected(reason):
+        if debug:
+            print(f"Unique exact identity not selected: {reason}")
+        return None
+
+    target = normalize(expected_beer or "")
+    brewery = _exact_base_brewery_words(expected_brewery)
+    abv = _as_float(expected_abv)
+    if not candidates or not target or not brewery or abv is None or not math.isfinite(abv):
+        return rejected("explicit name, brewery and finite ABV required")
+    matches = []
+    for item in candidates:
+        name = normalize(item.get("name") or "")
+        raw_brewery = normalize(item.get("brewery") or "")
+        item_brewery = _exact_base_brewery_words(item.get("brewery")) if raw_brewery != "unknown" else set()
+        item_abv = _as_float(item.get("abv"))
+        known_abv = item_abv is not None and math.isfinite(item_abv)
+        if ((name and name != target) or (item_brewery and item_brewery != brewery)
+                or (known_abv and abs(item_abv - abv) > EXACT_ABV_EPSILON)):
+            continue
+        if not name or not item_brewery or not known_abv:
+            return rejected("incomplete candidate metadata could hide another exact identity")
+        matches.append(item)
+    if len(matches) != 1:
+        return rejected("expected exactly one candidate matching all three identifiers")
+    best = matches[0]
+    if debug:
+        print(f"Unique exact identity accepted: {best['name']!r} (name, brewery and ABV)")
+    return best
+
+
 def exact_numbered_candidate(candidates, expected_beer, expected_brewery, expected_abv,
                              min_score=DEFAULT_MIN_SCORE, debug=False):
     """Resolve an exact numbered name only against differently numbered siblings.
@@ -3598,10 +3637,15 @@ def _search_one_impl(
         exact_base = exact_numbered_candidate(
             candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
         )
+    if exact_base is None and not incomplete and not fallback_review_required:
+        exact_base = unique_exact_identity_candidate(
+            candidates, expected_beer, expected_brewery, expected_abv, debug=debug
+        )
     if debug and incomplete:
         print("Exact-base preference not selected: incomplete or early-stopped expansion")
     if exact_base is not None:
         ambiguity_reason = None
+        candidates = [exact_base] + [item for item in candidates if item is not exact_base]
     if fallback_review_required:
         ambiguity_reason = "Recovered candidate name differs from the menu; manual confirmation required"
 
@@ -3666,7 +3710,7 @@ def _search_one_impl(
 
     best = candidates[0]
 
-    if best["score"] < min_score:
+    if best["score"] < min_score and exact_base is None:
         return {
             "query": query,
             "status": "low_confidence",
@@ -3719,6 +3763,7 @@ def _search_one_impl(
             best["text"]
         ),
         "search_fallback": fallback_query_used,
+        "alternatives": [_alternative_from_candidate(item) for item in candidates[:10]],
     })
 
     return info

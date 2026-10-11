@@ -61,7 +61,7 @@ class MatcherV86Tests(unittest.TestCase):
 
     def test_conflicts_are_absent_from_ambiguous_result_and_report(self):
         rows = [candidate("Each A Little Token", "Sante Adairius Rustic Ales", 5.2),
-                candidate("Each A Little Token (Batch 2)", "Sante Adairius Rustic Ales", 5.2, .94, 2),
+                candidate("Each A Little Token", "Sante Adairius Rustic Ales", 5.2, .94, 2),
                 candidate("Each A Little Token Conflicting", "Sante Adairius Rustic Ales", 8.0, .8, 3)]
         result, _ = self.run_search(rows, "Each A Little Token", "Sante Adairius Rustic Ales", 5.2)
         self.assertEqual(result["status"], "ambiguous")
@@ -158,7 +158,7 @@ class MatcherV86Tests(unittest.TestCase):
                 self.assertEqual(rows, before)
                 self.assertFalse(calls)
 
-    def test_batch_and_unknown_qualifiers_remain_ambiguous(self):
+    def test_v101_exact_identity_wins_over_batch_and_other_qualifiers(self):
         for suffix in [" (Batch 2)", " (2025)", " Reserve", " Special Edition",
                        " (Batch Two)", " N.E. India Pale Ale"]:
             with self.subTest(suffix=suffix):
@@ -167,7 +167,8 @@ class MatcherV86Tests(unittest.TestCase):
                                   "Sante Adairius Rustic Ales", 5.2, .946, 2)]
                 result, _ = self.run_search(rows, "Each A Little Token",
                                             "Sante Adairius Rustic Ales", 5.2)
-                self.assertEqual(result["status"], "ambiguous")
+                self.assertEqual(result["status"], "ok")
+                self.assertEqual(result["url"], rows[0]["url"])
 
     def test_exact_preference_fails_closed(self):
         base = candidate("PB&J Mixtape", "Xül Beer Company", 6.5)

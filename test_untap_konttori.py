@@ -27,7 +27,8 @@ class KonttoriTests(unittest.TestCase):
         rows = [fixtures.candidate("Dragon's Milk", "New Holland Brewing", 11),
                 fixtures.candidate("Dragon's Milk (2014)", "New Holland Brewing", 11, .95, 2)]
         result, _ = fixtures.MatcherV86Tests().run_search(rows, "Dragon's Milk", "New Holland", 11)
-        self.assertIsNone(result["search_warning"])
+        self.assertEqual(result["status"], "ok")  # v101: unique exact identity
+        self.assertIsNone(result.get("search_warning"))
         self.assertNotIn("Search incomplete", report.render_html_report([result]))
 
     def test_just_fruit_full_name_still_triggers_shared_prefix_rule(self):
@@ -67,4 +68,3 @@ class KonttoriTests(unittest.TestCase):
         html = report.render_html_report([{"query": "Beer", "status": "ambiguous",
                                           "search_warning": "<script>bad</script>"}])
         self.assertIn("&lt;script&gt;bad&lt;/script&gt;", html)
-

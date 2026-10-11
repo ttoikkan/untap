@@ -71,7 +71,7 @@ class MatcherV99Tests(unittest.TestCase):
         self.assertFalse(matcher.candidate_needs_trailing_review(row, beer, "Messorem", None))
         self.assertFalse(matcher.candidate_needs_trailing_review(row, "A7Y7 X Fidens", "Messorem", 7.5))
 
-    def test_vintage_and_inserted_ingredient_remain_manual(self):
+    def test_v101_unique_exact_identity_resolves_vintage_and_inserted_ingredient(self):
         for beer, brewery, abv, other, ids in [
             ("Boston Lager", "Samuel Adams", 5., "Boston Lager (1985–2022)", (4167619, 2)),
             ("Schmoojee Peach Pear Dragonfruit", "Imprint Beer Co.", 6.5,
@@ -79,7 +79,8 @@ class MatcherV99Tests(unittest.TestCase):
         ]:
             rows = [candidate(beer, brewery, abv, 1., ids[0]), candidate(other, brewery, abv, .965, ids[1])]
             result, _ = fixtures.MatcherV86Tests().run_search(rows, beer, brewery, abv)
-            self.assertEqual(result["status"], "ambiguous")
+            self.assertEqual(result["status"], "ok")
+            self.assertEqual(result["url"], rows[0]["url"])
 
     def test_humble_sea_abv_conflict_remains_failed(self):
         rows = [candidate("A7Y7 X Humble Sea", "Messorem", 7.5, bid=6811010)]

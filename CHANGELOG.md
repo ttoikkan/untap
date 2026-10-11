@@ -1,3 +1,14 @@
+# v101 — Exact identities and Change selection (2026-10-11)
+
+- Retain automatic-match alternatives and offer Change selection, with the automatic choice highlighted and Cancel available. Manual changes use the existing reviewed HTML, CSV and JSON workflow.
+
+- After complete discovery, confirm the sole candidate matching the explicit menu name, brewery and ABV, regardless of ranking or other candidates' name qualifiers. Scores and search queries are unchanged.
+- Differently named vintage, batch and ingredient variants no longer veto the unique exact identity. This intentionally resolves Boston Lager and the exact Imprint name as well as Broccoli World and Ghost In The Machine.
+- Keep competing matches on all three identifiers, incomplete metadata that could hide another exact match, incomplete searches and review-only recoveries uncertain. Existing normalization and exact-ABV tolerance apply.
+- Add deterministic Tripla cans regressions for the two confirmed beer IDs and safety guards.
+
+- Validation: 253 offline tests, type checks and browser change/cancel checks passed. User confirmed the Tripla cans v101 live run and Change selection work correctly.
+
 # v100 — Explicit series-number matching (2026-10-08)
 
 - Prefer a unique exact numbered beer name over otherwise identical differently numbered siblings, with matching brewery and exact ABV. Limited to terminal series numbers 1–999; scores and search queries are unchanged.

@@ -1,3 +1,8 @@
+# v101 — Exact identities (2026-10-11)
+
+- Accept a unique exact name/brewery/ABV identity anywhere in the candidate list, preserving scores and records. Differently named release, batch and ingredient variants are not competing exact identities.
+- Retain incomplete-search, review-only recovery and potentially competing incomplete-metadata guards. Two candidates matching all identifiers prevent this override.
+
 # v100 — Explicit series-number matching (2026-10-08)
 
 - Add guarded exact numbered-name acceptance for Banishing 3 versus differently numbered siblings. Require complete discovery, unique exact top name, matching brewery and exact ABV; no scoring changes or year-rule changes.
