@@ -1,6 +1,8 @@
 # Untap architecture contract
 
-Current through v106. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
+Current through v107. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
+
+V107 review corrections enforce brewery consistency and incomplete-discovery review at final resolution. The transport owns HTTP/page validation and bounded browser requests, and raises ordinary browser-availability errors; CLI boundaries translate those errors into clean command exits. Algolia request/result pairing is shared by transport, expansion and inspection. Shadow replay remains diagnostic except that HTTP 429 must stop further traffic.
 
 ## Dependency flow
 

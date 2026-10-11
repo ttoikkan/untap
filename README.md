@@ -1,4 +1,12 @@
-# Untap v106
+# Untap v107
+
+## Review corrections (v107)
+
+Explicit brewery conflicts cannot be confirmed automatically. Searches stopped by an expansion error, page limit or established ambiguity retain their warning and candidates for manual review. Detail fallback validates the selected beer's page before confirming; a blocked page is a failure and HTTP 429 stops the batch.
+
+Browser search requests, including response-body reading, have a 10-second deadline. Missing Chromium during local candidate retrieval returns an error without closing the review session. Interrupted journal recovery also tolerates a torn UTF-8 final record while rejecting damaged complete records.
+
+`--shadow-search-transport N` compares up to N successful UI bootstrap/recovery captures with a diagnostic replay. It sends additional requests only when explicitly enabled. Replay candidates do not influence matching, and HTTP 429 stops further traffic.
 
 ## Unified commands (v106)
 

@@ -14,6 +14,8 @@ from untap_untappd import (
     MAX_ALGOLIA_EXPANSION_PAGES,
     _fetch_algolia_page,
     _matching_algolia_initial_page,
+    _matching_replay_result,
+    BrowserUnavailableError,
     reset_search_transport_authority_state,
     untappd_browser_page,
 )
@@ -109,26 +111,6 @@ def render_summary(inspections: Sequence[Dict[str, Any]]) -> str:
         for sample in inventory_item["samples"]:
             lines.append(f"  sample: {sample}")
     return "\n".join(lines) + "\n"
-
-
-def _matching_replay_result(payload: Any, request_event: Any, query: str,
-                            page_number: int) -> Optional[Dict[str, Any]]:
-    if not isinstance(payload, dict) or not isinstance(request_event, dict):
-        return None
-    requests = request_event.get("algolia_requests") or []
-    results = payload.get("results") or []
-    target = normalize(query)
-    for index, request in enumerate(requests):
-        if normalize(request.get("query") or "") != target or index >= len(results):
-            continue
-        result = results[index]
-        if not isinstance(result, dict) or result.get("page") != page_number:
-            continue
-        request_index = request.get("indexName")
-        if request_index and result.get("index") not in (None, request_index):
-            continue
-        return result
-    return None
 
 
 def inspect_query(page: Any, query: str, all_pages: bool = False) -> Dict[str, Any]:
@@ -238,6 +220,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
 
 def run_options(args: argparse.Namespace) -> int:
+    try:
+        return _run_options(args)
+    except BrowserUnavailableError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+
+def _run_options(args: argparse.Namespace) -> int:
     try:
         if args.query:
             queries = [query.strip() for query in args.query if query.strip()]

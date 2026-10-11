@@ -1,7 +1,7 @@
 import re
 import json
 from time import perf_counter
-from urllib.parse import parse_qsl, urlencode
+from urllib.parse import parse_qsl, urlencode, urlsplit
 from typing import Any, Dict, List, Optional, Tuple
 
 from untap_parser import normalize
@@ -21,6 +21,19 @@ ABV_ASC_ALGOLIA_INDEX = "beer_order_by_abv"
 ABV_DESC_ALGOLIA_INDEX = "beer_order_by_abv_desc"
 SEARCH_RESPONSE_TIMEOUT_MS = 10000
 DETAIL_CONTENT_TIMEOUT_MS = 10000
+BROWSER_REQUEST_TIMEOUT_MS = 10000
+
+
+class BrowserUnavailableError(RuntimeError):
+    """The installed browser is unavailable; service callers may recover."""
+
+
+class BeerDetailError(RuntimeError):
+    """Navigation did not produce the selected beer's detail page."""
+
+    def __init__(self, message: str, status: Optional[int] = None):
+        super().__init__(message)
+        self.status = status
 
 # Debug-only Algolia traffic accounting. Searches run serially.
 _ALGOLIA_DEBUG_STATS = {
@@ -486,18 +499,30 @@ def _browser_json_post(page: Any, url: str, body: Dict[str, Any]) -> Any:
     """POST JSON in the browser; callers retain response/error policy."""
     return page.evaluate(
         """
-        async ({url, body}) => {
-            const response = await fetch(url, {
-                method: 'POST', headers: {'content-type': 'application/json'},
-                body: JSON.stringify(body), credentials: 'omit'
-            });
-            const text = await response.text();
-            let payload = null;
-            try { payload = JSON.parse(text); } catch (_) {}
-            return {status: response.status, ok: response.ok, payload, text};
+        async ({url, body, timeoutMs}) => {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, {
+                    method: 'POST', headers: {'content-type': 'application/json'},
+                    body: JSON.stringify(body), credentials: 'omit',
+                    signal: controller.signal
+                });
+                const text = await response.text();
+                let payload = null;
+                try { payload = JSON.parse(text); } catch (_) {}
+                return {status: response.status, ok: response.ok, payload, text};
+            } catch (error) {
+                if (controller.signal.aborted) {
+                    throw new Error(`Browser request timed out after ${timeoutMs} ms`);
+                }
+                throw error;
+            } finally {
+                clearTimeout(timer);
+            }
         }
         """,
-        {"url": url, "body": body},
+        {"url": url, "body": body, "timeoutMs": BROWSER_REQUEST_TIMEOUT_MS},
     )
 
 
@@ -549,15 +574,15 @@ def _shadow_page_signature(page0):
     )
 
 
-def shadow_compare_search_transport(page, request_event, search_query, ui_initial_page):
+def shadow_compare_search_transport(page, request_event, search_query, ui_initial_page) -> bool:
     """Compare one UI-triggered page-0 result with an exact browser-fetch replay.
 
-    This function is measurement-only. It never supplies candidates or status
-    to the matcher and never retries. The extra request is bounded by the CLI
-    shadow limit.
+    Replay candidates never affect matching. Return True on HTTP 429 so the
+    caller stops further traffic. Other failures remain diagnostic-only.
+    The extra request is bounded by the CLI shadow limit and never retried.
     """
     if not _shadow_budget_available() or request_event is None:
-        return
+        return False
 
     stats = _SEARCH_TRANSPORT_SHADOW_STATS
     stats["attempted"] += 1
@@ -566,14 +591,15 @@ def shadow_compare_search_transport(page, request_event, search_query, ui_initia
     elapsed = perf_counter() - started
     stats["total_seconds"] += elapsed
 
-    if error is not None:
+    if error is not None or payload is None:
+        error = error or "response payload was not JSON"
         stats["errors"] += 1
         if status == RATE_LIMIT_HTTP_STATUS:
             stats["rate_limited"] += 1
         print(
             f"[transport-shadow] ERROR: {error} | {elapsed:.3f}s | {search_query}"
         )
-        return
+        return status == RATE_LIMIT_HTTP_STATUS
 
     fake_event = {
         "kind": "response",
@@ -594,6 +620,7 @@ def shadow_compare_search_transport(page, request_event, search_query, ui_initia
             f"[transport-shadow] DIFF: ui_hits={ui_hits} shadow_hits={shadow_hits} "
             f"| {elapsed:.3f}s | {search_query}"
         )
+    return False
 
 
 def print_search_transport_shadow_summary():
@@ -612,7 +639,7 @@ def print_search_transport_shadow_summary():
     print(f"Total shadow fetch time: {stats['total_seconds']:.3f}s")
     if stats["attempted"]:
         print(f"Average shadow fetch time: {stats['total_seconds'] / stats['attempted']:.3f}s")
-    print("Matcher authority remained the UI-triggered search response in v71.")
+    print("Shadow replay never supplies matching candidates; HTTP 429 stops the run.")
 
 def _looks_search_related_url(url):
     if not url:
@@ -879,20 +906,44 @@ def _matching_algolia_response_status(network_events, search_query):
 
 def _matching_algolia_nb_hits(network_events, search_query):
     """Return nbHits for the captured Algolia response matching search_query."""
-    target = normalize(search_query)
     for event in reversed(network_events or []):
         if event.get("kind") != "response":
             continue
-        if not any(
-            normalize(req.get("query") or "") == target
-            for req in (event.get("algolia_requests") or [])
-        ):
-            continue
-        for summary in (event.get("algolia_response") or []):
-            nb_hits = summary.get("nbHits")
-            if isinstance(nb_hits, int):
-                return nb_hits
+        summary = _matching_algolia_result(
+            event.get("algolia_response"), event.get("algolia_requests"), search_query)
+        if summary is not None and type(summary.get("nbHits")) is int:
+            return summary["nbHits"]
     return None
+
+
+def _matching_algolia_result(results: Any, requests: Any, query: str,
+                             page_number: Optional[int] = None,
+                             index_name: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Pair each result with its request and validate the expected page/index."""
+    if not isinstance(results, list) or not isinstance(requests, list):
+        return None
+    for index, request in enumerate(requests):
+        if (not isinstance(request, dict) or normalize(request.get("query") or "") != normalize(query)
+                or index >= len(results)):
+            continue
+        result = results[index]
+        if not isinstance(result, dict):
+            continue
+        if page_number is not None and result.get("page") != page_number:
+            continue
+        expected_index = index_name or request.get("indexName")
+        if expected_index and result.get("index") not in (None, expected_index):
+            continue
+        return result
+    return None
+
+
+def _matching_replay_result(payload: Any, request_event: Any, query: str,
+                            page_number: int, index_name: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not isinstance(payload, dict) or not isinstance(request_event, dict):
+        return None
+    return _matching_algolia_result(payload.get("results"), request_event.get("algolia_requests"),
+                                    query, page_number, index_name)
 
 def _matching_algolia_initial_page(network_events, search_query):
     """Return a conservatively validated captured Algolia page 0.
@@ -977,15 +1028,26 @@ def extract_beer_info(
     page,
     beer_url,
     brewery_from_search=None,
+    expected_beer=None,
 ):
     navigation_started = perf_counter() if _SEARCH_TIMING_ENABLED else None
     navigation_outcome = "ok"
 
-    page.goto(
+    response = page.goto(
         beer_url,
         wait_until="domcontentloaded",
         timeout=30000,
     )
+    status = response.status if response is not None else None
+    if status is None or not 200 <= status < 300:
+        raise BeerDetailError(f"Beer detail navigation failed: HTTP {status}", status)
+    selected_id = re.search(r"/b/[^/]+/(\d+)(?:[/?#]|$)", beer_url)
+    current_url = page.url
+    current_id = re.search(r"/b/[^/]+/(\d+)(?:[/?#]|$)", current_url)
+    parsed_url = urlsplit(current_url)
+    if (parsed_url.scheme != "https" or parsed_url.hostname not in {"untappd.com", "www.untappd.com"}
+            or selected_id is None or current_id is None or selected_id.group(1) != current_id.group(1)):
+        raise BeerDetailError("Beer detail navigation left the selected beer page")
 
     heading = page.locator("h1").first
     try:
@@ -994,8 +1056,8 @@ def extract_beer_info(
             timeout=DETAIL_CONTENT_TIMEOUT_MS,
         )
     except Exception:
-        # Preserve the historical tolerant extraction path: a missing/late h1
-        # must not prevent body metadata parsing.
+        # A late heading may still be readable; the identity checks below
+        # reject missing or unrelated content before it can be confirmed.
         navigation_outcome = "heading-timeout"
         pass
 
@@ -1020,6 +1082,11 @@ def extract_beer_info(
         )
     except Exception:
         beer_name = "Unknown"
+
+    if not beer_name or normalize(beer_name) == "unknown":
+        raise BeerDetailError("Beer detail page has no usable beer heading")
+    if expected_beer and normalize(beer_name) != normalize(expected_beer):
+        raise BeerDetailError("Beer detail heading does not match the selected candidate")
 
     brewery = (
         brewery_from_search
@@ -1460,7 +1527,7 @@ def untappd_browser_page():
             except Error as exc:
                 if "Executable doesn't exist" not in str(exc):
                     raise
-                raise SystemExit(
+                raise BrowserUnavailableError(
                     "Untap's Chromium browser is not installed. "
                     "Run untap-install-browser, then retry. "
                     "From a source checkout, run python3 -m playwright install chromium "

@@ -28,7 +28,8 @@ class ExactIdentityTests(unittest.TestCase):
             self.assertEqual(result['status'], 'ok')
             self.assertEqual(result['url'], best['url'])
             self.assertEqual(result['score'], best['score'])
-            self.assertEqual([c['url'] for c in result['alternatives']], [c['url'] for c in rows])
+            self.assertEqual([c['url'] for c in result['alternatives']],
+                             [c['url'] for c in rows if matcher.candidate_has_brewery_overlap(c, best['brewery'])])
             self.assertEqual(rows, before)
 
     def test_incomplete_discovery_cannot_be_overridden(self):

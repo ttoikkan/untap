@@ -3,6 +3,7 @@ import io
 import json
 import sys
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import urlencode
 
@@ -30,8 +31,9 @@ class UntappdTransportContractTests(unittest.TestCase):
                 return self._text
 
         class FakePage:
-            def goto(self, *args, **kwargs):
-                pass
+            def goto(self, url, **kwargs):
+                self.url = url
+                return SimpleNamespace(status=200)
             def wait_for_timeout(self, *args, **kwargs):
                 pass
             def locator(self, selector):
@@ -304,8 +306,9 @@ class UntappdTransportContractTests(unittest.TestCase):
                 return self._text
 
         class FakePage:
-            def goto(self, *args, **kwargs):
-                return None
+            def goto(self, url, **kwargs):
+                self.url = url
+                return SimpleNamespace(status=200)
             def locator(self, selector):
                 if selector == "h1":
                     return FakeLocator("Bahama Bliss")
@@ -352,8 +355,9 @@ class UntappdTransportContractTests(unittest.TestCase):
             def inner_text(self):
                 return self._text
         class FakePage:
-            def goto(self, *args, **kwargs):
-                return None
+            def goto(self, url, **kwargs):
+                self.url = url
+                return SimpleNamespace(status=200)
             def locator(self, selector):
                 return FakeLocator(
                     "Beer" if selector == "h1" else "(4.00) 1 Ratings 5.0% ABV"

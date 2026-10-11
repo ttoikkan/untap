@@ -53,7 +53,7 @@ class PackagingBoundaryTests(unittest.TestCase):
         module.sync_playwright = mock.Mock(return_value=manager)
         with mock.patch.dict(sys.modules, {'playwright.sync_api': module}):
             browser.launch.side_effect = BrowserError("Executable doesn't exist at /missing/chromium")
-            with self.assertRaises(SystemExit) as exited:
+            with self.assertRaises(untap_untappd.BrowserUnavailableError) as exited:
                 with untap_untappd.untappd_browser_page():
                     self.fail('missing browser yielded a page')
             self.assertIn('untap-install-browser', str(exited.exception))

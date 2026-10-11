@@ -1,3 +1,16 @@
+# v107 — Matching integrity and recovery corrections (2026-10-11)
+
+- Reject explicitly conflicting breweries at final acceptance while preserving unknown metadata and the existing collaboration policy.
+- Keep incomplete or early-stopped searches unresolved, with warnings and retrieved candidates available for review.
+- Validate detail-page HTTP status, selected beer URL and heading before confirmation. Detail HTTP 429 stops the batch; valid unrated beers remain supported.
+- Pair Algolia results with their matching query and validate page/index in ordinary and sorted expansion and inspection.
+- Recover completed journal rows when the unterminated tail contains damaged UTF-8; reject damaged complete records. Recover truncated UTF-8 final snapshots through the manifest/journal too.
+- Keep missing-browser failures recoverable in local review, with installation guidance retained at CLI boundaries.
+- Bound browser POST and response-body reading to 10 seconds, with abort and timer cleanup.
+- Restore bounded shadow comparisons for successful UI bootstrap/recovery captures. Replay candidates never affect matching; replay HTTP 429 stops further traffic.
+- Live validation: user reports that live tests passed.
+- Validation: 21 new behavioral regressions; all 320 tests pass, including a freshly built installed wheel. All 22 source files type-check. An offline Chromium check verifies fetch/body timeouts and timer cleanup. No live Untappd traffic was sent.
+
 # v106 — Unified command interface (2026-10-11)
 
 - Add `untap run`, `review`, `refresh`, `publish`, `inspect` and `smoke` using shared argument definitions and execution functions.

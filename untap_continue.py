@@ -55,7 +55,7 @@ def load_continuation(source: Path, recovery_menu: Optional[Path] = None) -> Dic
     if final.name == "results.json" and final.exists():
         try:
             snapshot = load_snapshot(final)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             if not (directory / "results.input.json").exists() and recovery_menu is None:
                 raise ValueError("Final snapshot is truncated and no recovery manifest is available")
             print("Recovery warning: final snapshot is truncated; recovering from the journal")
@@ -77,14 +77,14 @@ def load_continuation(source: Path, recovery_menu: Optional[Path] = None) -> Dic
         raise ValueError("No input manifest or final snapshot. For a v103 journal, supply --recovery-menu with the original TSV")
     _validate_saved_rows(snapshot)
     journal = directory / "results.partial.jsonl"
-    raw = journal.read_text(encoding="utf-8")
+    raw = journal.read_bytes()
     entries = raw.splitlines()
     seen = set()
     for position, line in enumerate(entries):
         try:
-            entry = json.loads(line)
-        except json.JSONDecodeError:
-            if position == len(entries) - 1 and not raw.endswith("\n"):
+            entry = json.loads(line.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            if position == len(entries) - 1 and not raw.endswith(b"\n"):
                 print("Recovery warning: ignored an incomplete final journal line")
                 break
             raise ValueError(f"Invalid journal record at line {position + 1}")

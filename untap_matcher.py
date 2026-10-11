@@ -15,6 +15,9 @@ from untap_parser import (
 )
 from untap_untappd import (
     RATE_LIMIT_HTTP_STATUS,
+    BeerDetailError,
+    _matching_replay_result,
+    shadow_compare_search_transport,
     MAX_ALGOLIA_EXPANSION_PAGES,
     ABV_DESC_ALGOLIA_INDEX,
     _ALGOLIA_DEBUG_STATS,
@@ -690,15 +693,11 @@ def scan_abv_sorted_ambiguity(
         if err:
             diagnostics["errors"].append(f"page {page_number}: {err}")
             break
-        results = payload.get("results") or []
-        if not results:
-            diagnostics["errors"].append(f"page {page_number}: no results payload")
-            break
-        result = results[0]
-        if result.get("index") not in (None, index_name):
-            diagnostics["errors"].append(
-                f"page {page_number}: unexpected index {result.get('index')!r}"
-            )
+        # Sorted replay sends only the matching query, unlike ordinary replay.
+        sorted_request = {"algolia_requests": [{"query": search_query, "indexName": index_name}]}
+        result = _matching_replay_result(payload, sorted_request, search_query, page_number, index_name)
+        if result is None:
+            diagnostics["errors"].append(f"page {page_number}: no matching query/page/index result")
             break
         diagnostics["pages_succeeded"] += 1
         _ALGOLIA_DEBUG_STATS["beer_expansion_pages_succeeded"] += 1
@@ -900,14 +899,12 @@ def expand_algolia_candidates(
             errors.append(f"page {page_number}: {err}")
             break
 
+        result = _matching_replay_result(payload, request_event, query, page_number)
+        if result is None:
+            errors.append(f"page {page_number}: no matching query/page/index result")
+            break
         pages_succeeded += 1
         _ALGOLIA_DEBUG_STATS["beer_expansion_pages_succeeded"] += 1
-
-        results = payload.get("results") or []
-        if not results:
-            break
-
-        result = results[0]
         if nb_hits is None:
             nb_hits = result.get("nbHits")
         if nb_pages is None:
@@ -1452,7 +1449,7 @@ def candidate_has_brewery_overlap(candidate, expected_brewery):
         candidate.get("text", ""),
         candidate.get("name", ""),
     )
-    if not candidate_brewery:
+    if not candidate_brewery or normalize(candidate_brewery) == "unknown":
         # Unknown is not treated as an explicit contradiction.
         return True
 
@@ -2783,6 +2780,14 @@ def _run_ui_page0_search_transport(
         ),
         None,
     )
+    if (_matching_algolia_response_status(events, search_query) == 200
+            and shadow_compare_search_transport(
+                page, request_event, search_query, _matching_algolia_initial_page(events, search_query))):
+        events = list(events) + [{"kind": "response", "status": RATE_LIMIT_HTTP_STATUS,
+                                 "url": (request_event or {}).get("url") or "",
+                                 "algolia_requests": (request_event or {}).get("algolia_requests") or []}]
+        return {"request_event": request_event, "events": events, "error": "HTTP 429 in shadow replay",
+                "transport": "ui-recovery" if recovery else "ui-bootstrap"}
     remembered = remember_search_transport_template(request_event, recovery=recovery)
     if recovery and not remembered:
         return {
@@ -3657,31 +3662,6 @@ def _resolve_discovered_candidates(
     candidates, ambiguity_reason, expanded_candidates, expansion_diagnostics, abv_sorted_diagnostics, fallback_query_used, fallback_review_required, primary_algolia_page,
 ) -> MatchResult:
     """Apply ambiguity/identity policy and build the final selected beer."""
-    if not candidates:
-        return {
-            "query": query,
-            "status": "failed",
-            "reason": "No matching beer found",
-        }
-
-    eligible = _exclude_abv_conflicts(candidates, expected_abv, debug=debug)
-    abv_exclusions = len(eligible) != len(candidates)
-    if not eligible:
-        return {
-            "query": query,
-            "status": "failed",
-            "reason": f"ABV conflict: all retrieved candidates conflict with menu {expected_abv:g}%",
-            "search_fallback": fallback_query_used,
-        }
-    candidates = eligible
-
-    if debug:
-        print_style_shadow(candidates, expected_style)
-        print()
-        print_shadow_alias_support(
-            candidates, expected_beer, expected_brewery, expected_abv, expected_style
-        )
-
     # Never override uncertainty from an incomplete expansion.
     incomplete = any(
         diagnostics and (diagnostics.get("capped") or diagnostics.get("errors")
@@ -3694,9 +3674,45 @@ def _resolve_discovered_candidates(
         search_warning = "Search incomplete: the page limit was reached; additional candidates may exist."
     elif any(d and d.get("errors") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
         search_warning = "Search incomplete: an expansion error prevented checking all candidates."
-    elif any(d and d.get("ambiguity_early_stopped") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
+    elif any(d and (d.get("ambiguity_early_stopped") or d.get("ambiguity_established"))
+             for d in (expansion_diagnostics, abv_sorted_diagnostics)):
         search_warning = "Search stopped after establishing ambiguity; additional candidates may exist."
-    if abv_exclusions:
+    if not candidates:
+        return {
+            "query": query,
+            "status": "failed",
+            "reason": "No matching beer found",
+            "search_warning": search_warning,
+        }
+
+    eligible = _exclude_abv_conflicts(candidates, expected_abv, debug=debug)
+    abv_exclusions = len(eligible) != len(candidates)
+    if not eligible:
+        return {
+            "query": query,
+            "status": "failed",
+            "reason": f"ABV conflict: all retrieved candidates conflict with menu {expected_abv:g}%",
+            "search_warning": search_warning,
+            "search_fallback": fallback_query_used,
+        }
+    brewery_eligible = [item for item in eligible
+                        if candidate_has_brewery_overlap(item, expected_brewery)]
+    brewery_exclusions = len(brewery_eligible) != len(eligible)
+    if not brewery_eligible:
+        return {"query": query, "status": "failed",
+                "reason": f"Brewery conflict: retrieved candidates do not match menu brewery {expected_brewery}",
+                "search_warning": search_warning,
+                "search_fallback": fallback_query_used}
+    candidates = brewery_eligible
+
+    if debug:
+        print_style_shadow(candidates, expected_style)
+        print()
+        print_shadow_alias_support(
+            candidates, expected_beer, expected_brewery, expected_abv, expected_style
+        )
+
+    if abv_exclusions or brewery_exclusions:
         # Earlier explanations may refer to candidates that are no longer
         # eligible. Recompute from survivors, preserving incomplete-search doubt.
         ambiguity_reason = (
@@ -3739,6 +3755,8 @@ def _resolve_discovered_candidates(
         candidates = [exact_base] + [item for item in candidates if item is not exact_base]
     if fallback_review_required:
         ambiguity_reason = "Recovered candidate name differs from the menu; manual confirmation required"
+    if incomplete:
+        ambiguity_reason = search_warning or "Search incomplete; remaining candidates cannot be resolved safely"
 
     same_abv_variants = [] if exact_base is not None or fallback_review_required else same_abv_family_variants(
         candidates,
@@ -3824,15 +3842,23 @@ def _resolve_discovered_candidates(
     info = _confirmed_info_from_algolia(best, brewery)
     if info is None:
         _record_algolia_confirmation(detail_fallback=True)
-        info = _timed_matcher_call(
-            "detail-page operation total",
-            query,
-            lambda: extract_beer_info(
-                page,
-                best["url"],
-                brewery_from_search=brewery,
-            ),
-        )
+        try:
+            info = _timed_matcher_call(
+                "detail-page operation total",
+                query,
+                lambda: extract_beer_info(
+                    page,
+                    best["url"],
+                    brewery_from_search=brewery,
+                    expected_beer=best["name"],
+                ),
+            )
+        except BeerDetailError as exc:
+            return {"query": query,
+                    "status": "rate_limited" if exc.status == RATE_LIMIT_HTTP_STATUS else "failed",
+                    "reason": str(exc), "url": best["url"],
+                    "alternatives": [_alternative_from_candidate(item) for item in candidates[:10]],
+                    "search_fallback": fallback_query_used}
     else:
         _record_algolia_confirmation(detail_fallback=False)
 

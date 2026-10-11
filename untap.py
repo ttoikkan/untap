@@ -52,6 +52,7 @@ from untap_untappd import (
     print_search_transport_authority_summary,
     probe_algolia_sort,
     untappd_browser_page,
+    BrowserUnavailableError,
 )
 
 
@@ -724,7 +725,8 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--validate-menu", metavar="FILE", help="validate TSV locally without searching")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--debug-timing", action="store_true")
-    parser.add_argument("--shadow-search-transport", type=_positive_integer, default=0, metavar="N")
+    parser.add_argument("--shadow-search-transport", type=_positive_integer, default=0, metavar="N",
+                        help="compare up to N successful UI captures with a diagnostic replay; HTTP 429 stops the run")
     parser.add_argument("--show-queries", action="store_true")
     parser.add_argument("--formats", "--help-formats", action="store_true")
     parser.add_argument("--probe-abv-sort", action="store_true")
@@ -774,6 +776,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
 
 def run_options(options: argparse.Namespace) -> None:
+    try:
+        _run_options(options)
+    except BrowserUnavailableError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(2) from None
+
+
+def _run_options(options: argparse.Namespace) -> None:
     if options.continue_source:
         from untap_continue import continue_run
         configure_search_timing(options.debug_timing or bool(options.shadow_search_transport))
