@@ -1452,10 +1452,20 @@ def untappd_browser_page():
     def _open():
         # Deliberately imported lazily so local parser/preflight workflows remain
         # browser-free and malformed menus fail before Playwright is loaded.
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import Error, sync_playwright
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            try:
+                browser = p.chromium.launch(headless=True)
+            except Error as exc:
+                if "Executable doesn't exist" not in str(exc):
+                    raise
+                raise SystemExit(
+                    "Untap's Chromium browser is not installed. "
+                    "Run untap-install-browser, then retry. "
+                    "From a source checkout, run python3 -m playwright install chromium "
+                    "using the same Python environment as Untap."
+                ) from None
             page = browser.new_page(
                 user_agent=(
                     "Mozilla/5.0 "

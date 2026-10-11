@@ -11,9 +11,10 @@ import json
 import os
 import re
 import math
-from typing import Optional
+from typing import Optional, Sequence
 from datetime import datetime
 from pathlib import Path
+from untap_version import __version__
 from untap_parser import (
     normalize,
     show_parsed_menu,
@@ -713,11 +714,8 @@ def _positive_integer(value: str) -> int:
     return number
 
 
-def _parse_cli_args(args):
-    parser = argparse.ArgumentParser(
-        description="Search Untappd from a query or a four-column TSV menu.",
-        allow_abbrev=False,
-    )
+def configure_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--version", action="version", version=f"untap {__version__}")
     parser.add_argument("query", nargs="*", help="single-beer search text")
     parser.add_argument("--recovery-menu", metavar="FILE", help="original TSV for recovery of a v103 journal without a manifest")
     parser.add_argument("--continue", dest="continue_source", metavar="RUN", help="continue only rate-limited or unattempted rows into a new run")
@@ -736,6 +734,20 @@ def _parse_cli_args(args):
     parser.add_argument("--report-title", metavar="TITLE")
     parser.add_argument("--register-refresh", metavar="CONFIG")
     parser.add_argument("--min-score", type=_score_argument, default=DEFAULT_MIN_SCORE)
+
+
+def _build_cli_parser(prog: Optional[str] = None) -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog=prog,
+        description="Search Untappd from a query or a four-column TSV menu.",
+        allow_abbrev=False,
+    )
+    configure_parser(parser)
+    return parser
+
+
+def _parse_cli_args(args, parser=None):
+    parser = parser if parser is not None else _build_cli_parser()
     options = parser.parse_intermixed_args(args)
     if options.recovery_menu and not options.continue_source:
         parser.error("--recovery-menu requires --continue")
@@ -752,12 +764,16 @@ def _parse_cli_args(args):
     return options
 
 
-def main() -> None:
-    args = sys.argv[1:]
+def main(argv: Optional[Sequence[str]] = None) -> None:
+    args = list(argv) if argv is not None else sys.argv[1:]
     if not args:
         _print_cli_help()
         sys.exit(1)
     options = _parse_cli_args(args)
+    run_options(options)
+
+
+def run_options(options: argparse.Namespace) -> None:
     if options.continue_source:
         from untap_continue import continue_run
         configure_search_timing(options.debug_timing or bool(options.shadow_search_transport))

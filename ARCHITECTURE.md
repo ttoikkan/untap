@@ -1,6 +1,6 @@
 # Untap architecture contract
 
-Current through v104. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
+Current through v106. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
 
 ## Dependency flow
 
@@ -202,3 +202,19 @@ Dependency tests discover every runtime module and check transitive boundaries. 
 ## Continuation (v104)
 
 `untap_continue.py` owns saved-run preflight, journal recovery and continuation into fresh folders. It calls batch and transport boundaries only for rate-limited/unattempted rows. It preserves saved item IDs and review history. The CLI performs option validation and transport configuration before dispatch. `untap_batch.debug_transcript` shares debug stream handling across normal and continued batches. Input manifests and journals remain until complete final output succeeds; incomplete runs remain publication/registration-blocked.
+
+
+## Installation boundaries (v105)
+
+The distribution keeps the flat runtime modules and exposes their existing entry points as `untap`, `untap-review`, `untap-refresh`, `untap-publish` and `untap-inspect`. Smoke checks remain an option on `untap`. `untap_version.py` supplies both build metadata and `untap --version`; snapshot schema versioning remains independent.
+
+`untap_assets` holds the review JavaScript. The renderer reads it with `importlib.resources` and embeds the same bytes inline; installed reports remain self-contained. `untap_setup.py` supplies `untap-install-browser`, invoking Playwright with the current interpreter, including inside pipx. The transport diagnoses a missing executable at browser launch, after local preflight; other launch errors retain their original diagnostics. No browser is downloaded implicitly.
+
+Python 3.9 remains the declared and tested minimum. Cwd-relative output defaults, matching, snapshots and report rendering are unchanged. Distribution checks build and install a wheel into a clean environment, exercise entry points outside the checkout and compare deterministic output bytes against the previous release.
+
+
+## Unified command composition (v106)
+
+`untap_cli.py` owns the installed `untap` command and composes argparse subparsers from each tool's `configure_parser` function. Parsed namespaces flow to the same `run_options` function used by standalone entry points. Search and smoke use the shared intermixed parser to preserve positional/option ordering. Smoke sets the existing smoke flag rather than duplicating fixtures or browser execution.
+
+The dispatcher is above all runtime modules; search, report, registry and transport never import it. Legacy option-led and query forms delegate to `untap.main`, while separate commands and source scripts remain available. A leading exact command word is reserved; `run` or `--` explicitly disambiguates such queries. Local help, validation and offline report operations remain browser-free.

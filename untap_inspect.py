@@ -214,10 +214,7 @@ def _menu_queries(filename: str) -> List[str]:
     return [record["query"] for record in records]
 
 
-def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Inspect raw page-zero beer hits without running the matcher."
-    )
+def configure_parser(parser: argparse.ArgumentParser) -> None:
     inputs = parser.add_mutually_exclusive_group(required=True)
     inputs.add_argument("--query", action="append", help="search query; repeatable")
     inputs.add_argument("--file", help="UTF-8 file containing one query per line")
@@ -226,11 +223,21 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--all-pages", action="store_true",
         help=f"inspect serial result pages up to the {MAX_ALGOLIA_EXPANSION_PAGES}-page safety cap",
     )
+
+
+def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Inspect raw page-zero beer hits without running the matcher."
+    )
+    configure_parser(parser)
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    args = parse_args(argv)
+    return run_options(parse_args(argv))
+
+
+def run_options(args: argparse.Namespace) -> int:
     try:
         if args.query:
             queries = [query.strip() for query in args.query if query.strip()]

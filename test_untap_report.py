@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from importlib.resources import files
 from unittest import mock
 
 import untap
@@ -35,7 +36,7 @@ class HtmlReportTests(unittest.TestCase):
 
     def test_personal_review_is_bundled_inline(self):
         html = untap_report.render_html_report(self._results())
-        script = Path(untap_report.__file__).with_name("untap_review.js").read_text(encoding="utf-8")
+        script = files("untap_assets").joinpath("untap_review.js").read_text(encoding="utf-8")
         self.assertIn('<script id="manual-review-script">' + script + '</script>', html)
         self.assertIn('Confirm this beer', html)
         self.assertIn('They do not change the shared report or CSV', html)

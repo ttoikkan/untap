@@ -9,7 +9,7 @@ from datetime import date
 import hashlib
 import json
 from html import escape
-from pathlib import Path
+from importlib.resources import files
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
@@ -611,7 +611,7 @@ def render_html_report(
         status_filters=status_filters_html,
         results_html=results_html,
         selection_id=selection_report_id(results, clean_title, generated_date),
-        review_script=Path(__file__).with_name("untap_review.js").read_text(encoding="utf-8"),
+        review_script=files("untap_assets").joinpath("untap_review.js").read_text(encoding="utf-8"),
     )
 
 

@@ -1,3 +1,20 @@
+# v106 — Unified command interface (2026-10-11)
+
+- Add `untap run`, `review`, `refresh`, `publish`, `inspect` and `smoke` using shared argument definitions and execution functions.
+- Retain legacy searches, separate commands and source scripts without deprecation warnings; support explicit `run` or `--` for queries beginning with reserved command words.
+- Preserve intermixed search options, local preflight, live smoke exit codes, output locations and matching/report behavior.
+- Live validation: installed command processed the 45-row Taproom Tripla menu with 45 confirmed matches; local preview and review tested.
+- Validation: all 299 tests pass, including installed-wheel command equivalence; all 22 Python source files type-check. Fixed HTML, CSV and JSON remain byte-identical to v104.
+
+# v105 — Installable command-line tools (included in v106)
+
+- Add Python 3.9+ packaging and installed commands for the existing entry points, keeping source scripts supported.
+- Bundle the unchanged review JavaScript in `untap_assets` and load it through the resource API.
+- Add `untap --version`, with one version source shared by distribution metadata and the CLI.
+- Add `untap-install-browser` for Chromium installation in Untap's environment, and a clear missing-browser message when a search starts.
+- Preserve matching, output locations and deterministic HTML, CSV and JSON contents.
+- Validation: 286 tests including clean installed-wheel checks; all 21 Python source files type-check. Installed output bytes match fixed v104 references; source distributions also build successfully.
+
 # v104 — Continue unfinished runs (2026-10-11)
 
 - Remove the partial journal and input manifest only after a complete run's HTML/JSON and optional CSV save successfully. Retain both after interruption, rate limiting or save failure.

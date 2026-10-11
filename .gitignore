@@ -6,3 +6,8 @@ results.csv
 results.html
 results/
 inspections/
+
+# Local packaging artifacts
+build/
+dist/
+*.egg-info/

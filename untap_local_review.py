@@ -130,12 +130,19 @@ def make_server(session, port=0):
     return HTTPServer(("127.0.0.1", port), Handler)
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("source", type=Path, help="run directory or results.json")
     parser.add_argument("--no-open", action="store_true", help="print the local URL without opening a browser")
     parser.add_argument("--csv", action="store_true", help="also export results.csv when saving")
-    args = parser.parse_args(argv)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    configure_parser(parser)
+    return run_options(parser.parse_args(argv), parser)
+
+
+def run_options(args, parser):
     try:
         session = ReviewSession(args.source, csv_requested=args.csv)
         with make_server(session) as server:

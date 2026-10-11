@@ -360,10 +360,7 @@ def publish_report(
     return new_report
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Publish an Untap HTML report into a local static archive."
-    )
+def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("report", type=Path, help="completed Untap HTML report or run directory containing results.html")
     parser.add_argument("archive", type=Path, help="local untap-results repository root")
     parser.add_argument(
@@ -371,11 +368,21 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="explicitly replace an existing report with the same logical title",
     )
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Publish an Untap HTML report into a local static archive."
+    )
+    configure_parser(parser)
     return parser
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    args = _build_parser().parse_args(argv)
+    return run_options(_build_parser().parse_args(argv))
+
+
+def run_options(args: argparse.Namespace) -> int:
     if args.report.is_dir():
         args.report = args.report / "results.html"
     try:

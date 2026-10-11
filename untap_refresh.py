@@ -175,8 +175,7 @@ def refresh_batch(config_path: Path, csv_requested: bool = False) -> int:
     return 2 if failures else 0
 
 
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("source", nargs="?", type=Path, help="run directory or results.json")
     parser.add_argument("--batch", type=Path, help="JSON configuration listing saved runs to refresh")
     parser.add_argument("--output", type=Path, help="new output directory (must not exist)")
@@ -185,7 +184,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--archive", type=Path, help="optionally update this local archive")
     parser.add_argument("--csv", action="store_true", help="also export results.csv")
     parser.add_argument("--replace", action="store_true", help="allow replacing the same logical report in the archive")
-    args = parser.parse_args(argv)
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    configure_parser(parser)
+    return run_options(parser.parse_args(argv), parser)
+
+
+def run_options(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     if args.batch:
         if args.source or args.output or args.selections or args.archive or args.replace or args.fetch_candidates:
             parser.error("--batch cannot be combined with single-run arguments")

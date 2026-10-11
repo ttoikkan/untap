@@ -152,7 +152,10 @@ class ArchitectureContractTests(unittest.TestCase):
             self.assertFalse({name for name in reachable(module) if name.startswith('untap')}, module)
         for module in ('untap_report', 'untap_snapshot', 'untap_publish'):
             self.assertTrue(reachable(module).isdisjoint({'untap_batch', 'untap_matcher', 'untap_untappd', 'playwright'}), module)
-        expected = {'untap_inspect', 'untap_local_review', 'untap_manual_candidates', 'untap_refresh', 'untap_refresh_config', 'untap_registry', 'untap_snapshot', 'untap_identity'}
+        for module in graph:
+            if module != 'untap_cli':
+                self.assertNotIn('untap_cli', reachable(module), module)
+        expected = {'untap_cli', 'untap_inspect', 'untap_local_review', 'untap_manual_candidates', 'untap_refresh', 'untap_refresh_config', 'untap_registry', 'untap_snapshot', 'untap_identity'}
         self.assertTrue(expected.issubset(graph))
 
     def test_importing_architecture_modules_remains_playwright_lazy(self):

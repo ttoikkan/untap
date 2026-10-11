@@ -1,4 +1,63 @@
-# Untap v104
+# Untap v106
+
+## Unified commands (v106)
+
+```bash
+untap run --menu menu.tsv --report-title "My menu"
+untap run --continue results/<unfinished-run>/
+untap review results/<run>/
+untap refresh results/<run>/
+untap publish results/<run>/ /path/to/untap-results
+untap inspect --query "Kin Kinetic Hazy"
+untap smoke
+```
+
+Use `untap --help` for the command list and `untap <command> --help` for each tool's arguments. `run` retains local validation (`--validate-menu`) and all existing search options. `smoke` is an explicit live check and uses the existing smoke fixtures and exit codes.
+
+Legacy `untap --menu ...`, single-query searches, separate installed commands and source scripts remain supported without deprecation warnings. Only a leading exact subcommand name is reserved: for a query starting with `run`, `review`, `refresh`, `publish`, `inspect` or `smoke`, use `untap run "review Brewery Beer"` or `untap -- "review Brewery Beer"`. Intermixed search arguments keep their existing behavior.
+
+If v105 is already installed with pipx, run `pipx install --force .` from this checkout to test the local v106 commands.
+
+From a checkout, use `python3 -m untap_cli ...` for unified commands. `python3 untap.py ...` remains the legacy search entry point. Subcommands share their tools' argument definitions, validation and execution functions; output locations and matching behavior are unchanged.
+
+## Installation (v105)
+
+Untap requires Python 3.9 or newer. Install the command-line tools in an isolated environment with pipx:
+
+```bash
+pipx install git+https://github.com/ttoikkan/untap.git
+untap-install-browser
+untap --version
+untap --menu menu.tsv --report-title "My menu"
+```
+
+`untap-install-browser` downloads Playwright's Chromium using Untap's own Python environment. Browser installation is explicit; local validation, help, version reporting and offline report operations do not require Chromium. A search without the browser installed explains how to install it.
+
+| Installed command | Existing source entry point |
+| --- | --- |
+| `untap` | `python3 untap.py` |
+| `untap-review` | `python3 untap_local_review.py` |
+| `untap-refresh` | `python3 untap_refresh.py` |
+| `untap-publish` | `python3 untap_publish.py` |
+| `untap-inspect` | `python3 untap_inspect.py` |
+
+From a source checkout, `pipx install .` installs the local version.
+
+Each command retains its existing arguments; use `--help` for details. Live smoke checks remain `untap --smoke-test`. Source-checkout commands remain supported. Matching, report contents and output locations are unchanged: normal searches write `results/` and inspections write `inspections/` relative to the current directory; continuation creates a sibling of the source run.
+
+The wheel includes the review JavaScript in `untap_assets`, read through Python's resource API and embedded inline in HTML. `untap_version.py` is the single source of the distribution and CLI version (`106.0`, release tag `v106`). Packaging validation installs the wheel outside the checkout and compares fixed-input HTML, CSV and JSON against pre-packaging outputs.
+
+To repeat the installed-wheel checks from the checkout:
+
+```bash
+python3 -m pip install build
+python3 -m build
+python3 -m venv /tmp/untap-installed-check
+/tmp/untap-installed-check/bin/python -m pip install dist/untap-*.whl
+UNTAP_TEST_ENV=/tmp/untap-installed-check python3 -B -m unittest discover
+```
+
+The installed checks run in temporary working directories with no browser binaries, verifying command entry points, local validation, missing-browser diagnostics, bundled assets and identical outputs. They are skipped in ordinary source-only test runs.
 
 ## Continue unfinished runs (v104)
 
@@ -251,7 +310,7 @@ choices are kept. Keep the source report with the export.
 Browser choices may be unavailable after moving the file, regenerating the
 report, or clearing browser storage. Without JavaScript, the original report
 remains readable. Reports without ambiguous items show no review toolbar.
-The companion `untap_review.js` is bundled inline during report generation;
+The companion `untap_assets/untap_review.js` is bundled inline during report generation;
 publishing still requires only the HTML file.
 
 The publisher also accepts a run directory and automatically uses its
@@ -438,10 +497,10 @@ With `--debug-timing`, the transport summary reports UI bootstrap searches, UI r
 
 ## Full mypy coverage
 
-Local static validation runs mypy across all 18 runtime modules:
+Local static validation runs mypy across all runtime modules and the asset package:
 
 ```bash
-python3 -m mypy untap*.py
+python3 -m mypy untap*.py untap_assets
 ```
 
 `untap_types.py` now includes explicit request/event/result contracts for the Algolia transport boundary. The live request-template mutation and browser-fetch response path are annotated so payload-shape wiring is no longer outside static checking.
@@ -462,7 +521,7 @@ python3 -m mypy untap*.py
 Run:
 
 ```bash
-python3 -m mypy untap*.py
+python3 -m mypy untap*.py untap_assets
 python3 -m unittest discover -v
 python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing
