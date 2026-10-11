@@ -13,10 +13,10 @@ FORMAT = "untap-results"
 VERSION = 1
 
 
-def build_snapshot(results: Sequence[MatchResult], title: str) -> Dict[str, Any]:
+def menu_item_ids(results: Sequence[MatchResult]) -> list:
     """Assign occurrence-aware IDs from menu identity, not scores or row order."""
     occurrences: Dict[str, int] = {}
-    items = []
+    identifiers = []
     for result in results:
         identity = {key: result.get(key) for key in (
             "original_menu_text", "input_brewery", "input_beer",
@@ -26,7 +26,14 @@ def build_snapshot(results: Sequence[MatchResult], title: str) -> Dict[str, Any]
             identity, ensure_ascii=False, sort_keys=True,
         ).encode("utf-8")).hexdigest()
         occurrences[digest] = occurrences.get(digest, 0) + 1
-        items.append({"id": f"{digest}:{occurrences[digest]}", "result": result})
+        identifiers.append(f"{digest}:{occurrences[digest]}")
+    return identifiers
+
+
+def build_snapshot(results: Sequence[MatchResult], title: str) -> Dict[str, Any]:
+    """Build a lossless snapshot with occurrence-aware menu IDs."""
+    items = [{"id": identifier, "result": result}
+             for identifier, result in zip(menu_item_ids(results), results)]
     now = datetime.now().astimezone()
     snapshot = {
         "format": FORMAT, "version": VERSION,

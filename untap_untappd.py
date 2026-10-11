@@ -482,6 +482,25 @@ def _build_algolia_exact_replay_body(parsed_requests: List[AlgoliaRequestRecord]
     }
 
 
+def _browser_json_post(page: Any, url: str, body: Dict[str, Any]) -> Any:
+    """POST JSON in the browser; callers retain response/error policy."""
+    return page.evaluate(
+        """
+        async ({url, body}) => {
+            const response = await fetch(url, {
+                method: 'POST', headers: {'content-type': 'application/json'},
+                body: JSON.stringify(body), credentials: 'omit'
+            });
+            const text = await response.text();
+            let payload = null;
+            try { payload = JSON.parse(text); } catch (_) {}
+            return {status: response.status, ok: response.ok, payload, text};
+        }
+        """,
+        {"url": url, "body": body},
+    )
+
+
 def _fetch_algolia_exact_request(page: Any, request_event: AlgoliaTransportEvent) -> Tuple[Optional[int], Optional[Dict[str, Any]], Optional[str]]:
     parsed_requests = request_event.get("algolia_requests") or []
     url = request_event.get("url")
@@ -489,24 +508,7 @@ def _fetch_algolia_exact_request(page: Any, request_event: AlgoliaTransportEvent
         return None, None, "no parsed Algolia request available"
     body = _build_algolia_exact_replay_body(parsed_requests)
     try:
-        result = page.evaluate(
-            """
-            async ({url, body}) => {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {'content-type': 'application/json'},
-                    body: JSON.stringify(body),
-                    credentials: 'omit'
-                });
-                let payload = null;
-                let text = null;
-                try { payload = await response.json(); }
-                catch (err) { try { text = await response.text(); } catch (err2) {} }
-                return {status: response.status, ok: response.ok, payload, text};
-            }
-            """,
-            {"url": url, "body": body},
-        )
+        result = _browser_json_post(page, url, body)
     except Exception as exc:
         return None, None, str(exc)
     if not result:
@@ -721,41 +723,7 @@ def _fetch_algolia_page(page, request_event, page_number):
     )
 
     try:
-        result = page.evaluate(
-            """
-            async ({url, body}) => {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify(body),
-                    credentials: 'omit'
-                });
-
-                let payload = null;
-                let text = null;
-
-                try {
-                    payload = await response.json();
-                } catch (err) {
-                    try {
-                        text = await response.text();
-                    } catch (err2) {
-                        text = null;
-                    }
-                }
-
-                return {
-                    status: response.status,
-                    ok: response.ok,
-                    payload,
-                    text
-                };
-            }
-            """,
-            {"url": url, "body": body},
-        )
+        result = _browser_json_post(page, url, body)
 
         if not result:
             return None, "browser fetch returned no result"
@@ -878,32 +846,7 @@ def _fetch_algolia_sorted_page(
 
     url = request_event.get("url")
     try:
-        result = page.evaluate(
-            """
-            async ({url, body}) => {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {'content-type': 'application/json'},
-                    body: JSON.stringify(body),
-                    credentials: 'omit'
-                });
-                let payload = null;
-                let text = null;
-                try {
-                    payload = await response.json();
-                } catch (err) {
-                    try { text = await response.text(); } catch (err2) {}
-                }
-                return {
-                    status: response.status,
-                    ok: response.ok,
-                    payload,
-                    text
-                };
-            }
-            """,
-            {"url": url, "body": body},
-        )
+        result = _browser_json_post(page, url, body)
         if not result:
             return None, "browser fetch returned no result"
         if not result.get("ok"):
@@ -915,221 +858,7 @@ def _fetch_algolia_sorted_page(
     except Exception as exc:
         return None, str(exc)
 
-def inspect_scrollable_containers(page):
-    """Find inner elements with their own scrollable area."""
-    try:
-        items = page.evaluate(
-            """
-            () => {
-                const all = Array.from(document.querySelectorAll('*'));
-                const results = [];
 
-                for (const el of all) {
-                    const style = getComputedStyle(el);
-                    const oy = style.overflowY;
-                    const ox = style.overflowX;
-
-                    const yScrollable =
-                        el.scrollHeight > el.clientHeight + 5 &&
-                        ['auto', 'scroll'].includes(oy);
-
-                    const xScrollable =
-                        el.scrollWidth > el.clientWidth + 5 &&
-                        ['auto', 'scroll'].includes(ox);
-
-                    if (!yScrollable && !xScrollable) continue;
-
-                    results.push({
-                        tag: el.tagName,
-                        id: el.id || null,
-                        className:
-                            typeof el.className === 'string'
-                                ? el.className
-                                : null,
-                        overflowY: oy,
-                        overflowX: ox,
-                        scrollHeight: el.scrollHeight,
-                        clientHeight: el.clientHeight,
-                        scrollWidth: el.scrollWidth,
-                        clientWidth: el.clientWidth,
-                    });
-                }
-
-                return results.slice(0, 30);
-            }
-            """
-        )
-        return items or []
-    except Exception:
-        return []
-
-def inspect_search_expansion(page):
-    """
-    Inspect the currently loaded Untappd search page for signs that more
-    results may be available. This is diagnostic only: it does not click
-    anything or change the page state.
-    """
-    info = {
-        "next_links": [],
-        "page_links": [],
-        "load_more_controls": [],
-        "pagination_containers": 0,
-        "scroll_height": None,
-        "viewport_height": None,
-        "body_text_mentions_more": False,
-        "scrollable_containers": [],
-    }
-
-    try:
-        info["scroll_height"] = page.evaluate(
-            "document.documentElement.scrollHeight"
-        )
-        info["viewport_height"] = page.evaluate(
-            "window.innerHeight"
-        )
-    except Exception:
-        pass
-
-    # Common pagination containers/classes.
-    try:
-        selectors = [
-            ".pagination",
-            "nav[aria-label*='pagination' i]",
-            "[class*='pagination' i]",
-            "[class*='pager' i]",
-        ]
-
-        seen = set()
-        count = 0
-
-        for selector in selectors:
-            locator = page.locator(selector)
-
-            for i in range(locator.count()):
-                try:
-                    handle = locator.nth(i)
-                    key = handle.evaluate(
-                        "(el) => el.outerHTML.slice(0, 300)"
-                    )
-
-                    if key not in seen:
-                        seen.add(key)
-                        count += 1
-                except Exception:
-                    continue
-
-        info["pagination_containers"] = count
-    except Exception:
-        pass
-
-    # Inspect links/buttons with likely pagination/load-more semantics.
-    try:
-        controls = page.locator("a, button")
-
-        for i in range(min(controls.count(), 300)):
-            control = controls.nth(i)
-
-            try:
-                text_value = (control.inner_text() or "").strip()
-            except Exception:
-                text_value = ""
-
-            try:
-                aria = (control.get_attribute("aria-label") or "").strip()
-            except Exception:
-                aria = ""
-
-            try:
-                title = (control.get_attribute("title") or "").strip()
-            except Exception:
-                title = ""
-
-            try:
-                rel = (control.get_attribute("rel") or "").strip()
-            except Exception:
-                rel = ""
-
-            try:
-                href = (control.get_attribute("href") or "").strip()
-            except Exception:
-                href = ""
-
-            combined = " ".join(
-                part
-                for part in [text_value, aria, title, rel]
-                if part
-            ).strip()
-
-            normalized = normalize(combined)
-
-            record = {
-                "text": combined or "(no text)",
-                "href": href or None,
-            }
-
-            if (
-                "next" in normalized
-                or rel.lower() == "next"
-            ):
-                info["next_links"].append(record)
-                continue
-
-            if re.search(
-                r"\b(load more|show more|more results|view more)\b",
-                combined,
-                flags=re.I,
-            ):
-                info["load_more_controls"].append(record)
-                continue
-
-            if href and re.search(
-                r"(?:[?&](?:page|p)=\d+|/page/\d+)",
-                href,
-                flags=re.I,
-            ):
-                info["page_links"].append(record)
-
-        # Deduplicate while preserving order.
-        for key in (
-            "next_links",
-            "page_links",
-            "load_more_controls",
-        ):
-            deduped = []
-            seen_records = set()
-
-            for item in info[key]:
-                signature = (
-                    item.get("text"),
-                    item.get("href"),
-                )
-
-                if signature in seen_records:
-                    continue
-
-                seen_records.add(signature)
-                deduped.append(item)
-
-            info[key] = deduped
-    except Exception:
-        pass
-
-    # A weak extra clue for pages whose UI mentions more results in plain text.
-    try:
-        body_text = page.locator("body").inner_text()
-
-        if re.search(
-            r"\b(load more|show more|more results|next)\b",
-            body_text,
-            flags=re.I,
-        ):
-            info["body_text_mentions_more"] = True
-    except Exception:
-        pass
-
-    info["scrollable_containers"] = inspect_scrollable_containers(page)
-
-    return info
 
 def _matching_algolia_response_status(network_events, search_query):
     """Return the HTTP status for the captured Algolia response, if known."""
@@ -1713,89 +1442,6 @@ def submit_search(page, search_box, query):
         )
 
 
-def discover_search_candidates(
-    page,
-    query,
-    score_candidate,
-    extract_abv_number,
-    expected_beer=None,
-    expected_brewery=None,
-    expected_abv=None,
-):
-    """Read loaded search-result DOM and return scored candidate records."""
-    query_words = {
-        word
-        for word in normalize(query).split()
-        if len(word) >= 3
-    }
-
-    links = page.locator('a[href*="/b/"]')
-    candidates = []
-    seen = set()
-    raw_link_count = links.count()
-    count = min(raw_link_count, 120)
-
-    for i in range(count):
-        link = links.nth(i)
-        try:
-            name = link.inner_text().strip()
-            href = link.get_attribute("href")
-        except Exception:
-            continue
-
-        if not name or not href:
-            continue
-        if href.startswith("/"):
-            href = "https://untappd.com" + href
-        if href in seen:
-            continue
-        seen.add(href)
-
-        block_text = name
-        for levels_up in [2, 3, 4]:
-            try:
-                candidate_text = (
-                    link.locator(f"xpath=ancestor::div[{levels_up}]")
-                    .inner_text()
-                    .strip()
-                )
-                if 0 < len(candidate_text) < 1200:
-                    block_text = candidate_text
-                    break
-            except Exception:
-                pass
-
-        block_norm = normalize(block_text)
-        matches = sum(1 for word in query_words if word in block_norm)
-        required = max(1, (len(query_words) + 1) // 2)
-        if matches < required:
-            continue
-
-        score = score_candidate(
-            query,
-            name,
-            block_text,
-            expected_beer=expected_beer,
-            expected_brewery=expected_brewery,
-            expected_abv=expected_abv,
-        )
-        candidates.append({
-            "name": name,
-            "text": block_text,
-            "url": href,
-            "score": score,
-            "abv": extract_abv_number(block_text),
-        })
-
-    candidates.sort(key=lambda item: item["score"], reverse=True)
-    diagnostics = {
-        "beer_links_on_page": raw_link_count,
-        "beer_links_examined": count,
-        "unique_beer_links": len(seen),
-        "candidates_passing_filter": len(candidates),
-        "expansion": inspect_search_expansion(page),
-    }
-    return candidates, diagnostics
 
 
 def untappd_browser_page():

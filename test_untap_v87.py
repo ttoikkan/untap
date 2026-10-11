@@ -37,11 +37,11 @@ class RunDirectoryTests(unittest.TestCase):
             with self.subTest(flag=flag), mock.patch.object(sys, "argv", ["untap.py", flag]), \
                  mock.patch.object(untap, "untappd_browser_page") as browser, \
                  mock.patch.object(untap, "create_run_directory") as directory, \
-                 contextlib.redirect_stdout(io.StringIO()) as output:
+                 contextlib.redirect_stderr(io.StringIO()) as output:
                 with self.assertRaises(SystemExit) as error:
                     untap.main()
-                self.assertEqual(error.exception.code, 1)
-                self.assertIn("not supported in v87", output.getvalue())
+                self.assertEqual(error.exception.code, 2)
+                self.assertIn("error:", output.getvalue())
                 browser.assert_not_called()
                 directory.assert_not_called()
 

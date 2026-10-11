@@ -75,9 +75,11 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
             with self.subTest(flag=flag), self._forbid_playwright_import(), mock.patch.object(
                 sys, "argv", ["untap.py", flag]
             ), contextlib.redirect_stdout(output):
-                untap.main()
+                with self.assertRaises(SystemExit) as exc:
+                    untap.main()
+                self.assertEqual(exc.exception.code, 0)
             text = output.getvalue()
-            self.assertIn("Usage:", text)
+            self.assertIn("usage:", text)
             self.assertIn("--debug-timing", text)
             self.assertIn("--smoke-test", text)
             self.assertIn("--report-title TITLE", text)
@@ -119,10 +121,10 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
         output = io.StringIO()
         with self._forbid_playwright_import(), mock.patch.object(
             sys, "argv", ["untap.py", "--html", "--report-title", "   "]
-        ), contextlib.redirect_stdout(output):
+        ), contextlib.redirect_stderr(output):
             with self.assertRaises(SystemExit) as exc:
                 untap.main()
-        self.assertEqual(exc.exception.code, 1)
+        self.assertEqual(exc.exception.code, 2)
         self.assertIn("--report-title requires a non-empty title", output.getvalue())
 
     def test_legacy_menu_is_rejected_before_browser(self):

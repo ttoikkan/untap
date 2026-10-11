@@ -14,6 +14,7 @@ MatchStatus = Literal[
     "low_confidence",
     "failed",
     "rate_limited",
+    "not_attempted",
 ]
 
 

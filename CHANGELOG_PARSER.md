@@ -1,3 +1,12 @@
+# v103 — Input identity preservation (2026-10-11)
+
+- Compare complete normalized brewery token sequences when building queries. Preserve trailing tabs in original rows, explain empty-style input and reject ABV precision beyond two decimals.
+
+# v102 — Four-column TSV input (2026-10-11)
+
+- Replace seven-format detection and stateful adapters with one strict brewery/beer/ABV/style TSV reader. Preserve explicit names, collaboration searches, decimal commas and zero ABV.
+- Accept blank lines, an optional header and UTF-8 BOM. Validate malformed/legacy input before any search. Empty style is allowed; brewery, beer and ABV are required.
+
 # v76
 
 - Adds explicit structural detection and raw validation for brewery-heading blocks (`menu2.txt`).

@@ -57,10 +57,12 @@
   let reportId = null;
   let storageKey = null;
   try {
-    const bytes = new TextEncoder().encode(list.innerHTML + originalSummary + document.title);
-    const hash = await crypto.subtle.digest('SHA-256', bytes);
-    reportId = document.querySelector('meta[name="untap-selection-report-id"]')?.content ||
-      Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+    reportId = document.querySelector('meta[name="untap-selection-report-id"]')?.content;
+    if (!reportId) {
+      const bytes = new TextEncoder().encode(list.innerHTML + originalSummary + document.title);
+      const hash = await crypto.subtle.digest('SHA-256', bytes);
+      reportId = Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('');
+    }
     storageKey = 'untap-review-v1:' + reportId;
   } catch (_) {
     message.textContent = 'Browser saving is unavailable here. Export your selections before closing.';

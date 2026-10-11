@@ -1,6 +1,6 @@
 # Untap architecture contract
 
-v60 closed the architecture-renewal effort. Later releases preserve that decomposition while hardening and optimizing the established boundaries. v73 hardened the direct search transport and extended static checks. v74 added the separate manual live-dependency smoke boundary and removed unused GitHub workflow automation. v75 consolidated the final validated manual/local-only v74 corrections. v76 expands only the parser/preflight input contract for three structurally clear historical menu layouts. v77 adds a separate static HTML-report presentation boundary. v78 extends only that presentation contract with optional descriptive report titles and archive-oriented HTML metadata. v79 adds a standalone local archive publisher. v80 adds data-derived client-side style filtering inside the static report. v81 adds explicit replacement semantics only to the standalone publisher while preserving those boundaries; downstream parser, matching decisions, report rendering, batch, and transport behavior remain unchanged.
+Current through v103. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
 
 ## Dependency flow
 
@@ -61,15 +61,15 @@ Playwright remains lazily imported by `untappd_browser_page()`, preserving the p
 
 ## Batch/persistence contract
 
-The batch layer consumes validated `NormalizedMenuRecord` values or plain query strings and returns `MatchResult` values. It owns iteration, occurrence-aware resume/cache reuse, CSV serialization, and fail-fast handling once a matcher result reports HTTP 429.
+The batch layer consumes validated `NormalizedMenuRecord` values or plain query strings and returns `MatchResult` values. It owns iteration, optional CSV serialization, per-result checkpoint callbacks and fail-fast handling once a matcher result reports HTTP 429. Unattempted rows retain input identity; the CLI journals each completed result and saves snapshots in a finally block.
 
-The stable CSV order remains `CSV_FIELDS`; v63 adds a corresponding `CsvRow` TypedDict and contract test. Only confirmed `status=ok` rows are reusable.
+The stable CSV order remains `CSV_FIELDS`; v63 adds a corresponding `CsvRow` TypedDict and contract test. CSV resume has been removed.
 
 ## HTML report contract (v77–v80)
 
-`untap_report.py` owns static human-facing HTML rendering from already completed `MatchResult` records. It may depend on shared type contracts only; it must not import parser, matcher, batch, transport, smoke, or Playwright layers. The CLI may invoke it after a batch completes.
+`untap_report.py` owns static human-facing HTML rendering from already completed `MatchResult` records. It may depend on shared types and lightweight snapshot item-ID helpers; it must not import parser, matcher, batch, transport, smoke, or Playwright layers. The CLI may invoke it after a batch completes.
 
-The report is self-contained and responsive, makes no network requests, and does not alter result data. Confirmed beers are ordered by Untappd rating descending. Ambiguous candidates remain grouped by input result and are ordered by match score descending. Canonical Untappd `/b/` URLs are rendered as links for confirmed beers and review candidates when available. CSV remains the persistence/resume format; HTML is presentation only.
+The report is self-contained and responsive, makes no network requests, and does not alter result data. Confirmed beers are ordered by Untappd rating descending. Ambiguous candidates remain grouped by input result and are ordered by match score descending. Canonical Untappd `/b/` URLs are rendered as links for confirmed beers and review candidates when available. JSON is the lossless persistence format; HTML provides review and presentation; CSV is an optional export.
 
 v78 adds an optional descriptive title supplied by the CLI through `--report-title`. The renderer also embeds simple machine-readable metadata for report title, generation date, total beers, confirmed beers, and needs-review count. That metadata is presentation/archive context only; no GitHub or publishing responsibility is introduced into Untap.
 
@@ -77,9 +77,9 @@ v80 adds a small inline client-side style filter while keeping the report one se
 
 ## Local archive publisher contract (v79–v81)
 
-`untap_publish.py` is a standalone local-filesystem utility, not part of the Untap runtime data flow. It imports no Untap runtime/type/report modules and is not imported by `untap.py` or `untap_report.py`. Its input contract is only the machine-readable `untap-*` metadata embedded in completed v78+ HTML reports.
+`untap_publish.py` is a standalone local-filesystem utility, not part of the Untap runtime data flow. It imports only the dependency-free `untap_identity` helper among Untap modules and is not imported by `untap.py` or `untap_report.py`. Its input contract is only the machine-readable `untap-*` metadata embedded in completed v78+ HTML reports.
 
-The publisher owns archive validation, safe dated filename derivation for first publication, copying a completed report into a local `reports/` directory, logical report identity, and deterministic newest-first regeneration of the static archive `index.html`. The normalized descriptive report title is the logical archive identity; the embedded report date is generation metadata rather than identity. It must fail closed on malformed metadata and must never silently replace an existing logical report. Existing archived HTML reports are validated before archive mutation.
+The publisher owns archive validation, safe dated filename derivation for first publication, copying a completed report into a local `reports/` directory, logical report identity (shared with registration through `untap_identity.py`), and deterministic newest-first regeneration of the static archive `index.html`. The normalized descriptive report title is the logical archive identity; the embedded report date is generation metadata rather than identity. It must fail closed on malformed metadata and must never silently replace an existing logical report. Existing archived HTML reports are validated before archive mutation.
 
 v81 adds one explicit exception to the replacement guard: the caller may request `--replace` for exactly one existing logical title match. Matching is independent of regeneration date, and the existing archive filename is preserved so the public URL remains stable. Replacement remains opt-in, runs the same source/archive validation before mutation, removes the old entry from the regenerated index before adding the replacement metadata, and restores the previous report if the index update fails. Multiple existing logical-title matches fail closed, and a date/slug filename collision belonging to another title is never replaceable. Supplying `--replace` when no logical title match exists is equivalent to a normal new publication.
 
@@ -96,7 +96,7 @@ Typing is deliberately incremental and boundary-first. Runtime validators remain
 The static checker is pinned in `requirements-dev.txt` and is run manually/local with:
 
 ```text
-python -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap_publish.py untap.py
+python -m mypy untap*.py
 ```
 
 ## Reproducible local environment
@@ -182,3 +182,19 @@ alias correspondence may be logged as unique or inconclusive evidence, but the
 result is not consumed by scoring, ordering, ambiguity, fallback, acceptance, or
 presentation. This keeps the field observational until its semantics have been
 validated across more real menus.
+
+## Saved-run and review boundaries (v94–v103)
+
+- `untap_snapshot`: lossless JSON persistence and lightweight occurrence-aware menu IDs.
+- `untap_identity`: logical title identity shared by registry and publisher; no upward imports.
+- `untap_refresh_config` / `untap_registry`: configuration validation and opt-in run registration. Missing sources warn; incomplete runs are rejected.
+- `untap_inspect`: explicit read-only Algolia inspection using parser preflight and transport.
+- `untap_manual_candidates`: explicit candidate retrieval and URL validation.
+- `untap_refresh`: snapshot selection application, fresh output rendering and optional local publication.
+- `untap_local_review`: localhost HTTP review and saved-run creation; unexpected errors return JSON.
+
+Dependency tests discover every runtime module and check transitive boundaries. Matching's final identity resolution, HTML card rendering and browser JSON POST mechanics are separate helpers; orchestration retains responsibility for ordering and policy.
+
+## Exact-base qualifier allowlist
+
+`EXACT_BASE_FLAVOR_QUALIFIERS` and `EXACT_BASE_PROCESS_QUALIFIER_RE` preserve the bounded v86 flavor/process extensions observed in regression menus. They serve only the exact-base acceptance rule, not general flavor removal or scoring. Unknown qualifiers fail that rule; expanding the vocabulary requires explicit policy review and matching fixtures. The v103 production/vintage guard is independent: it requires explicit opposite production statuses and a pure trailing vintage on the same brewery/name family and exact ABV. Ratings are not identity evidence.

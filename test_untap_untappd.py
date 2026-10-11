@@ -55,10 +55,11 @@ class UntappdTransportContractTests(unittest.TestCase):
 
 
     def test_transport_has_no_fixed_playwright_sleeps(self):
+        import ast
         from pathlib import Path
-
-        source = Path(__file__).with_name("untap_untappd.py").read_text()
-        self.assertNotIn("page.wait_for_timeout(", source)
+        tree = ast.parse(Path(__file__).with_name('untap_untappd.py').read_text())
+        calls = [node.func.attr for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)]
+        self.assertNotIn('wait_for_timeout', calls)
 
     def test_submit_search_waits_for_exact_algolia_response(self):
         class FakeRequest:
@@ -258,19 +259,11 @@ class UntappdTransportContractTests(unittest.TestCase):
 
 
     def test_matcher_has_no_direct_playwright_page_operations(self):
+        import ast
         from pathlib import Path
-
-        source = Path(__file__).with_name("untap_matcher.py").read_text()
-        forbidden = (
-            "page.goto(",
-            "page.on(",
-            "page.remove_listener(",
-            "page.evaluate(",
-            "page.locator(",
-            "page.wait_for_timeout(",
-        )
-        for token in forbidden:
-            self.assertNotIn(token, source)
+        tree = ast.parse(Path(__file__).with_name('untap_matcher.py').read_text())
+        calls = {node.func.attr for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name) and node.func.value.id == 'page'}
+        self.assertTrue(calls.isdisjoint({'goto', 'on', 'remove_listener', 'evaluate', 'locator', 'wait_for_timeout'}))
 
     def test_matching_network_helpers_select_exact_query(self):
         query = "Messorem Demoliri #0031 - XTRM Turbo"

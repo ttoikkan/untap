@@ -32,7 +32,6 @@ from untap_untappd import (
     start_search_network_capture,
     stop_search_network_capture,
     submit_search,
-    shadow_compare_search_transport,
     fetch_authoritative_algolia_search,
     remember_search_transport_template,
     invalidate_search_transport_template,
@@ -55,6 +54,7 @@ MATCH_RESULT_STATUSES = frozenset({
     "low_confidence",
     "failed",
     "rate_limited",
+    "not_attempted",
 })
 
 MAX_RAW_CANDIDATE_SCORE = 1.60
@@ -301,7 +301,6 @@ def score_candidate(
     expected_abv=None,
 ):
     query_norm = normalize(expand_beer_abbreviations(query))
-    name_norm = normalize(expand_beer_abbreviations(name))
     block_norm = normalize(expand_beer_abbreviations(block_text))
 
     query_words = {
@@ -679,7 +678,6 @@ def scan_abv_sorted_ambiguity(
         "exact_abv_candidates": 0, "ambiguity_established": False,
         "stopped_after_page": None, "capped": False, "errors": [],
     }
-    expected_words = normalize(expected_beer).split()
     seen = set()
     exact_candidates = []
     previous_numeric_abv = None
@@ -1694,6 +1692,67 @@ def _exact_base_brewery_words(brewery):
     return _meaningful_brewery_words(name)
 
 
+# Bounded qualifiers observed in v86 regression menus. This allowlist is only
+# for exact_base_candidate's acceptance rule; it is not a style taxonomy or a
+# general flavor-removal rule. Unknown qualifiers remain reviewable. Do not
+# expand it without fixtures demonstrating the same brewery and exact ABV.
+EXACT_BASE_FLAVOR_QUALIFIERS = frozenset({
+    "peach", "cherry", "blueberry", "raspberry", "blackberry", "strawberry",
+    "marshmallow", "orange marmalade", "fluff strawberry",
+})
+EXACT_BASE_PROCESS_QUALIFIER_RE = re.compile(
+    r"double dry hopped(?: (?:w|with) (?:centennial|citra|mosaic|simcoe|cascade|amarillo))?"
+)
+VINTAGE_SUFFIX_RE = re.compile(r"(?:vintage )?(?:19|20)\d{2}(?: (?:19|20)\d{2})?")
+
+
+def _explicit_production_state(value):
+    """Recognize explicit API booleans, 0/1 and their string forms."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)) and value in (0, 1):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in ("0", "false"):
+            return False
+        if normalized in ("1", "true"):
+            return True
+    return None
+
+
+def production_vintage_conflict(candidates, expected_beer, expected_brewery, expected_abv):
+    """Return a retired exact match and current same-identity vintage siblings.
+
+    Only explicit production evidence and a pure trailing vintage qualify.
+    Unknown statuses, unrelated names, flavors, other breweries and different
+    ABVs cannot establish this conflict. Popularity is never identity evidence.
+    """
+    if not expected_beer or RELEASE_YEAR_RE.search(expected_beer):
+        return []
+    target = normalize(expected_beer)
+    brewery = _exact_base_brewery_words(expected_brewery)
+    abv = _as_float(expected_abv)
+    if not target or not brewery or abv is None or not math.isfinite(abv):
+        return []
+    eligible = [item for item in candidates
+                if _exact_base_brewery_words(item.get("brewery")) == brewery
+                and _as_float(item.get("abv")) is not None
+                and math.isfinite(_as_float(item.get("abv")))
+                and abs(_as_float(item.get("abv")) - abv) <= EXACT_ABV_EPSILON]
+    exact = [item for item in eligible if normalize(item.get("name") or "") == target]
+    if len(exact) != 1 or _explicit_production_state(exact[0].get("in_production")) is not False:
+        return []
+    siblings = []
+    for item in eligible:
+        name = normalize(item.get("name") or "")
+        if (name.startswith(target + " ")
+                and VINTAGE_SUFFIX_RE.fullmatch(name[len(target) + 1:])
+                and _explicit_production_state(item.get("in_production")) is True):
+            siblings.append(item)
+    return [exact[0]] + siblings if siblings else []
+
+
 def unique_exact_identity_candidate(candidates, expected_beer, expected_brewery, expected_abv,
                                     debug=False):
     """Return the sole candidate matching the explicit name, brewery and ABV.
@@ -1728,6 +1787,8 @@ def unique_exact_identity_candidate(candidates, expected_beer, expected_brewery,
     if len(matches) != 1:
         return rejected("expected exactly one candidate matching all three identifiers")
     best = matches[0]
+    if production_vintage_conflict(candidates, expected_beer, expected_brewery, expected_abv):
+        return rejected("out-of-production exact match competes with an in-production vintage at the menu ABV")
     if debug:
         print(f"Unique exact identity accepted: {best['name']!r} (name, brewery and ABV)")
     return best
@@ -1793,9 +1854,6 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
     if normalize(best.get("name") or "") != target or best.get("score", 0) < min_score:
         return rejected("top candidate is not an exact-name match above the score threshold")
     brewery = _exact_base_brewery_words(expected_brewery)
-    flavors = {"peach", "cherry", "blueberry", "raspberry", "blackberry",
-               "strawberry", "marshmallow", "orange marmalade", "fluff strawberry"}
-    process_pattern = r"double dry hopped(?: (?:w|with) (?:centennial|citra|mosaic|simcoe|cascade|amarillo))?"
     for index, candidate in enumerate(candidates):
         if not brewery or _exact_base_brewery_words(candidate.get("brewery")) != brewery:
             return rejected(f"brewery mismatch for {candidate.get('name')!r}: "
@@ -1809,7 +1867,7 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
         if not name.startswith(target + " "):
             return rejected(f"duplicate exact name or non-extension: {candidate.get('name')!r}")
         suffix = name[len(target) + 1:]
-        if suffix not in flavors and not re.fullmatch(process_pattern, suffix):
+        if suffix not in EXACT_BASE_FLAVOR_QUALIFIERS and not EXACT_BASE_PROCESS_QUALIFIER_RE.fullmatch(suffix):
             return rejected(f"unrecognized qualifier {suffix!r} in {candidate.get('name')!r}")
     if debug:
         print(f"  exact-base preference accepted: {best['name']!r}")
@@ -2933,6 +2991,158 @@ def _alternative_from_candidate(item: CandidateRecord) -> AlternativeRecord:
     }
 
 
+def _print_primary_search_diagnostics(candidates, search_diagnostics, network_events, query):
+    """Print captured search evidence without changing candidate decisions."""
+    displayed_count = min(len(candidates), 10)
+
+    print()
+    print("Algolia page-0 candidate diagnostics:")
+    print(
+        f"  hits returned on captured page 0: "
+        f"{search_diagnostics.get('algolia_hits_on_page', 0)}"
+    )
+    print(
+        f"  candidates passing query filter: "
+        f"{search_diagnostics.get('candidates_passing_filter', 0)}"
+    )
+    print(
+        f"  candidates displayed below: "
+        f"{displayed_count}"
+    )
+
+    print()
+    print("Algolia diagnostics:")
+    print(
+        f"  requests captured for primary search: "
+        f"{_ALGOLIA_DEBUG_STATS['beer_requests']}"
+    )
+
+    algolia_events = [
+        event
+        for event in network_events
+        if "algolia.net/1/indexes" in (event.get("url") or "").lower()
+    ]
+
+    if not algolia_events:
+        print("  no Algolia request captured")
+    else:
+        request_event = next(
+            (
+                event
+                for event in reversed(algolia_events)
+                if event.get("kind") == "request"
+                and any(
+                    normalize(req.get("query") or "") == normalize(query)
+                    for req in (event.get("algolia_requests") or [])
+                )
+            ),
+            None,
+        )
+        response_event = next(
+            (
+                event
+                for event in reversed(algolia_events)
+                if event.get("kind") == "response"
+                and any(
+                    normalize(req.get("query") or "") == normalize(query)
+                    for req in (event.get("algolia_requests") or [])
+                )
+            ),
+            None,
+        )
+
+        if request_event:
+            print(
+                f"  request: {request_event.get('method')} "
+                f"[{request_event.get('resource_type')}]"
+            )
+
+            reqs = request_event.get("algolia_requests") or []
+
+            if not reqs:
+                print("    request body could not be parsed")
+            else:
+                for i, req in enumerate(reqs, start=1):
+                    print(
+                        f"    query {i}: "
+                        f"index={req.get('indexName')!r}, "
+                        f"query={req.get('query')!r}, "
+                        f"page={req.get('page')!r}, "
+                        f"hitsPerPage={req.get('hitsPerPage')!r}"
+                    )
+
+                    if req.get("filters"):
+                        print(
+                            f"      filters={req.get('filters')!r}"
+                        )
+
+        if response_event:
+            print(
+                f"  response: HTTP {response_event.get('status')}"
+            )
+
+            summaries = response_event.get("algolia_response") or []
+
+            if not summaries:
+                err = response_event.get("algolia_response_error")
+                if err:
+                    print(
+                        f"    response JSON could not be parsed: {err}"
+                    )
+                else:
+                    print(
+                        "    response contained no summarized result sets"
+                    )
+            else:
+                for i, summary in enumerate(summaries, start=1):
+                    print(
+                        f"    result {i}: "
+                        f"index={summary.get('index')!r}, "
+                        f"nbHits={summary.get('nbHits')}, "
+                        f"page={summary.get('page')}, "
+                        f"nbPages={summary.get('nbPages')}, "
+                        f"hitsPerPage={summary.get('hitsPerPage')}, "
+                        f"hitsReturned={summary.get('hitsReturned')}"
+                    )
+
+                    if summary.get("hitKeys"):
+                        print(
+                            "      sample hit fields: "
+                            + ", ".join(summary["hitKeys"])
+                        )
+
+                    sample_hits = summary.get("sampleHits") or []
+                    if sample_hits:
+                        print("      first returned hits:")
+                        for hit in sample_hits[:5]:
+                            print(
+                                f"        - {hit.get('brewery_name')} — "
+                                f"{hit.get('beer_name')} "
+                                f"(ABV {hit.get('beer_abv')}, "
+                                f"rating {hit.get('rating_score')}, "
+                                f"ratings {hit.get('rating_count')})"
+                            )
+
+    print()
+    print("Candidates:")
+
+    for i, item in enumerate(
+        candidates[:10],
+        start=1,
+    ):
+        print(
+            f"{i}. "
+            f"{item['name']} "
+            f"(score "
+            f"{item['score']:.3f}, "
+            f"ABV {item.get('abv') if item.get('abv') is not None else 'N/A'})"
+        )
+
+        print(
+            f"   {item['url']}"
+        )
+
+
 def _search_one_impl(
     page: Any,
     query: str,
@@ -2996,154 +3206,7 @@ def _search_one_impl(
     }
 
     if debug:
-        displayed_count = min(len(candidates), 10)
-
-        print()
-        print("Algolia page-0 candidate diagnostics:")
-        print(
-            f"  hits returned on captured page 0: "
-            f"{search_diagnostics.get('algolia_hits_on_page', 0)}"
-        )
-        print(
-            f"  candidates passing query filter: "
-            f"{search_diagnostics.get('candidates_passing_filter', 0)}"
-        )
-        print(
-            f"  candidates displayed below: "
-            f"{displayed_count}"
-        )
-
-        print()
-        print("Algolia diagnostics:")
-        print(
-            f"  requests captured for primary search: "
-            f"{_ALGOLIA_DEBUG_STATS['beer_requests']}"
-        )
-
-        algolia_events = [
-            event
-            for event in network_events
-            if "algolia.net/1/indexes" in (event.get("url") or "").lower()
-        ]
-
-        if not algolia_events:
-            print("  no Algolia request captured")
-        else:
-            request_event = next(
-                (
-                    event
-                    for event in reversed(algolia_events)
-                    if event.get("kind") == "request"
-                    and any(
-                        normalize(req.get("query") or "") == normalize(query)
-                        for req in (event.get("algolia_requests") or [])
-                    )
-                ),
-                None,
-            )
-            response_event = next(
-                (
-                    event
-                    for event in reversed(algolia_events)
-                    if event.get("kind") == "response"
-                    and any(
-                        normalize(req.get("query") or "") == normalize(query)
-                        for req in (event.get("algolia_requests") or [])
-                    )
-                ),
-                None,
-            )
-
-            if request_event:
-                print(
-                    f"  request: {request_event.get('method')} "
-                    f"[{request_event.get('resource_type')}]"
-                )
-
-                reqs = request_event.get("algolia_requests") or []
-
-                if not reqs:
-                    print("    request body could not be parsed")
-                else:
-                    for i, req in enumerate(reqs, start=1):
-                        print(
-                            f"    query {i}: "
-                            f"index={req.get('indexName')!r}, "
-                            f"query={req.get('query')!r}, "
-                            f"page={req.get('page')!r}, "
-                            f"hitsPerPage={req.get('hitsPerPage')!r}"
-                        )
-
-                        if req.get("filters"):
-                            print(
-                                f"      filters={req.get('filters')!r}"
-                            )
-
-            if response_event:
-                print(
-                    f"  response: HTTP {response_event.get('status')}"
-                )
-
-                summaries = response_event.get("algolia_response") or []
-
-                if not summaries:
-                    err = response_event.get("algolia_response_error")
-                    if err:
-                        print(
-                            f"    response JSON could not be parsed: {err}"
-                        )
-                    else:
-                        print(
-                            "    response contained no summarized result sets"
-                        )
-                else:
-                    for i, summary in enumerate(summaries, start=1):
-                        print(
-                            f"    result {i}: "
-                            f"index={summary.get('index')!r}, "
-                            f"nbHits={summary.get('nbHits')}, "
-                            f"page={summary.get('page')}, "
-                            f"nbPages={summary.get('nbPages')}, "
-                            f"hitsPerPage={summary.get('hitsPerPage')}, "
-                            f"hitsReturned={summary.get('hitsReturned')}"
-                        )
-
-                        if summary.get("hitKeys"):
-                            print(
-                                "      sample hit fields: "
-                                + ", ".join(summary["hitKeys"])
-                            )
-
-                        sample_hits = summary.get("sampleHits") or []
-                        if sample_hits:
-                            print("      first returned hits:")
-                            for hit in sample_hits[:5]:
-                                print(
-                                    f"        - {hit.get('brewery_name')} — "
-                                    f"{hit.get('beer_name')} "
-                                    f"(ABV {hit.get('beer_abv')}, "
-                                    f"rating {hit.get('rating_score')}, "
-                                    f"ratings {hit.get('rating_count')})"
-                                )
-
-        print()
-        print("Candidates:")
-
-        for i, item in enumerate(
-            candidates[:10],
-            start=1,
-        ):
-            print(
-                f"{i}. "
-                f"{item['name']} "
-                f"(score "
-                f"{item['score']:.3f}, "
-                f"ABV {item.get('abv') if item.get('abv') is not None else 'N/A'})"
-            )
-
-            print(
-                f"   {item['url']}"
-            )
+        _print_primary_search_diagnostics(candidates, search_diagnostics, network_events, query)
 
 
     # Decide whether this search needs the slower, complete Algolia pass.
@@ -3583,6 +3646,17 @@ def _search_one_impl(
     if debug:
         _print_algolia_network_summary()
 
+    return _resolve_discovered_candidates(
+        page, query, min_score, debug, expected_beer, expected_brewery, expected_abv, expected_style,
+        candidates, ambiguity_reason, expanded_candidates, expansion_diagnostics, abv_sorted_diagnostics, fallback_query_used, fallback_review_required, primary_algolia_page,
+    )
+
+
+def _resolve_discovered_candidates(
+    page, query, min_score, debug, expected_beer, expected_brewery, expected_abv, expected_style,
+    candidates, ambiguity_reason, expanded_candidates, expansion_diagnostics, abv_sorted_diagnostics, fallback_query_used, fallback_review_required, primary_algolia_page,
+) -> MatchResult:
+    """Apply ambiguity/identity policy and build the final selected beer."""
     if not candidates:
         return {
             "query": query,
@@ -3630,6 +3704,23 @@ def _search_one_impl(
             if incomplete and ambiguity_reason
             else detect_candidate_ambiguity(candidates, expected_beer, expected_abv)
         )
+    production_conflict = production_vintage_conflict(
+        candidates, expected_beer, expected_brewery, expected_abv)
+    if production_conflict:
+        reason = "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually."
+        if debug:
+            print(f"Production/vintage conflict: {reason}")
+        best = production_conflict[0]
+        # Preserve both sides even when a sibling ranks below the display cap.
+        alternatives = production_conflict + [item for item in candidates
+                                               if not any(item is conflict for conflict in production_conflict)]
+        return {"query": query, "status": "ambiguous", "match": best["name"],
+                "score": best["score"], "url": best.get("url"), "reason": reason,
+                "search_warning": search_warning,
+                "alternatives": [_alternative_from_candidate(item) for item in alternatives[:10]],
+                "same_abv_variants": [], "search_fallback": fallback_query_used,
+                "search_expanded": bool(expanded_candidates)}
+
     exact_base = None if incomplete or fallback_review_required else exact_base_candidate(
         candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
     )
@@ -3767,9 +3858,6 @@ def _search_one_impl(
     })
 
     return info
-
-
-
 
 
 

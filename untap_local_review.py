@@ -29,7 +29,10 @@ class ReviewSession:
                                   snapshot["report"]["title"], snapshot["report"]["date"])
         config = json.dumps({"endpoint": f"/{self.token}/action", "token": self.token,
                              "unsavedCandidates": self.has_unsaved_candidates})
-        return html.replace('<script id="manual-review-script">',
+        marker = '<script id="manual-review-script">'
+        if html.count(marker) != 1:
+            raise ValueError("Local review script marker is missing or duplicated")
+        return html.replace(marker,
             '<script>window.untapLocalReview = ' + config + ';</script>\n<script id="manual-review-script">')
 
     def action(self, request):
@@ -121,6 +124,8 @@ def make_server(session, port=0):
                 self.reply(200, json.dumps(result))
             except (ValueError, TypeError, KeyError, OSError) as exc:
                 self.reply(400, json.dumps({"error": str(exc)}))
+            except Exception:
+                self.reply(500, json.dumps({"error": "Unexpected local review error"}))
 
     return HTTPServer(("127.0.0.1", port), Handler)
 

@@ -1,3 +1,4 @@
+from untap_identity import report_identity
 import contextlib
 import io
 import tempfile
@@ -248,12 +249,12 @@ class PublishFilesystemTests(unittest.TestCase):
 
     def test_logical_identity_normalizes_case_and_whitespace_only(self):
         self.assertEqual(
-            untap_publish._report_identity("  Pien   New Arrivals  "),
-            untap_publish._report_identity("pien new arrivals"),
+            report_identity("  Pien   New Arrivals  "),
+            report_identity("pien new arrivals"),
         )
         self.assertNotEqual(
-            untap_publish._report_identity("Café"),
-            untap_publish._report_identity("Cafe"),
+            report_identity("Café"),
+            report_identity("Cafe"),
         )
 
     def test_slug_collision_never_allows_replacing_different_title(self):

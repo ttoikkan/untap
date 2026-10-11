@@ -1,8 +1,23 @@
-# Untap v102
+# Untap v103
+
+## Integrity and CLI validation (v103)
+
+For a menu without a year, an explicitly out-of-production exact-name match remains ambiguous when a same-brewery vintage sibling at the menu ABV is explicitly in production. Both releases are offered for manual review; unknown production status and rating counts do not establish this conflict. An explicitly named vintage remains governed by the existing exact-identity rule.
+
+Completed batch results are written immediately to a flushed `results.partial.jsonl`. Ctrl-C or an exception also saves HTML and JSON with unfinished rows marked **Not Attempted**. An abrupt process kill or machine crash cannot run shutdown code, but already written journal rows remain available; automatic resume is not added.
+
+Missing refresh-registry source files are skipped with a warning; their entries remain in the configuration. Brewery names are omitted from queries only when their complete normalized token sequence already appears in the beer name.
+
+Unknown or abbreviated CLI options now fail before searching. `--csv` takes no filename: use it alone to export in the run folder. Positional search text cannot be combined with `--menu`, `--file` or `--validate-menu`. Single-beer queries and existing valid options remain supported.
+
+After an HTTP 429, remaining menu rows are retained as **Not Attempted**, with their original input identity. The HTML warns that the run is incomplete; incomplete runs cannot be published or registered for refresh. Rerun the menu after the rate limit clears. Older truncated snapshots cannot recover the missing row identities, but refreshing them now displays the stored remainder count and blocks publication.
+
+Changing a selection clears the previous beer’s IBU and search-only fields, and stores ABV consistently as a percentage string. Original result data remains in decision history.
+
 
 ## Simpler input and output (v102)
 
-Menus use exactly four tab-separated fields: **brewery, beer, ABV, style**. Brewery, beer and percentage ABV are required; style may be empty. Blank lines and an optional `brewery<TAB>beer<TAB>ABV<TAB>style` header are accepted. Decimal commas, zero ABV, accents and punctuation in beer names are preserved. Convert older menu layouts to TSV; they are no longer guessed or parsed. Single-query and `--file` query-list searches remain available.
+Menus use exactly four tab-separated fields: **brewery, beer, ABV, style**. Brewery, beer and percentage ABV are required; style may be empty. Blank lines and an optional `brewery<TAB>beer<TAB>ABV<TAB>style` header are accepted. ABV accepts up to two decimal places (ambiguous `1,000%` is rejected). Decimal commas, zero ABV, accents and punctuation in beer names are preserved. Convert older menu layouts to TSV; they are no longer guessed or parsed. Single-query and `--file` query-list searches remain available.
 
 Batch runs now save **HTML and JSON by default**. Add `--csv` to export `results.csv` for spreadsheet use. The same option works with `untap_refresh.py` (including `--batch`) and `untap_local_review.py`. Existing output files are untouched. `--html` remains accepted for older commands; it is no longer necessary.
 
@@ -403,10 +418,10 @@ With `--debug-timing`, the transport summary reports UI bootstrap searches, UI r
 
 ## Full mypy coverage
 
-Local static validation runs mypy across all eight runtime modules:
+Local static validation runs mypy across all 17 runtime modules:
 
 ```bash
-python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap_publish.py untap.py
+python3 -m mypy untap*.py
 ```
 
 `untap_types.py` now includes explicit request/event/result contracts for the Algolia transport boundary. The live request-template mutation and browser-fetch response path are annotated so payload-shape wiring is no longer outside static checking.
@@ -427,7 +442,7 @@ python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py u
 Run:
 
 ```bash
-python3 -m mypy untap_types.py untap_parser.py untap_matcher.py untap_batch.py untap_untappd.py untap_smoke.py untap_report.py untap_publish.py untap.py
+python3 -m mypy untap*.py
 python3 -m unittest discover -v
 python3 untap.py --help
 python3 untap.py --menu menu9.txt --debug-timing

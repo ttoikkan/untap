@@ -40,9 +40,6 @@ class MatcherContractTests(unittest.TestCase):
                 family, expected_beer="Daily Serving"
             ).startswith("Multiple candidates include")
         )
-        source = Path("untap_matcher.py").read_text(encoding="utf-8")
-        self.assertIn('"Brewery-like input matches multiple "', source)
-        self.assertIn('f"Multiple {expected_abv:g}% variants found"', source)
 
     def test_style_suffix_relaxation_is_exact_and_search_only(self):
         self.assertEqual(
@@ -147,10 +144,11 @@ class MatcherContractTests(unittest.TestCase):
         )
 
     def test_primary_matcher_times_search_page_readiness(self):
-        source = Path("untap_matcher.py").read_text(encoding="utf-8")
-        self.assertIn('"search page -> search box ready"', source)
-        self.assertIn('lambda: open_search_box(page)', source)
-        self.assertIn('"direct Algolia search operation"', source)
+        with patch.object(untap_matcher, 'debug_timing_enabled', return_value=True), patch.object(untap_matcher, 'open_search_box', return_value=None) as ready, redirect_stdout(io.StringIO()) as output:
+            result = untap_matcher._run_ui_page0_search_transport(None, 'Beer')
+        ready.assert_called_once_with(None)
+        self.assertEqual(result['error'], 'Search box not found')
+        self.assertIn('search page -> search box ready:', output.getvalue())
 
     def test_unrelated_brewery_is_a_contradiction(self):
         self.assertTrue(
@@ -225,10 +223,11 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
         self.assertEqual(candidates[0]["brewery"], "Sante Adairius Rustic Ales")
 
     def test_v68_primary_candidate_discovery_does_not_scrape_dom(self):
-        source = Path("untap_matcher.py").read_text(encoding="utf-8")
-        self.assertNotIn("discover_search_candidates", source)
-        self.assertNotIn('"DOM candidate discovery"', source)
-        self.assertIn('"Algolia candidate construction"', source)
+        from test_untap_v86 import MatcherV86Tests, candidate
+        page0_rows = [candidate('Fazy', 'Badlands', 5)]
+        result, _ = MatcherV86Tests().run_search(page0_rows, 'Fazy', 'Badlands', 5)
+        self.assertEqual(result['status'], 'ok')
+        self.assertEqual(result['url'], page0_rows[0]['url'])
 
     def test_algolia_candidate_filter_keeps_v67_query_word_rule(self):
         from untap_matcher import _algolia_page0_candidates
@@ -412,16 +411,23 @@ class DetailAlgoliaParityTests(unittest.TestCase):
         self.assertIsNone(_confirmed_info_from_algolia(candidate, "Brewery"))
 
     def test_v70_detail_navigation_is_only_fallback_after_algolia_fast_path(self):
-        source = Path("untap_matcher.py").read_text(encoding="utf-8")
-        fast_pos = source.index("info = _confirmed_info_from_algolia(best, brewery)")
-        fallback_pos = source.index('"detail-page operation total"', fast_pos)
-        self.assertLess(fast_pos, fallback_pos)
-        self.assertIn("if info is None:", source[fast_pos:fallback_pos])
+        from test_untap_v86 import MatcherV86Tests, candidate
+        for complete in (True, False):
+            rows = [candidate('Fazy', 'Badlands', 5)]
+            if not complete:
+                rows[0]['rating_score'] = None
+            with self.subTest(complete=complete), patch.object(untap_matcher, 'extract_beer_info', return_value={'beer': 'Fazy', 'abv': '5%'}) as detail:
+                result, _ = MatcherV86Tests().run_search(rows, 'Fazy', 'Badlands', 5)
+                self.assertEqual(result['status'], 'ok')
+                self.assertEqual(detail.call_count, 0 if complete else 1)
 
 
 class SearchTransportAuthorityWiringTests(unittest.TestCase):
     def test_v72_direct_transport_is_isolated_before_matching(self):
-        source = Path("untap_matcher.py").read_text(encoding="utf-8")
-        self.assertIn("shadow_compare_search_transport", source)
-        self.assertIn("primary_algolia_page", source)
-        self.assertIn("initial_algolia_page", source)
+        event = {'status': 200}
+        with patch.object(untap_matcher, 'search_transport_template_available', return_value=True), patch.object(untap_matcher, 'fetch_authoritative_algolia_search', return_value=(None, event, None)) as fetch, patch.object(untap_matcher, 'open_search_box') as ui:
+            result = untap_matcher._run_page0_search_transport(None, 'Beer')
+        fetch.assert_called_once_with(None, 'Beer')
+        ui.assert_not_called()
+        self.assertEqual(result['events'], [event])
+        self.assertEqual(result['transport'], 'browser-fetch')

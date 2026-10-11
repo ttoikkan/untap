@@ -45,13 +45,11 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("MatchResult", str(batch_hints["return"]))
 
     def test_type_contract_module_has_no_runtime_layer_dependencies(self):
-        source = (ROOT / "untap_types.py").read_text(encoding="utf-8")
-        for forbidden in (
-            "untap_parser", "untap_matcher", "untap_batch", "untap_untappd",
-            "playwright",
-        ):
-            self.assertNotIn(f"import {forbidden}", source)
-            self.assertNotIn(f"from {forbidden}", source)
+        import ast
+        tree = ast.parse((ROOT / 'untap_types.py').read_text())
+        imports = {node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
+        imports.update(alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names)
+        self.assertTrue(imports.isdisjoint({'untap_parser', 'untap_matcher', 'untap_batch', 'untap_untappd', 'playwright'}))
 
     def test_static_checker_is_pinned_for_local_use(self):
         requirements = (ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
@@ -63,10 +61,10 @@ class StaticContractTests(unittest.TestCase):
         self.assertEqual(active, ["mypy==1.14.1"])
 
     def test_v74_transport_contract_types_are_present(self):
-        type_source = (ROOT / "untap_types.py").read_text(encoding="utf-8")
-        self.assertIn("class AlgoliaRequestRecord", type_source)
-        self.assertIn("class AlgoliaTransportEvent", type_source)
-        self.assertIn("class SearchTransportResult", type_source)
+        from untap_types import AlgoliaRequestRecord, AlgoliaTransportEvent, SearchTransportResult
+        self.assertIn('indexName', AlgoliaRequestRecord.__annotations__)
+        self.assertIn('algolia_requests', AlgoliaTransportEvent.__annotations__)
+        self.assertIn('request_event', SearchTransportResult.__annotations__)
 
     def test_type_hardening_does_not_change_search_one_parameter_order(self):
         self.assertEqual(

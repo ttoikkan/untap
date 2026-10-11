@@ -311,7 +311,7 @@ class ReportV86Tests(unittest.TestCase):
     def test_split_counts_round_trip_and_archive(self):
         results = [{"status": "ok", "beer": "Beer", "rating": 4.0},
                    {"status": "ambiguous"}, {"status": "failed"},
-                   {"status": "low_confidence"}, {"status": "rate_limited"}]
+                   {"status": "low_confidence"}, {"status": "low_confidence"}]
         html = report.render_html_report(results)
         expected = "1 confirmed · 1 ambiguous · 1 failed · 2 unresolved"
         self.assertIn(expected, html)

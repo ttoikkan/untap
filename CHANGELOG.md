@@ -1,3 +1,24 @@
+# v103 — Run integrity and maintenance (2026-10-11)
+
+- Require manual review when a yearless menu’s unique exact name/brewery/ABV match is explicitly retired and a pure vintage-qualified same-brewery, same-ABV sibling is explicitly current. Unknown production statuses and rating counts do not decide identity. Name the existing bounded exact-base flavor/process vocabulary without expanding it.
+
+- Isolate shared logical report identity from publishing and verify transitive dependencies across all runtime modules. Consolidate browser JSON POST handling; separate primary diagnostics, final identity resolution and report-card rendering from orchestration. Replace source-spelling assertions with behavior checks and AST dependency rules. Refresh format, architecture and parser documentation.
+
+- Fix review persistence without Web Crypto when an embedded report ID exists, return JSON 500 for unexpected review errors, and validate the local script injection marker. Create reviewed folders with normal directory permissions.
+- Share lightweight occurrence-aware item-ID generation between snapshots and HTML; repeated references to one result receive distinct IDs. Preserve raw TSV tabs, clarify empty-style input and reject ABV precision beyond two decimals. Forward stdout encoding/isatty/fileno in debug mode.
+- Remove obsolete DOM discovery and CSV-resume machinery, unreachable manual-label logic and unused imports/locals.
+
+- Preserve brewery names unless the normalized beer name contains the complete brewery token sequence. Skip missing refresh registry sources with a warning, leaving their entries unchanged.
+- Journal completed batch rows to flushed `results.partial.jsonl` and save full-menu JSON/HTML in a finally block on interruption. Unfinished rows remain explicitly unattempted; abrupt process termination leaves the journal available.
+- Update static-check commands to cover all 17 runtime modules. Keep Python 3.9, which supports the tests’ parenthesized with syntax.
+
+- Use argparse for search CLI options, reject unknown/abbreviated flags and positional text alongside menu/file input, and document `--csv` as a boolean export flag. Invalid option syntax exits before search or output creation.
+
+- Preserve all menu rows after HTTP 429 with `not_attempted` results retaining the input identity. Reports explicitly warn that the run is incomplete; publishing and refresh registration reject incomplete runs, including legacy snapshots with a rate-limit remainder count.
+- Manual selection changes clear stale IBU, search text, fallback and best-guess fields and normalize selected ABV to a percentage string. Original data remains in decision history.
+
+- Validation: 267 deterministic tests, all 17 module type checks and browser selection/export checks pass.
+
 # v102 — TSV input and optional CSV export (2026-10-11)
 
 - Replace legacy menu adapters and format detection with one strict four-column TSV reader (brewery, beer, percentage ABV, style). Preserve the TSV golden records, matcher text normalization, collaboration handling, decimal commas, zero ABV and name punctuation. Ignore blank lines and accept an optional header and UTF-8 BOM.

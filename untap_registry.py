@@ -4,7 +4,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from untap_publish import _report_identity
+from untap_identity import report_identity
 from untap_snapshot import load_snapshot
 from untap_refresh_config import config_defaults
 
@@ -12,7 +12,10 @@ from untap_refresh_config import config_defaults
 def register_run(config: Path, run: Path) -> bool:
     config = config.expanduser().resolve()
     snapshot = load_snapshot(run / "results.json")
-    title = _report_identity(snapshot["report"]["title"])
+    if any(item["result"].get("status") in ("rate_limited", "not_attempted")
+           or item["result"].get("batch_remaining") for item in snapshot["items"]):
+        raise ValueError("Incomplete run: unattempted or rate-limited menu rows cannot be registered")
+    title = report_identity(snapshot["report"]["title"])
     before = config.read_bytes() if config.exists() else None
     data = json.loads(before) if before is not None else {"reports": []}
     config_defaults(data)
@@ -22,8 +25,13 @@ def register_run(config: Path, run: Path) -> bool:
         source = Path(entry["source"]).expanduser()
         if not source.is_absolute():
             source = config.parent / source
-        existing = load_snapshot(source / "results.json" if source.is_dir() else source)
-        if _report_identity(existing["report"]["title"]) == title:
+        snapshot_path = source / "results.json" if source.is_dir() else source
+        try:
+            existing = load_snapshot(snapshot_path)
+        except FileNotFoundError:
+            print(f"Registration warning: skipping missing source {source}. The stale configuration entry is unchanged.")
+            continue
+        if report_identity(existing["report"]["title"]) == title:
             print("Registration skipped: this menu already exists; its source, archive and selections are unchanged.")
             return False
     data["reports"].append({"source": os.path.relpath(run.resolve(), config.parent)})

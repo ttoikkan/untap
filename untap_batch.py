@@ -1,7 +1,6 @@
 import csv
-import unicodedata
 from time import perf_counter
-from typing import Any, List, Mapping, Optional, Sequence, TypedDict, Union, cast
+from typing import Callable, Any, List, Mapping, Optional, Sequence, TypedDict, Union, cast
 
 from untap_types import MatchResult, NormalizedMenuRecord
 
@@ -153,115 +152,16 @@ def _format_candidate_list(items):
     return "; ".join(parts)
 
 
-def _csv_float(value):
-    text = str(value or "").strip()
-    if not text:
-        return None
-    try:
-        return float(text)
-    except ValueError:
-        return None
 
 
-def _csv_int(value):
-    text = str(value or "").strip().replace(",", "")
-    if not text:
-        return None
-    try:
-        return int(text)
-    except ValueError:
-        return None
 
 
-def _resume_text_key(value):
-    return " ".join(
-        unicodedata.normalize("NFC", str(value or "")).split()
-    ).casefold()
 
 
-def _resume_abv_key(value):
-    if value is None or str(value).strip() == "":
-        return ""
-    try:
-        return f"{float(str(value).replace(',', '.').replace('%', '').strip()):.4f}"
-    except ValueError:
-        return _resume_text_key(value)
 
 
-def _menu_resume_identity(brewery, beer, menu_abv, style):
-    return (
-        _resume_text_key(brewery),
-        _resume_text_key(beer),
-        _resume_abv_key(menu_abv),
-        _resume_text_key(style),
-    )
 
 
-def load_resume_csv(filename):
-    """Load confirmed rows from an earlier CSV for occurrence-aware reuse.
-
-    v52 CSVs carry the parsed menu identity explicitly. Older v51 CSVs can
-    still be reused via exact original_menu_text, but only status=ok rows are
-    restored because ambiguity alternatives are not losslessly serialized.
-    """
-    by_identity = {}
-    by_original_legacy = {}
-
-    with open(filename, "r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        required = {"original_menu_text", "status", "beer", "brewery"}
-        if not required.issubset(set(reader.fieldnames or [])):
-            raise ValueError(
-                "resume CSV is missing required columns: "
-                + ", ".join(sorted(required - set(reader.fieldnames or [])))
-            )
-
-        identity_fields = {
-            "input_brewery", "input_beer", "input_abv", "input_style"
-        }
-        has_identity_columns = identity_fields.issubset(
-            set(reader.fieldnames or [])
-        )
-
-        for row in reader:
-            if (row.get("status") or "").strip() != "ok":
-                continue
-
-            original = (row.get("original_menu_text") or "").strip()
-            if not original:
-                continue
-
-            result = {
-                "original_menu_text": original,
-                "query": row.get("query") or "",
-                "status": "ok",
-                "beer": row.get("beer") or "Unknown",
-                "brewery": row.get("brewery") or "Unknown",
-                "rating": _csv_float(row.get("rating")),
-                "ratings": _csv_int(row.get("ratings")),
-                "abv": row.get("abv") or None,
-                "ibu": row.get("ibu") or None,
-                "type_name": row.get("type_name") or None,
-                "score": _csv_float(row.get("score")),
-                "url": row.get("url") or None,
-                "resumed": True,
-            }
-
-            if has_identity_columns:
-                identity = _menu_resume_identity(
-                    row.get("input_brewery"),
-                    row.get("input_beer"),
-                    row.get("input_abv"),
-                    row.get("input_style"),
-                )
-                by_identity.setdefault(identity, []).append(result)
-            else:
-                by_original_legacy.setdefault(original, []).append(result)
-
-    return {
-        "by_identity": by_identity,
-        "by_original_legacy": by_original_legacy,
-    }
 
 
 def save_csv(results: Sequence[MatchResult], filename: str) -> None:
@@ -331,12 +231,29 @@ def read_queries_from_file(filename: str) -> List[str]:
         ]
 
 
+def unattempted_result(item: Union[NormalizedMenuRecord, str], reason: str) -> MatchResult:
+    result: MatchResult = {
+        "query": item["query"] if isinstance(item, dict) else item,
+        "status": "not_attempted", "reason": reason,
+    }
+    if isinstance(item, dict):
+        abv = item.get("menu_abv")
+        result.update({
+            "original_menu_text": item.get("original"),
+            "input_brewery": item.get("brewery") or "",
+            "input_beer": item.get("beer") or "",
+            "input_abv": "" if abv is None else f"{abv:g}",
+            "input_style": item.get("style") or "",
+        })
+    return result
+
+
 def run_batch(
     page: Any,
     items: Sequence[Union[NormalizedMenuRecord, str]],
     min_score: float = DEFAULT_MIN_SCORE,
     debug: bool = False,
-    resume_rows: Optional[Mapping[str, Any]] = None,
+    on_result: Optional[Callable[[MatchResult], None]] = None,
 ) -> List[MatchResult]:
     _reset_run_algolia_debug_stats()
     reset_batch_timing_stats()
@@ -344,18 +261,6 @@ def run_batch(
     timing_enabled = debug_timing_enabled()
     batch_started = perf_counter() if timing_enabled else None
     results = []
-    resume_rows = resume_rows or {}
-    resume_by_identity = {
-        key: list(value)
-        for key, value in (resume_rows.get("by_identity") or {}).items()
-    }
-    resume_by_original_legacy = {
-        key: list(value)
-        for key, value in (
-            resume_rows.get("by_original_legacy") or {}
-        ).items()
-    }
-
     total = len(items)
 
     for i, item in enumerate(
@@ -377,40 +282,6 @@ def run_batch(
             expected_brewery = None
             expected_abv = None
             expected_style = None
-
-        input_identity = None
-        if isinstance(item, dict):
-            input_identity = _menu_resume_identity(
-                expected_brewery, expected_beer, expected_abv, expected_style
-            )
-
-        resumed_result = None
-        if input_identity is not None and resume_by_identity.get(input_identity):
-            resumed_result = resume_by_identity[input_identity].pop(0)
-        elif original and resume_by_original_legacy.get(original):
-            resumed_result = resume_by_original_legacy[original].pop(0)
-
-        if resumed_result is not None:
-            print(
-                f"[{i}/{total}] "
-                f"Resuming: {query} (already confirmed)"
-            )
-            # Keep the current parser-generated query/original text authoritative
-            # while reusing the previously confirmed Untappd result payload.
-            resumed_result["query"] = query
-            resumed_result["original_menu_text"] = original
-            resumed_result["input_brewery"] = expected_brewery or ""
-            resumed_result["input_beer"] = expected_beer or ""
-            resumed_result["input_abv"] = (
-                "" if expected_abv is None else f"{expected_abv:g}"
-            )
-            resumed_result["input_style"] = expected_style or ""
-            results.append(resumed_result)
-            if item_started is not None:
-                _record_item_timing(
-                    query, perf_counter() - item_started, resumed=True
-                )
-            continue
 
         print(
             f"[{i}/{total}] "
@@ -453,15 +324,24 @@ def run_batch(
         if result.get("status") == "rate_limited":
             result["batch_remaining"] = total - i
             results.append(result)
+            if on_result is not None:
+                on_result(result)
             if item_started is not None:
                 _record_item_timing(
                     query,
                     perf_counter() - item_started,
                     matcher_seconds=get_last_matcher_timing_seconds(),
                 )
+            for remaining in items[i:]:
+                skipped = unattempted_result(remaining, "Not searched because an earlier menu row hit HTTP 429. Rerun the menu after the rate limit clears.")
+                results.append(skipped)
+                if on_result is not None:
+                    on_result(skipped)
             break
 
         results.append(result)
+        if on_result is not None:
+            on_result(result)
         if item_started is not None:
             _record_item_timing(
                 query,
@@ -473,13 +353,3 @@ def run_batch(
         _BATCH_TIMING_STATS["batch_seconds"] = perf_counter() - batch_started
 
     return results
-
-
-def reusable_resume_count(resume_rows):
-    """Return the number of confirmed cached rows available for reuse."""
-    resume_rows = resume_rows or {}
-    return sum(
-        len(rows)
-        for bucket in resume_rows.values()
-        for rows in bucket.values()
-    )

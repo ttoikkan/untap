@@ -42,9 +42,9 @@ class HtmlReportTests(unittest.TestCase):
         self.assertNotIn('src="untap_review.js"', html)
 
     def test_review_groups_use_results_list_spacing_only(self):
-        source = Path("untap_report.py").read_text(encoding="utf-8")
-        self.assertIn(".review-group {{ padding: 16px; }}", source)
-        self.assertNotIn(".review-group {{ padding: 16px; margin-bottom", source)
+        html = untap_report.render_html_report([{'query': 'Beer', 'status': 'ambiguous'}])
+        self.assertIn('.review-group { padding: 16px; }', html)
+        self.assertNotIn('.review-group { padding: 16px; margin-bottom', html)
 
     def _results(self):
         return [
@@ -294,7 +294,7 @@ class HtmlReportTests(unittest.TestCase):
                  mock.patch.object(untap, "run_batch", return_value=fake_result), \
                  mock.patch.object(untap, "print_batch_results"), \
                  mock.patch.object(untap, "save_csv"), \
-                 mock.patch.object(untap, "save_snapshot"), \
+                 mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()), \
                  mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), \
                  mock.patch.object(untap, "save_html_report") as save_report, \
                  contextlib.redirect_stdout(output):
@@ -344,7 +344,7 @@ class HtmlReportTests(unittest.TestCase):
                 untap, "run_batch", return_value=fake_result
             ), mock.patch.object(untap, "print_batch_results"), mock.patch.object(
                 untap, "save_csv"
-            ), mock.patch.object(untap, "save_snapshot"), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "save_html_report") as save_report:
+            ), mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "save_html_report") as save_report:
                 untap.main()
 
             save_report.assert_called_once_with(

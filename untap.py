@@ -6,6 +6,9 @@ modules; this file intentionally remains the thin orchestration boundary.
 """
 
 import sys
+import argparse
+import json
+import os
 import re
 import math
 import contextlib
@@ -31,6 +34,7 @@ from untap_batch import (
     save_csv,
     read_queries_from_file,
     run_batch,
+    unattempted_result,
     print_batch_timing_summary,
 )
 from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
@@ -617,6 +621,16 @@ class _TeeOutput:
         self.log.flush()
         return len(value)
 
+    @property
+    def encoding(self):
+        return self.terminal.encoding
+
+    def isatty(self) -> bool:
+        return self.terminal.isatty()
+
+    def fileno(self) -> int:
+        return self.terminal.fileno()
+
     def flush(self) -> None:
         self.terminal.flush()
         self.log.flush()
@@ -637,8 +651,35 @@ def debug_transcript(run_directory: Path, enabled: bool) -> Iterator[None]:
 def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
                         debug: bool,
                         report_title: Optional[str], csv_requested: bool = False) -> None:
-    with debug_transcript(run_directory, debug):
-        results = run_batch(page, items, min_score=min_score, debug=debug)
+    results = []
+    completed = False
+    with debug_transcript(run_directory, debug), (run_directory / "results.partial.jsonl").open("x", encoding="utf-8") as journal:
+        def checkpoint(result):
+            journal.write(json.dumps(result, ensure_ascii=False, allow_nan=False) + "\n")
+            journal.flush()
+            os.fsync(journal.fileno())
+            results.append(result)
+
+        try:
+            returned = run_batch(page, items, min_score=min_score, debug=debug, on_result=checkpoint)
+            # Keep compatibility with callers replacing run_batch in offline tests.
+            if not results:
+                results.extend(returned)
+            completed = True
+        finally:
+            if not completed:
+                for item in items[len(results):]:
+                    results.append(unattempted_result(item, "Batch interrupted before this row completed. Rerun the menu to search it."))
+            snapshot = build_snapshot(results, report_title or DEFAULT_REPORT_TITLE)
+            save_snapshot(snapshot, run_directory / "results.json")
+            saved_results = [item["result"] for item in snapshot["items"]]
+            if csv_requested:
+                save_csv(saved_results, str(run_directory / "results.csv"))
+            save_html_report(saved_results, str(run_directory / DEFAULT_HTML_REPORT),
+                             title=report_title or DEFAULT_REPORT_TITLE)
+            print(f"Run outputs: {run_directory}")
+            if not completed:
+                print("Batch interrupted: completed results were saved; remaining rows are marked not attempted.")
         print_search_timing_summary()
         print_search_transport_authority_summary()
         print_search_transport_shadow_summary()
@@ -647,16 +688,6 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
         print_algolia_confirmation_summary()
         print_batch_timing_summary()
         print_batch_results(results)
-        snapshot = build_snapshot(results, report_title or DEFAULT_REPORT_TITLE)
-        save_snapshot(snapshot, run_directory / "results.json")
-        saved_results = [item["result"] for item in snapshot["items"]]
-        if csv_requested:
-            save_csv(saved_results, str(run_directory / "results.csv"))
-        save_html_report(
-            saved_results, str(run_directory / DEFAULT_HTML_REPORT),
-            title=report_title or DEFAULT_REPORT_TITLE,
-        )
-        print(f"Run outputs: {run_directory}")
 
 
 def _print_cli_help():
@@ -690,177 +721,85 @@ def _print_cli_help():
     print("  --smoke-test")
 
 
+def _score_argument(value: str) -> float:
+    try:
+        score = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("expected a number") from exc
+    if not math.isfinite(score) or not 0 <= score <= 1:
+        raise argparse.ArgumentTypeError("must be a finite number between 0.0 and 1.0")
+    return score
+
+
+def _positive_integer(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("expected a positive integer limit") from exc
+    if number <= 0:
+        raise argparse.ArgumentTypeError("expected a positive integer limit")
+    return number
+
+
+def _parse_cli_args(args):
+    parser = argparse.ArgumentParser(
+        description="Search Untappd from a query or a four-column TSV menu.",
+        allow_abbrev=False,
+    )
+    parser.add_argument("query", nargs="*", help="single-beer search text")
+    parser.add_argument("--menu", metavar="FILE", help="brewery, beer, ABV, style TSV menu")
+    parser.add_argument("--file", metavar="FILE", help="one search query per line")
+    parser.add_argument("--validate-menu", metavar="FILE", help="validate TSV locally without searching")
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--debug-timing", action="store_true")
+    parser.add_argument("--shadow-search-transport", type=_positive_integer, default=0, metavar="N")
+    parser.add_argument("--show-queries", action="store_true")
+    parser.add_argument("--formats", "--help-formats", action="store_true")
+    parser.add_argument("--probe-abv-sort", action="store_true")
+    parser.add_argument("--smoke-test", action="store_true")
+    parser.add_argument("--html", action="store_true", help="compatibility flag; HTML is saved by default")
+    parser.add_argument("--csv", action="store_true", help="also export results.csv in the run folder; takes no filename")
+    parser.add_argument("--report-title", metavar="TITLE")
+    parser.add_argument("--register-refresh", metavar="CONFIG")
+    parser.add_argument("--min-score", type=_score_argument, default=DEFAULT_MIN_SCORE)
+    options = parser.parse_intermixed_args(args)
+    if options.query and (options.menu or options.file or options.validate_menu):
+        parser.error("positional search text cannot accompany --menu, --file or --validate-menu; --csv takes no filename")
+    if options.menu and options.file:
+        parser.error("use either --menu or --file, not both")
+    if options.report_title is not None:
+        options.report_title = options.report_title.strip()
+        if not options.report_title:
+            parser.error("--report-title requires a non-empty title")
+    return options
+
+
 def main() -> None:
     args = sys.argv[1:]
-
     if not args:
         _print_cli_help()
         sys.exit(1)
-
-    if any(arg in ("-h", "--help") for arg in args):
-        _print_cli_help()
-        return
-
-    debug = False
-    debug_timing = False
-    shadow_search_transport_limit = 0
-    show_queries = False
-    formats_requested = False
-    validate_menu_mode = None
-    probe_abv_sort = False
-    smoke_test_requested = False
-    html_requested = False
-    csv_requested = False
-    report_title = None
-    register_refresh = None
-    file_mode = None
-    menu_mode = None
-    min_score = DEFAULT_MIN_SCORE
-
-    clean_args = []
-
-    i = 0
-
-    while i < len(args):
-        arg = args[i]
-
-        if arg == "--debug":
-            debug = True
-            i += 1
-
-        elif arg == "--debug-timing":
-            debug_timing = True
-            i += 1
-
-        elif arg == "--shadow-search-transport":
-            if i + 1 >= len(args):
-                print("--shadow-search-transport requires a positive integer limit")
-                sys.exit(1)
-            try:
-                shadow_search_transport_limit = int(args[i + 1])
-            except ValueError:
-                print("--shadow-search-transport requires a positive integer limit")
-                sys.exit(1)
-            if shadow_search_transport_limit <= 0:
-                print("--shadow-search-transport requires a positive integer limit")
-                sys.exit(1)
-            debug_timing = True
-            i += 2
-
-        elif arg == "--show-queries":
-            show_queries = True
-            i += 1
-
-        elif arg in ("--formats", "--help-formats"):
-            formats_requested = True
-            i += 1
-
-        elif arg == "--validate-menu":
-            if i + 1 >= len(args):
-                print("--validate-menu requires a filename")
-                sys.exit(1)
-            validate_menu_mode = args[i + 1]
-            i += 2
-
-        elif arg == "--probe-abv-sort":
-            probe_abv_sort = True
-            i += 1
-
-        elif arg == "--smoke-test":
-            smoke_test_requested = True
-            i += 1
-
-        elif arg == "--file":
-            if i + 1 >= len(args):
-                print(
-                    "--file requires "
-                    "a filename"
-                )
-                sys.exit(1)
-
-            file_mode = args[i + 1]
-            i += 2
-
-        elif arg == "--menu":
-            if i + 1 >= len(args):
-                print(
-                    "--menu requires "
-                    "a filename"
-                )
-                sys.exit(1)
-
-            menu_mode = args[i + 1]
-            i += 2
-
-        elif arg == "--csv":
-            csv_requested = True
-            i += 1
-
-        elif arg.split("=", 1)[0] in ("--csv", "--resume", "--resume-from"):
-            print(f"{arg.split('=', 1)[0]} is not supported in v87. "
-                  "Every batch run searches the full input and saves results "
-                  "in a new results/<timestamp>_<menu>/ folder.")
-            sys.exit(1)
-
-        elif arg == "--register-refresh":
-            if i + 1 >= len(args) or args[i + 1].startswith("--"):
-                print("--register-refresh requires a configuration path")
-                sys.exit(1)
-            register_refresh = args[i + 1]
-            i += 2
-
-        elif arg == "--html":
-            html_requested = True
-            i += 1
-
-        elif arg == "--report-title":
-            if i + 1 >= len(args):
-                print("--report-title requires a non-empty title")
-                sys.exit(1)
-            report_title = args[i + 1].strip()
-            if not report_title:
-                print("--report-title requires a non-empty title")
-                sys.exit(1)
-            i += 2
-
-        elif arg == "--min-score":
-            if i + 1 >= len(args):
-                print(
-                    "--min-score requires "
-                    "a number"
-                )
-                sys.exit(1)
-
-            try:
-                min_score = float(
-                    args[i + 1]
-                )
-            except ValueError:
-                print(
-                    f"--min-score expects a number, "
-                    f"got {args[i + 1]!r}"
-                )
-                sys.exit(1)
-
-            if (
-                not math.isfinite(min_score)
-                or not (0.0 <= min_score <= 1.0)
-            ):
-                print(
-                    "--min-score must be a finite number "
-                    "between 0.0 and 1.0"
-                )
-                sys.exit(1)
-
-            i += 2
-
-        else:
-            clean_args.append(arg)
-            i += 1
+    options = _parse_cli_args(args)
+    debug = options.debug
+    debug_timing = options.debug_timing or bool(options.shadow_search_transport)
+    shadow_search_transport_limit = options.shadow_search_transport
+    show_queries = options.show_queries
+    formats_requested = options.formats
+    validate_menu_mode = options.validate_menu
+    probe_abv_sort = options.probe_abv_sort
+    smoke_test_requested = options.smoke_test
+    html_requested = options.html
+    csv_requested = options.csv
+    report_title = options.report_title
+    register_refresh = options.register_refresh
+    file_mode = options.file
+    menu_mode = options.menu
+    min_score = options.min_score
+    clean_args = options.query
 
     if formats_requested:
         print(supported_formats_help())
-        if not (clean_args or file_mode or menu_mode or validate_menu_mode or probe_abv_sort or smoke_test_requested or html_requested or report_title):
+        if not (clean_args or file_mode or menu_mode or validate_menu_mode or probe_abv_sort or smoke_test_requested or html_requested or report_title or csv_requested):
             return
 
     if csv_requested and (not (file_mode or menu_mode) or validate_menu_mode or smoke_test_requested or probe_abv_sort):

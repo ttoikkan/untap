@@ -75,7 +75,7 @@ class DebugTranscriptTests(unittest.TestCase):
             self.assertIn("0 beers · 0 confirmed · 0 ambiguous · 0 failed", log)
             self.assertIn(f"Run outputs: {run_directory}", log)
             self.assertFalse((run_directory / "results.csv").exists())
-            batch.assert_called_once_with(page, [], min_score=.425, debug=True)
+            batch.assert_called_once_with(page, [], min_score=.425, debug=True, on_result=mock.ANY)
 
     def test_enabled_transcript_tees_and_flushes_before_exception(self):
         with tempfile.TemporaryDirectory() as tmp:

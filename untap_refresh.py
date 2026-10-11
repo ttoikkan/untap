@@ -4,7 +4,7 @@ import argparse
 import json
 from copy import deepcopy
 import sys
-import tempfile
+from uuid import uuid4
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -87,6 +87,14 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
         result = item["result"]
         for key in ("brewery", "rating", "ratings", "abv", "type_name", "image_url", "image_hd_url", "in_production", "score"):
             result[key] = candidate.get(key)
+        # Candidate records do not carry detail-page IBU or search snippets.
+        # Never inherit those values from the previously selected beer.
+        result["ibu"] = None
+        result.pop("search_text", None)
+        result.pop("search_fallback", None)
+        result.pop("match", None)
+        abv = candidate.get("abv")
+        result["abv"] = None if abv is None else f"{float(abv):g}%"
         result["status"] = "ok"
         result["beer"] = str(candidate.get("name") or "")
         result["url"] = url
@@ -112,7 +120,8 @@ def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None, cs
     # Render before creating output so invalid results cannot leave a report.
     html = render_html_report(results, snapshot["report"]["title"], snapshot["report"]["date"])
     if output is None:
-        output = Path(tempfile.mkdtemp(prefix=source.parent.name + "_refresh_", dir=source.parent.parent))
+        output = source.parent.parent / (source.parent.name + "_refresh_" + uuid4().hex)
+        output.mkdir()
     else:
         output.mkdir(exist_ok=False)
     save_snapshot(snapshot, output / "results.json")

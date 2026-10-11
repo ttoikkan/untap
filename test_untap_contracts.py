@@ -56,7 +56,7 @@ class ArchitectureContractTests(unittest.TestCase):
         )
         self.assertEqual(
             untap_matcher.MATCH_RESULT_STATUSES,
-            frozenset({"ok", "ambiguous", "low_confidence", "failed", "rate_limited"}),
+            frozenset({"ok", "ambiguous", "low_confidence", "failed", "rate_limited", "not_attempted"}),
         )
 
     def test_batch_forwards_normalized_identity_to_matcher(self):
@@ -96,10 +96,8 @@ class ArchitectureContractTests(unittest.TestCase):
     def test_dependency_graph_remains_one_way(self):
         roots = Path(__file__).parent
         imports = {}
-        for filename in (
-            "untap_parser.py", "untap_untappd.py", "untap_matcher.py",
-            "untap_batch.py", "untap_smoke.py", "untap_report.py", "untap_publish.py", "untap.py",
-        ):
+        for path in roots.glob("untap*.py"):
+            filename = path.name
             tree = ast.parse((roots / filename).read_text(encoding="utf-8"))
             modules = set()
             for node in ast.walk(tree):
@@ -137,16 +135,34 @@ class ArchitectureContractTests(unittest.TestCase):
         self.assertNotIn("untap_publish", imports["untap.py"])
         self.assertNotIn("untap_publish", imports["untap_report.py"])
 
+        graph = {name[:-3]: {module.split('.')[0] for module in modules} for name, modules in imports.items()}
+        def reachable(module):
+            seen = set()
+            pending = list(graph.get(module, ()))
+            while pending:
+                dependency = pending.pop()
+                if dependency in seen:
+                    continue
+                seen.add(dependency)
+                pending.extend(graph.get(dependency, ()))
+            return seen
+        for module in ('untap', 'untap_registry', 'untap_report'):
+            self.assertNotIn('untap_publish', reachable(module), module)
+        for module in ('untap_types', 'untap_identity', 'untap_refresh_config'):
+            self.assertFalse({name for name in reachable(module) if name.startswith('untap')}, module)
+        for module in ('untap_report', 'untap_snapshot', 'untap_publish'):
+            self.assertTrue(reachable(module).isdisjoint({'untap_batch', 'untap_matcher', 'untap_untappd', 'playwright'}), module)
+        expected = {'untap_inspect', 'untap_local_review', 'untap_manual_candidates', 'untap_refresh', 'untap_refresh_config', 'untap_registry', 'untap_snapshot', 'untap_identity'}
+        self.assertTrue(expected.issubset(graph))
+
     def test_importing_architecture_modules_remains_playwright_lazy(self):
         # The transport imports Playwright only inside untappd_browser_page().
         self.assertNotIn("playwright.sync_api", sys.modules)
 
-    def test_cli_contains_no_extraction_era_noop_wrapper_or_inline_history(self):
-        source = Path(untap.__file__).read_text(encoding="utf-8")
-        self.assertNotIn("finally:\n            # Browser/page lifecycle", source)
-        self.assertNotIn("v59 changelog (relative to v58)", source)
-        self.assertNotIn("def run_batch(", source)
-        self.assertNotIn("def save_csv(", source)
+    def test_cli_uses_owned_boundary_entry_points(self):
+        self.assertIs(untap.run_batch, untap_batch.run_batch)
+        self.assertIs(untap.search_one, untap_matcher.search_one)
+        self.assertEqual(untap.save_html_report.__module__, 'untap_report')
 
 
 if __name__ == "__main__":

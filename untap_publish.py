@@ -9,6 +9,7 @@ Git operations, GitHub API calls, browser automation, or network requests.
 from __future__ import annotations
 
 import argparse
+from untap_identity import report_identity
 from dataclasses import dataclass
 from datetime import date
 from html import escape
@@ -63,7 +64,7 @@ class _MetaParser(HTMLParser):
             return
         attr_map = {key.casefold(): value for key, value in attrs}
         name = (attr_map.get("name") or "").strip()
-        if name not in REQUIRED_META_NAMES + ("untap-ambiguous-count", "untap-failed-count"):
+        if name not in REQUIRED_META_NAMES + ("untap-ambiguous-count", "untap-failed-count", "untap-not-attempted-count", "untap-rate-limited-count"):
             return
         content = attr_map.get("content")
         if content is None:
@@ -119,6 +120,10 @@ def read_report_metadata(path: Path) -> ReportMetadata:
             "inconsistent report counts: total must equal confirmed plus needs-review"
         )
 
+    for name in ("untap-not-attempted-count", "untap-rate-limited-count"):
+        if _parse_nonnegative_int(name, parser.values.get(name, "0")):
+            raise PublishError("Incomplete run: unattempted or rate-limited menu rows cannot be published")
+
     split_names = ("untap-ambiguous-count", "untap-failed-count")
     split_counts = None
     if any(name in parser.values for name in split_names):
@@ -150,10 +155,6 @@ def slugify_title(title: str) -> str:
 def archive_filename(metadata: ReportMetadata) -> str:
     return f"{metadata.report_date}-{slugify_title(metadata.title)}.html"
 
-
-def _report_identity(title: str) -> str:
-    """Return the stable logical archive identity for a report title."""
-    return " ".join(title.split()).casefold()
 
 
 def _archive_reports(reports_dir: Path) -> List[ArchiveReport]:
@@ -303,10 +304,10 @@ def publish_report(
         raise PublishError(f"archive reports directory does not exist: {reports_dir}")
 
     existing_reports = _archive_reports(reports_dir)
-    identity = _report_identity(metadata.title)
+    identity = report_identity(metadata.title)
     identity_matches = [
         report for report in existing_reports
-        if _report_identity(report.metadata.title) == identity
+        if report_identity(report.metadata.title) == identity
     ]
     if len(identity_matches) > 1:
         filenames = ", ".join(report.filename for report in identity_matches)
@@ -381,9 +382,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         metadata = read_report_metadata(args.report)
         reports_dir = args.archive / "reports"
         existing_reports = _archive_reports(reports_dir) if reports_dir.is_dir() else []
-        identity = _report_identity(metadata.title)
+        identity = report_identity(metadata.title)
         replacing = args.replace and any(
-            _report_identity(report.metadata.title) == identity
+            report_identity(report.metadata.title) == identity
             for report in existing_reports
         )
         published = publish_report(args.report, args.archive, replace=args.replace)

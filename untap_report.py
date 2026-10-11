@@ -14,7 +14,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
 from untap_types import AlternativeRecord, MatchResult
-from untap_snapshot import build_snapshot
+from untap_snapshot import menu_item_ids
 
 
 DEFAULT_HTML_REPORT = "results.html"
@@ -215,37 +215,17 @@ def _meta_parts(parts: Iterable[Any]) -> str:
     return " <span aria-hidden=\"true\">·</span> ".join(visible)
 
 
-def render_html_report(
-    results: Sequence[MatchResult],
-    title: str = DEFAULT_REPORT_TITLE,
-    report_date: Optional[str] = None,
-) -> str:
-    """Return one self-contained responsive HTML report."""
-    clean_title = title.strip() or DEFAULT_REPORT_TITLE
-    generated_date = report_date or date.today().isoformat()
-    confirmed = [result for result in results if result.get("status") == "ok"]
-    needs_review = [result for result in results if result.get("status") != "ok"]
-    ambiguous_count = sum(result.get("status") == "ambiguous" for result in results)
-    failed_count = sum(result.get("status") == "failed" for result in results)
-    other_count = len(needs_review) - ambiguous_count - failed_count
-    status_summary = f"{len(results)} beers · {len(confirmed)} confirmed · {ambiguous_count} ambiguous"
-    if failed_count:
-        status_summary += f" · {failed_count} failed"
-    if other_count:
-        status_summary += f" · {other_count} unresolved"
-    ordered_results = _sorted_report_results(results)
-    style_groups = _style_groups(results)
-
+def _render_result_cards(results: Sequence[MatchResult]) -> str:
+    """Render ordered beer/review cards using occurrence-aware input IDs."""
     result_cards: List[str] = []
-    item_ids = {id(result): item["id"] for result, item in zip(
-        results, build_snapshot(results, clean_title)["items"])}
-    for result in ordered_results:
+    identifiers = menu_item_ids(results)
+    ordered_rows = sorted(enumerate(results), key=lambda row: (
+        _result_sort_rating(row[1]) is not None, _result_sort_rating(row[1]) or 0.0), reverse=True)
+    for row_index, result in ordered_rows:
         if result.get("status") == "ok" and not result.get("manually_confirmed") and not any(
                 c.get("url") != result.get("url") for c in _review_candidates(result)):
             image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
             production_status = _production_status(result.get("in_production"))
-            if result.get("manually_confirmed"):
-                production_status += '<p class="manual-note">Manually confirmed</p>'
             linked_name = _linked_name(result.get("beer"), result.get("url"))
             metadata = _meta_parts(
                 [
@@ -364,10 +344,45 @@ def render_html_report(
               {search_warning}
               <ol class="candidate-list">{candidates}</ol>
             </article>
-            """.format(automatic_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" and not result.get("manually_confirmed") else "", menu_abv=menu_abv_text, item_id=item_ids[id(result)], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
+            """.format(automatic_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" and not result.get("manually_confirmed") else "", menu_abv=menu_abv_text, item_id=identifiers[row_index], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
         )
 
-    results_html = "".join(result_cards) or '<p class="empty">No beers.</p>'
+    return "".join(result_cards) or '<p class="empty">No beers.</p>'
+
+
+def render_html_report(
+    results: Sequence[MatchResult],
+    title: str = DEFAULT_REPORT_TITLE,
+    report_date: Optional[str] = None,
+) -> str:
+    """Return one self-contained responsive HTML report."""
+    clean_title = title.strip() or DEFAULT_REPORT_TITLE
+    generated_date = report_date or date.today().isoformat()
+    confirmed = [result for result in results if result.get("status") == "ok"]
+    needs_review = [result for result in results if result.get("status") != "ok"]
+    ambiguous_count = sum(result.get("status") == "ambiguous" for result in results)
+    failed_count = sum(result.get("status") == "failed" for result in results)
+    other_count = len(needs_review) - ambiguous_count - failed_count
+    status_summary = f"{len(results)} beers · {len(confirmed)} confirmed · {ambiguous_count} ambiguous"
+    if failed_count:
+        status_summary += f" · {failed_count} failed"
+    if other_count:
+        status_summary += f" · {other_count} unresolved"
+    not_attempted = sum(r.get("status") == "not_attempted" for r in results)
+    rate_limited = sum(r.get("status") == "rate_limited" for r in results)
+    # Older snapshots may have only the rate-limited row plus this count.
+    omitted = sum(int(r.get("batch_remaining") or 0) for r in results
+                  if r.get("status") == "rate_limited") if not not_attempted else 0
+    incomplete_warning = ""
+    if not_attempted or rate_limited or omitted:
+        incomplete_warning = (
+            '<p class="review-reason" role="alert"><strong>Incomplete run:</strong> '
+            f'{not_attempted + omitted} menu rows were not searched; {rate_limited} rows were rate-limited. '
+            'Rerun the menu when searching is available. This report cannot be published.</p>'
+        )
+    style_groups = _style_groups(results)
+
+    results_html = _render_result_cards(results)
 
     filter_controls = []
     for index, group in enumerate(style_groups):
@@ -415,6 +430,8 @@ def render_html_report(
   <meta name="untap-review-count" content="{review_count}">
   <meta name="untap-ambiguous-count" content="{ambiguous_count}">
   <meta name="untap-failed-count" content="{failed_count}">
+  <meta name="untap-not-attempted-count" content="{not_attempted_count}">
+  <meta name="untap-rate-limited-count" content="{rate_limited_count}">
   <title>{title}</title>
   <style>
     :root {{ color-scheme: light dark; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }}
@@ -495,6 +512,7 @@ def render_html_report(
     <header>
       <h1>{heading}</h1>
       <p class="summary">{status_summary}</p>
+      {incomplete_warning}
     </header>
 
     {status_filters}
@@ -582,6 +600,9 @@ def render_html_report(
         report_date=escape(generated_date, quote=True),
         total=len(results),
         confirmed_count=len(confirmed),
+        not_attempted_count=not_attempted + omitted,
+        rate_limited_count=rate_limited,
+        incomplete_warning=incomplete_warning,
         review_count=len(needs_review),
         ambiguous_count=ambiguous_count,
         failed_count=failed_count,

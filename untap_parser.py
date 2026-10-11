@@ -11,7 +11,7 @@ from untap_types import NormalizedMenuRecord
 FORMAT_TABULAR = "tab-separated"
 NORMALIZED_RECORD_FIELDS = ("brewery", "beer", "style", "menu_abv", "query", "original")
 COLLABORATION_SEPARATOR_RE = re.compile(r"\s+[xX]\s+")
-ABV_RE = re.compile(r"(\d+(?:[.,]\d+)?)\s*%\s*(?:abv)?", re.IGNORECASE)
+ABV_RE = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*%\s*(?:abv)?", re.IGNORECASE)
 SUPPORTED_MENU_FORMATS = """Supported menu format: tab-separated rows
 brewery<TAB>beer<TAB>ABV<TAB>style
 Example: Badlands<TAB>Pop Pop (2026)<TAB>6.5%<TAB>IPA
@@ -126,7 +126,7 @@ def join_brewery_and_beer(brewery, beer):
     brewery_norm = normalize(brewery)
     beer_norm = normalize(beer)
 
-    if brewery_norm and brewery_norm in beer_norm:
+    if brewery_norm and f" {brewery_norm} " in f" {beer_norm} ":
         return beer
 
     search_brewery = collaboration_brewery_for_search(brewery)
@@ -228,7 +228,7 @@ def parse_menu_lines(lines: Iterable[str]) -> List[NormalizedMenuRecord]:
         if len(fields) != 4:
             raise MenuValidationError(
                 f"Line {line_number} has {len(fields)} tab-separated fields; expected exactly 4: "
-                "brewery<TAB>beer<TAB>ABV<TAB>style. Convert older menu layouts to this format.")
+                "brewery<TAB>beer<TAB>ABV<TAB>style. Style may be empty; keep its tab. Convert older menu layouts to this format.")
         brewery, beer, abv_text, style = fields
         for name, value in (("brewery", brewery), ("beer", beer)):
             if not value:
@@ -241,7 +241,7 @@ def parse_menu_lines(lines: Iterable[str]) -> List[NormalizedMenuRecord]:
             raise MenuValidationError(f"Line {line_number} has out-of-range ABV {abv}.")
         if len(normalize(beer)) < 3:
             raise MenuValidationError(f"Line {line_number} has a too-short beer identity.")
-        items.append({"original": text.strip(), "brewery": brewery, "beer": beer,
+        items.append({"original": text, "brewery": brewery, "beer": beer,
                       "style": style or None, "menu_abv": abv,
                       "query": join_brewery_and_beer(brewery, beer)})
     if not items:
