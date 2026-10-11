@@ -14,7 +14,8 @@ from untap_snapshot import load_snapshot
 
 
 class ReviewSession:
-    def __init__(self, source):
+    def __init__(self, source, csv_requested=False):
+        self.csv_requested = csv_requested
         source = Path(source).resolve()
         self.source = source / "results.json" if source.is_dir() else source
         self.snapshot = load_snapshot(self.source)
@@ -68,7 +69,7 @@ class ReviewSession:
             self.snapshot = updated
             self.has_unsaved_candidates = True
             return {"reload": True}
-        output = write_reviewed_run(updated, self.source)
+        output = write_reviewed_run(updated, self.source, csv_requested=self.csv_requested)
         self.last_saved = output
         self.has_unsaved_candidates = False
         return {"saved": str(output.resolve())}
@@ -128,9 +129,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, help="run directory or results.json")
     parser.add_argument("--no-open", action="store_true", help="print the local URL without opening a browser")
+    parser.add_argument("--csv", action="store_true", help="also export results.csv when saving")
     args = parser.parse_args(argv)
     try:
-        session = ReviewSession(args.source)
+        session = ReviewSession(args.source, csv_requested=args.csv)
         with make_server(session) as server:
             url = f"http://127.0.0.1:{server.server_port}/{session.token}/"
             print(f"Local review: {url}", flush=True)

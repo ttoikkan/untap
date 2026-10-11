@@ -33,7 +33,7 @@
   toolbar.className = 'manual-toolbar';
   const explanation = document.createElement('p');
   explanation.textContent = 'Personal review — choices apply only in this browser. They do not change the shared report or CSV, or affect other visitors. Export selections to keep a record.';
-  if (local) explanation.textContent = 'Local review — URL additions fetch from Untappd immediately. Confirm your choices, then Save reviewed run to create new HTML, CSV and JSON. The source and published reports stay unchanged.';
+  if (local) explanation.textContent = 'Local review — URL additions fetch from Untappd immediately. Confirm your choices, then Save reviewed run to create new HTML and JSON. The source and published reports stay unchanged.';
   const message = document.createElement('p');
   message.setAttribute('role', 'status');
   toolbar.append(explanation, message);

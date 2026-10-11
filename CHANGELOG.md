@@ -1,3 +1,11 @@
+# v102 — TSV input and optional CSV export (2026-10-11)
+
+- Replace legacy menu adapters and format detection with one strict four-column TSV reader (brewery, beer, percentage ABV, style). Preserve the TSV golden records, matcher text normalization, collaboration handling, decimal commas, zero ABV and name punctuation. Ignore blank lines and accept an optional header and UTF-8 BOM.
+- Reject malformed and obsolete menu layouts locally with line-numbered conversion guidance before searching. Require brewery, beer and ABV; allow an empty style.
+- Save HTML and JSON by default for batch runs and reviewed/refresh outputs. Make CSV opt-in with `--csv` for search, refresh (including batch refresh) and local review. Keep `--html` compatible and allow report titles directly with batch input.
+
+- Validation: 248 offline tests and type checks passed. TSV golden records are unchanged; output checks cover automatic HTML/JSON and opt-in CSV for searches, refreshes and local review.
+
 # v101 — Exact identities and Change selection (2026-10-11)
 
 - Retain automatic-match alternatives and offer Change selection, with the automatic choice highlighted and Cancel available. Manual changes use the existing reviewed HTML, CSV and JSON workflow.

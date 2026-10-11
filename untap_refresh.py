@@ -97,16 +97,16 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
 
 
 def refresh(source: Path, output: Optional[Path] = None, selections: Optional[Path] = None,
-            fetch_pending: bool = False) -> Path:
+            fetch_pending: bool = False, csv_requested: bool = False) -> Path:
     """Keep the snapshot's data, IDs, title and date; create fresh presentation."""
     source = source / "results.json" if source.is_dir() else source
     snapshot = load_snapshot(source)
     if selections is not None:
         apply_selections(snapshot, selections, fetch_pending)
-    return write_reviewed_run(snapshot, source, output)
+    return write_reviewed_run(snapshot, source, output, csv_requested=csv_requested)
 
 
-def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None) -> Path:
+def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None, csv_requested: bool = False) -> Path:
     """Write self-contained reviewed outputs without changing their source."""
     results = [item["result"] for item in snapshot["items"]]
     # Render before creating output so invalid results cannot leave a report.
@@ -117,11 +117,12 @@ def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None) ->
         output.mkdir(exist_ok=False)
     save_snapshot(snapshot, output / "results.json")
     (output / "results.html").write_text(html, encoding="utf-8")
-    save_csv(results, str(output / "results.csv"))
+    if csv_requested:
+        save_csv(results, str(output / "results.csv"))
     return output
 
 
-def refresh_batch(config_path: Path) -> int:
+def refresh_batch(config_path: Path, csv_requested: bool = False) -> int:
     """Validate configuration first, then run independent entries sequentially."""
     config = json.loads(config_path.read_text(encoding="utf-8"))
     defaults = config_defaults(config)
@@ -152,6 +153,8 @@ def refresh_batch(config_path: Path) -> int:
             arguments.append(str(path))
         if entry.get("replace", False):
             arguments.append("--replace")
+        if csv_requested:
+            arguments.append("--csv")
         jobs.append((entry["source"], arguments))
     failures = 0
     for source, arguments in jobs:
@@ -171,13 +174,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--selections", type=Path, help="exported selections from this snapshot's report")
     parser.add_argument("--fetch-candidates", action="store_true", help="explicitly fetch pending Untappd URLs in the export")
     parser.add_argument("--archive", type=Path, help="optionally update this local archive")
+    parser.add_argument("--csv", action="store_true", help="also export results.csv")
     parser.add_argument("--replace", action="store_true", help="allow replacing the same logical report in the archive")
     args = parser.parse_args(argv)
     if args.batch:
         if args.source or args.output or args.selections or args.archive or args.replace or args.fetch_candidates:
             parser.error("--batch cannot be combined with single-run arguments")
         try:
-            return refresh_batch(args.batch)
+            return refresh_batch(args.batch, csv_requested=args.csv)
         except (OSError, ValueError, TypeError, KeyError) as exc:
             print(f"Batch failed: {exc}", file=sys.stderr)
             return 2
@@ -188,7 +192,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.replace and args.archive is None:
         parser.error("--replace requires --archive")
     try:
-        output = refresh(args.source, args.output, args.selections, args.fetch_candidates)
+        output = refresh(args.source, args.output, args.selections, args.fetch_candidates, args.csv)
         print(f"Refreshed run: {output.resolve()}")
         if args.archive is not None:
             published = publish_report(output / "results.html", args.archive, replace=args.replace)

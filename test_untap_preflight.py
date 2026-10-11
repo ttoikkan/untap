@@ -113,7 +113,7 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
             with self.assertRaises(SystemExit) as exc:
                 untap.main()
         self.assertEqual(exc.exception.code, 1)
-        self.assertIn("--report-title requires --html", output.getvalue())
+        self.assertIn("--report-title requires --menu or --file batch input", output.getvalue())
 
     def test_empty_report_title_is_browser_free(self):
         output = io.StringIO()
@@ -125,26 +125,11 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
         self.assertEqual(exc.exception.code, 1)
         self.assertIn("--report-title requires a non-empty title", output.getvalue())
 
-    def test_v76_historical_structured_fixtures_validate_browser_free(self):
-        fixture_dir = Path(__file__).with_name("testdata")
-        expected = {
-            "menu2.txt": ("Brewery-heading blocks", "Normalized records: 4"),
-            "menu3.txt": ("Beer/style + ABV/IBU/brewery pairs", "Normalized records: 2"),
-            "menu4.txt": ("Tap-list blocks", "Normalized records: 3"),
-        }
-
-        for filename, (format_name, record_count) in expected.items():
-            output = io.StringIO()
-            path = str(fixture_dir / filename)
-            with self.subTest(filename=filename), self._forbid_playwright_import(), mock.patch.object(
-                sys, "argv", ["untap.py", "--validate-menu", path]
-            ), contextlib.redirect_stdout(output):
+    def test_legacy_menu_is_rejected_before_browser(self):
+        path = str(Path(__file__).with_name("testdata") / "menu2.txt")
+        with self._forbid_playwright_import(), mock.patch.object(sys, "argv", ["untap.py", "--menu", path]), contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit):
                 untap.main()
-            text = output.getvalue()
-            self.assertIn("Menu validation succeeded.", text)
-            self.assertIn(format_name, text)
-            self.assertIn(record_count, text)
-            self.assertIn("No Untappd queries were made.", text)
 
     def test_validate_menu_is_browser_free(self):
         filename = self._temp_menu(

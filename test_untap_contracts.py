@@ -21,13 +21,7 @@ class ArchitectureContractTests(unittest.TestCase):
             untap_parser.NORMALIZED_RECORD_FIELDS,
             ("brewery", "beer", "style", "menu_abv", "query", "original"),
         )
-        item = untap_parser.structured_menu_item(
-            "Badlands\tFazy (2026)\t6.5%\tIPA",
-            "Fazy (2026)",
-            brewery="Badlands",
-            style="IPA",
-            menu_abv=6.5,
-        )
+        item = untap_parser.parse_menu_lines(["Badlands\tFazy (2026)\t6.5%\tIPA"])[0]
         self.assertEqual(set(item), set(untap_parser.NORMALIZED_RECORD_FIELDS))
         self.assertIs(untap_parser.validate_normalized_menu([item])[0], item)
 

@@ -1,4 +1,16 @@
-# Untap v101
+# Untap v102
+
+## Simpler input and output (v102)
+
+Menus use exactly four tab-separated fields: **brewery, beer, ABV, style**. Brewery, beer and percentage ABV are required; style may be empty. Blank lines and an optional `brewery<TAB>beer<TAB>ABV<TAB>style` header are accepted. Decimal commas, zero ABV, accents and punctuation in beer names are preserved. Convert older menu layouts to TSV; they are no longer guessed or parsed. Single-query and `--file` query-list searches remain available.
+
+Batch runs now save **HTML and JSON by default**. Add `--csv` to export `results.csv` for spreadsheet use. The same option works with `untap_refresh.py` (including `--batch`) and `untap_local_review.py`. Existing output files are untouched. `--html` remains accepted for older commands; it is no longer necessary.
+
+```bash
+python3 untap.py --menu menu.txt --report-title "My menu"
+python3 untap.py --menu menu.txt --csv
+python3 untap_refresh.py results/<run-folder>/ --csv
+```
 
 ## Guarded exact identities (v101)
 
@@ -42,7 +54,7 @@ to print the private session URL without opening the browser automatically.
   the existing Untappd transport and reloads the report. Retrieval is explicit;
   adding a candidate does not confirm it. Existing choices are carried forward.
 - Confirm or change selections as usual, without exporting or importing JSON.
-- **Save reviewed run** writes HTML, CSV and JSON to a new sibling folder and
+- **Save reviewed run** writes HTML and JSON (plus CSV with `--csv`) to a new sibling folder and
   displays its path. The original run is untouched. Saving does not fetch.
 - Save before closing the session. Unsaved browser choices and fetched candidates
   are not durable. Ctrl-C stops the server; reopen a saved output to continue.
@@ -94,7 +106,7 @@ Numeric annotations such as years are excluded from this combined recovery.
 ## Automatic registration (v95)
 
 Add `--register-refresh refresh-reports.json` to your normal batch command
-with `--html --report-title "Menu title"`. After saving the run, Untap adds
+with `--report-title "Menu title"`. After saving the run, Untap adds
 a source-only entry for a new menu, creating the configuration if absent.
 Add archive/replace and optional selections settings yourself; publication
 can also use explicit top-level defaults. Paths are relative to the configuration.
@@ -112,8 +124,7 @@ error is reported without discarding the completed run.
 
 ## Saved run snapshots (v94)
 
-New batch runs also save a versioned `results.json`, even when HTML output is
-not requested. It retains full result and candidate records, including images,
+New batch runs also save a versioned `results.json`, alongside the HTML report. It retains full result and candidate records, including images,
 production status, and search warnings, plus report title/date and stable
 occurrence-aware menu-item IDs. CSV and HTML use the same saved result data.
 Keep this file for future offline report refreshes.
@@ -128,7 +139,7 @@ Refresh one saved run offline (no Untappd requests):
 python3 untap_refresh.py results/<run-folder>/
 ```
 
-This creates a new sibling folder containing JSON, HTML and CSV, preserving
+This creates a new sibling folder containing JSON and HTML (plus CSV with `--csv`), preserving
 the saved title, date and matching results. An optional `--output NEW_FOLDER`
 chooses the destination; existing folders are never overwritten.
 To also update the local archive, preserving an existing report's URL:
@@ -140,7 +151,7 @@ python3 untap_refresh.py results/<run-folder>/ --archive ../untap-results --repl
 Git commit/push remain separate. If publication fails, the refreshed folder
 is retained. To apply exported choices, add `--selections ~/Downloads/untap-selections.json`.
 The entire export is validated against the snapshot before writing anything.
-Selected candidates become confirmed in HTML and CSV; JSON retains the original
+Selected candidates become confirmed in HTML and optional CSV; JSON retains the original
 ambiguous result and decision history. HTML labels them “Manually confirmed”.
 Refreshes of that reviewed snapshot preserve the decisions.
 
@@ -299,27 +310,16 @@ Reports also gain an independent **Show** filter for all, ambiguous, or failed
 results. Style filters continue to combine with that selection.
 
 For batch runs, `--debug` now mirrors the terminal diagnostics into an
-incrementally flushed `debug.txt` beside `results.csv` and optional
-`results.html`. Without `--debug`, no log is created; single-beer searches
+incrementally flushed `debug.txt` beside `results.json` and `results.html`. Without `--debug`, no log is created; single-beer searches
 remain terminal-only. Diagnostic scores display to three decimals, exact-base
 messages distinguish an inapplicable rule from a rejected preference, and the
 terminal summary reports confirmed, ambiguous, and failed counts separately.
 
 ## Per-run output folders (v87)
 
-Every `--menu` or `--file` run saves its CSV in a new folder, for example
-`results/2026-09-04_091530_nailo-new-arrivals/results.csv`. With `--html`,
-`results.html` is saved alongside it. The folder uses local run-start time and
-a filesystem-safe report title, falling back to the input filename stem.
-Same-second runs receive a numeric suffix; existing run folders are never reused.
-The absolute output folder is printed on completion. Single-beer searches and
-validation-only commands do not create output folders.
+Every `--menu` or `--file` run saves `results.html` and `results.json` in a new folder, for example `results/2026-09-04_091530_nailo-new-arrivals/`. Add `--csv` to save `results.csv` alongside them. The folder uses local run-start time and a filesystem-safe report title, falling back to the input filename stem. Same-second runs receive a numeric suffix; existing run folders are never reused. Single-beer searches and validation-only commands do not create output folders.
 
-**Breaking change:** `--csv` and `--resume` have been removed. Every batch run
-searches its full input again. Old flags fail with migration guidance; old CSVs
-are not changed or deleted. There is no `--resume-from` replacement.
-Debug output still goes to the terminal; automatic debug-file capture is not
-part of this change. No automatic cleanup or generic latest-result copy is made.
+Every batch run searches its full input. `--resume` and `--resume-from` remain unsupported; the old `--csv FILENAME` form is replaced by the boolean `--csv` flag. Existing CSV files are untouched.
 
 Use the chosen run's HTML path when publishing, as shown below.
 
@@ -327,16 +327,16 @@ Untap v86 adds bounded zero-hit search recovery for an extra leading `On` and gu
 
 ## Mobile-friendly HTML results
 
-Use `--html` with `--menu` or `--file`:
+HTML is generated automatically with `--menu` or `--file`:
 
 ```bash
-python3 untap.py --menu menu10.txt --html
-python3 untap.py --menu menu10.txt --html --report-title "September Bottle Share"
+python3 untap.py --menu menu10.txt
+python3 untap.py --menu menu10.txt --report-title "September Bottle Share"
 ```
 
-`--report-title` is optional and requires `--html`. When supplied, the descriptive title appears in both the browser tab and the report heading. If omitted, the title remains `Untap Results`. Empty titles are rejected before browser startup.
+`--report-title` is optional and requires batch input. When supplied, the descriptive title appears in both the browser tab and the report heading. If omitted, the title remains `Untap Results`. Empty titles are rejected before browser startup.
 
-Untap writes `results.csv` and, with `--html`, `results.html` in the unique run folder, plus its normal terminal summary. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
+Untap writes `results.json` and `results.html`, plus `results.csv` with `--csv` in the unique run folder, plus its normal terminal summary. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
 
 Confirmed and ambiguous results now share one **Results** list sorted from highest report rating to lowest. A confirmed result uses its own Untappd rating. An ambiguous result uses the Untappd rating of its highest match-score candidate; a lower-scoring candidate never changes the result's list position even if that candidate has a higher beer rating. The ambiguous card's content and candidate ordering remain unchanged, while v84 removes its obsolete extra bottom margin so all top-level cards use the Results list's common spacing. Results without a usable sort rating appear after rated results. Canonical Untappd beer links remain unchanged.
 

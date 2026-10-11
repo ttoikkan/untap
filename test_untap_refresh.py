@@ -79,7 +79,7 @@ class RefreshTests(unittest.TestCase):
             self.assertNotEqual(output, source)
             self.assertEqual((source / "results.json").read_bytes(), before)
             self.assertEqual(load_snapshot(output / "results.json"), load_snapshot(source / "results.json"))
-            self.assertTrue((output / "results.csv").is_file())
+            self.assertFalse((output / "results.csv").exists())
             self.assertIn("manual-review-script", (output / "results.html").read_text())
             with self.assertRaises(FileExistsError):
                 refresh(source, output)

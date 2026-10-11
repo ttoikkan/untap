@@ -69,12 +69,12 @@ class DebugTranscriptTests(unittest.TestCase):
                  mock.patch.object(untap, "run_batch", return_value=[]) as batch:
                 untap._run_and_save_batch(
                     page, [], run_directory, min_score=.425, debug=True,
-                    html_requested=False, report_title=None,
+                    report_title=None,
                 )
             log = (run_directory / "debug.txt").read_text()
             self.assertIn("0 beers · 0 confirmed · 0 ambiguous · 0 failed", log)
             self.assertIn(f"Run outputs: {run_directory}", log)
-            self.assertTrue((run_directory / "results.csv").exists())
+            self.assertFalse((run_directory / "results.csv").exists())
             batch.assert_called_once_with(page, [], min_score=.425, debug=True)
 
     def test_enabled_transcript_tees_and_flushes_before_exception(self):

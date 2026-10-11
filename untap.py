@@ -635,8 +635,8 @@ def debug_transcript(run_directory: Path, enabled: bool) -> Iterator[None]:
 
 
 def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
-                        debug: bool, html_requested: bool,
-                        report_title: Optional[str]) -> None:
+                        debug: bool,
+                        report_title: Optional[str], csv_requested: bool = False) -> None:
     with debug_transcript(run_directory, debug):
         results = run_batch(page, items, min_score=min_score, debug=debug)
         print_search_timing_summary()
@@ -650,12 +650,12 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
         snapshot = build_snapshot(results, report_title or DEFAULT_REPORT_TITLE)
         save_snapshot(snapshot, run_directory / "results.json")
         saved_results = [item["result"] for item in snapshot["items"]]
-        save_csv(saved_results, str(run_directory / "results.csv"))
-        if html_requested:
-            save_html_report(
-                saved_results, str(run_directory / DEFAULT_HTML_REPORT),
-                title=report_title or DEFAULT_REPORT_TITLE,
-            )
+        if csv_requested:
+            save_csv(saved_results, str(run_directory / "results.csv"))
+        save_html_report(
+            saved_results, str(run_directory / DEFAULT_HTML_REPORT),
+            title=report_title or DEFAULT_REPORT_TITLE,
+        )
         print(f"Run outputs: {run_directory}")
 
 
@@ -668,9 +668,11 @@ def _print_cli_help():
     print()
     print("  python3 untap.py --menu menu.txt")
     print()
+    print("  --csv additionally exports results.csv for spreadsheet use.")
+    print("  HTML and JSON are saved by default.")
     print("  Batch outputs are saved in a unique results/<timestamp>_<menu>/ folder.")
-    print("  python3 untap.py --menu menu.txt --html")
-    print('  python3 untap.py --menu menu.txt --html --report-title "September Bottle Share"')
+    print("  python3 untap.py --menu menu.txt --csv")
+    print('  python3 untap.py --menu menu.txt --report-title "September Bottle Share"')
     print()
     print("Options:")
     print("  -h, --help")
@@ -681,7 +683,8 @@ def _print_cli_help():
     print("  --show-queries")
     print("  --formats / --help-formats")
     print("  --validate-menu menu.txt")
-    print("  --html")
+    print("  --csv")
+    print("  --html (accepted for compatibility; HTML is saved by default)")
     print("  --report-title TITLE")
     print("  --probe-abv-sort")
     print("  --smoke-test")
@@ -707,6 +710,7 @@ def main() -> None:
     probe_abv_sort = False
     smoke_test_requested = False
     html_requested = False
+    csv_requested = False
     report_title = None
     register_refresh = None
     file_mode = None
@@ -788,6 +792,10 @@ def main() -> None:
             menu_mode = args[i + 1]
             i += 2
 
+        elif arg == "--csv":
+            csv_requested = True
+            i += 1
+
         elif arg.split("=", 1)[0] in ("--csv", "--resume", "--resume-from"):
             print(f"{arg.split('=', 1)[0]} is not supported in v87. "
                   "Every batch run searches the full input and saves results "
@@ -855,12 +863,16 @@ def main() -> None:
         if not (clean_args or file_mode or menu_mode or validate_menu_mode or probe_abv_sort or smoke_test_requested or html_requested or report_title):
             return
 
-    if register_refresh and (not (file_mode or menu_mode) or not report_title or not html_requested):
-        print("--register-refresh requires batch input, --html and --report-title")
+    if csv_requested and (not (file_mode or menu_mode) or validate_menu_mode or smoke_test_requested or probe_abv_sort):
+        print("--csv requires --menu or --file batch input")
         sys.exit(1)
 
-    if report_title is not None and not html_requested:
-        print("--report-title requires --html")
+    if register_refresh and (not (file_mode or menu_mode) or not report_title):
+        print("--register-refresh requires batch input and --report-title")
+        sys.exit(1)
+
+    if report_title is not None and not (file_mode or menu_mode):
+        print("--report-title requires --menu or --file batch input")
         sys.exit(1)
 
     if validate_menu_mode and (file_mode or menu_mode or clean_args or probe_abv_sort or smoke_test_requested or html_requested):
@@ -970,7 +982,7 @@ def main() -> None:
 
             _run_and_save_batch(
                 page, items, run_directory, min_score=min_score, debug=debug,
-                html_requested=html_requested, report_title=report_title,
+                report_title=report_title, csv_requested=csv_requested,
             )
             if register_refresh:
                 register_run_safely(register_refresh, run_directory)
@@ -996,7 +1008,7 @@ def main() -> None:
             run_directory = create_run_directory(file_mode, report_title)
             _run_and_save_batch(
                 page, queries, run_directory, min_score=min_score, debug=debug,
-                html_requested=html_requested, report_title=report_title,
+                report_title=report_title, csv_requested=csv_requested,
             )
             if register_refresh:
                 register_run_safely(register_refresh, run_directory)

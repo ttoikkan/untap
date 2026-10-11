@@ -33,7 +33,7 @@ class RunDirectoryTests(unittest.TestCase):
                 os.chdir(previous)
 
     def test_removed_options_fail_before_browser_or_output(self):
-        for flag in ("--csv", "--csv=old.csv", "--resume", "--resume-from"):
+        for flag in ("--csv=old.csv", "--resume", "--resume-from"):
             with self.subTest(flag=flag), mock.patch.object(sys, "argv", ["untap.py", flag]), \
                  mock.patch.object(untap, "untappd_browser_page") as browser, \
                  mock.patch.object(untap, "create_run_directory") as directory, \
@@ -65,8 +65,8 @@ class RunDirectoryTests(unittest.TestCase):
                     self.assertIn("Run outputs:", output.getvalue())
                 folders = list(Path("results").iterdir())
                 self.assertEqual(len(folders), 3)
-                self.assertEqual(len(list(Path("results").glob("*/results.csv"))), 3)
-                self.assertEqual(len(list(Path("results").glob("*/results.html"))), 2)
+                self.assertEqual(len(list(Path("results").glob("*/results.csv"))), 0)
+                self.assertEqual(len(list(Path("results").glob("*/results.html"))), 3)
                 self.assertFalse(Path("results.csv").exists())
                 self.assertFalse(Path("results.html").exists())
             finally:
