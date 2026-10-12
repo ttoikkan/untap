@@ -3696,7 +3696,7 @@ def decide_candidates(
     def outcome(kind: DecisionKind, rule: DecisionRule, reason: Optional[str] = None,
                 ordered: Optional[List[CandidateRecord]] = None,
                 variants: Optional[List[CandidateRecord]] = None) -> Decision:
-        rows = candidates if ordered is None else ordered
+        rows = [] if kind == "failed" else candidates if ordered is None else ordered
         return {"kind": kind, "rule": rule, "candidate": rows[0] if rows else None,
                 "reason": reason, "alternatives": list(rows), "same_abv_variants": variants or [],
                 "search_warning": warning, "diagnostics": diagnostics}
