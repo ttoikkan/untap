@@ -1,5 +1,15 @@
 # Untap v107
 
+## Unreleased: pure decision stage
+
+The final identity rules now run in a browser-free decision function, with unchanged v107 matching and saved-output contracts. Browser validation and metadata retrieval remain in finalization. Internal rule names are not added to reports or snapshots.
+
+The tests include 24 frozen v107 decision/output cases and a reproducible 2,000-case invariant suite. To run more generated cases, use:
+
+```bash
+UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -m unittest test_untap_decision_invariants
+```
+
 ## Review corrections (v107)
 
 Explicit brewery conflicts cannot be confirmed automatically. Searches stopped by an expansion error, page limit or established ambiguity retain their warning and candidates for manual review. Detail fallback validates the selected beer's page before confirming; a blocked page is a failure and HTTP 429 stops the batch.

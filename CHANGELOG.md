@@ -1,3 +1,12 @@
+# Unreleased — Pure decision stage (v107 baseline)
+
+- Characterize 24 v107 rule interactions before extraction, preserving full results, debug messages, counter deltas and fixed-date HTML/CSV/JSON bytes.
+- Add typed expected/discovery records and an internal `Decision`; extract pure `decide_candidates` in the matcher without changing scoring, ranking, tie order, retrieval or saved schemas.
+- Keep captured metadata recovery, detail validation, timing/counters and result construction in finalization. Return diagnostics as data rather than printing or invoking callbacks in the decision stage.
+- Add deterministic whole-chain invariants with real scoring, directed interaction cases, coherent discovery context, configurable seed/count and failure shrinking. Incomplete discovery cannot select; selected identities remain provisional until finalization.
+- Document precedence, purity boundaries and the scoped distractor/tie properties. Keep explanations and serialized rule names out of this extraction.
+- Validation: original 320 tests unchanged; full suite now has 328 tests. Default 2,000-case and alternate-seed 10,000-case invariants pass; all 22 runtime source files type-check. Maintainer Pien/CM live comparison remains pending.
+
 # v107 — Matching integrity and recovery corrections (2026-10-11)
 
 - Reject explicitly conflicting breweries at final acceptance while preserving unknown metadata and the existing collaboration policy.

@@ -4,6 +4,41 @@ Current through v107. The CLI validates TSV locally, then orchestrates batch mat
 
 V107 review corrections enforce brewery consistency and incomplete-discovery review at final resolution. The transport owns HTTP/page validation and bounded browser requests, and raises ordinary browser-availability errors; CLI boundaries translate those errors into clean command exits. Algolia request/result pairing is shared by transport, expansion and inspection. Shadow replay remains diagnostic except that HTTP 429 must stop further traffic.
 
+## Pure candidate decision stage (unreleased, v107 baseline)
+
+`untap_matcher.decide_candidates(candidates, expected, min_score, discovery, collect_diagnostics=False)` consumes already-ranked candidates and plain expected/discovery records. It returns the internal `Decision` TypedDict, including `kind`, `rule`, a provisional candidate, alternatives, same-ABV variants, reason, warning and diagnostic messages. It copies candidates and does not mutate inputs, print, import Playwright, perform network work, update counters or read timing state. Debug messages are data, not callbacks.
+
+`_resolve_discovered_candidates` remains the compatibility boundary. It creates the records, prints returned diagnostics in their existing order, then calls `_finalize_decision`. Finalization recovers captured brewery/style metadata, uses Algolia confirmation or validates a detail page, records counters/timing, and builds the unchanged `MatchResult`. A `selected` decision may finalize as `ok`, `failed` or `rate_limited`; it is not a confirmation. `Decision.rule` is internal and is not written to JSON, CSV or HTML.
+
+The production precedence is:
+
+1. No candidates: fail, retaining any incomplete-search warning.
+2. Exclude known ABV conflicts; fail if none survive.
+3. Exclude explicit brewery conflicts using the existing overlap/collaboration policy; fail if none survive. Unknown brewery evidence is preserved.
+4. Recompute ambiguity after exclusions. A retired exact release competing with a current same-ABV vintage requires review even when discovery is incomplete or fallback is review-only.
+5. With complete discovery and no review-only fallback, try exact-base, exact-numbered, then unique-exact-identity. An accepted exact rule clears prior ambiguity and moves its candidate to the front without changing scores.
+6. Review-only fallback sets a review reason. Incomplete/early-stopped discovery then enforces review and its warning; no score or exact rule can produce a selection.
+7. Two or more same-ABV family variants produce the family ambiguity explanation, ahead of the remaining ambiguity explanation.
+8. Any remaining ambiguity reason requires review.
+9. Without an exact acceptance, a top score below the requested minimum is low confidence.
+10. Otherwise select the top candidate provisionally for finalization.
+
+Rank and tie order remain the v107 input order. There is no new tie-breaker. For example, an equal-score numbered pair can use `exact_numbered` or `unique_exact_identity` depending on which sibling comes first, while choosing the same explicit identity. This is characterized rather than normalized during extraction.
+
+### Characterization and invariant contracts
+
+`testdata/decision_v107.json` freezes 24 v107 cases, including Banishing 3, Tripla identities, Boston Lager, Imprint, Humble Sea ABV conflict, production/vintage conflicts, incomplete discovery, review-only fallback, captured metadata recovery and detail failures/rate limits. The characterization test checks full results, debug text and counter deltas, plus byte hashes of fixed-date HTML, CSV and snapshots.
+
+The seeded invariant harness uses real scoring and stable ranking, directed generation for rare rule interactions, and coherent initial ambiguity over eligible candidates. It checks determinism and input immutability; ABV/brewery compatibility of selections; no selection after incomplete discovery; loss of uniqueness after adding a distinct exact identity or removing required evidence; production evidence and precedence; excluded distractors with surviving candidates; and valid possible finalization statuses. Equal-score behavior is pinned by a directed characterization instead of an unsupported permutation invariant. Empty retrieval and all-rejected retrieval intentionally retain distinct failure explanations.
+
+The default is 2,000 cases with seed 107, taking about 2–3 seconds locally. Failures include seed, case index and a reduced candidate list preserving the failing invariant and generator preconditions. Increase coverage explicitly:
+
+```bash
+UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -m unittest test_untap_decision_invariants
+```
+
+Discovery, fallback and live response compatibility remain outside the pure-stage tests. Maintainer live comparison of Pien and CM should compare statuses and selected URLs with the saved v107 runs.
+
 ## Dependency flow
 
 ```text
