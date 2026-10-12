@@ -1,0 +1,1095 @@
+{
+  "Banishing 3": {
+    "result": {
+      "beer": "Banishing 3",
+      "brewery": "Third Moon Brewing Company",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "7%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/6801235",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Third Moon Banishing 3",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Banishing 3\nThird Moon Brewing Company\n7.0% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Banishing 3",
+          "score": 1.0,
+          "abv": 7.0,
+          "brewery": "Third Moon Brewing Company",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/6801235",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Banishing 2",
+          "score": 0.972,
+          "abv": 7.0,
+          "brewery": "Third Moon Brewing Company",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Banishing 1",
+          "score": 0.972,
+          "abv": 7.0,
+          "brewery": "Third Moon Brewing Company",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Banishing 4",
+          "score": 0.972,
+          "abv": 7.0,
+          "brewery": "Third Moon Brewing Company",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/4",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Banishing 5",
+          "score": 0.972,
+          "abv": 7.0,
+          "brewery": "Third Moon Brewing Company",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/5",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 5 candidates\n  - 'Banishing 3' | brewery='Third Moon Brewing Company' | ABV=7.0 | score=1.000\n  - 'Banishing 2' | brewery='Third Moon Brewing Company' | ABV=7.0 | score=0.972\n  - 'Banishing 1' | brewery='Third Moon Brewing Company' | ABV=7.0 | score=0.972\n  - 'Banishing 4' | brewery='Third Moon Brewing Company' | ABV=7.0 | score=0.972\n  - 'Banishing 5' | brewery='Third Moon Brewing Company' | ABV=7.0 | score=0.972\n  exact-base preference not selected: duplicate exact name or non-extension: 'Banishing 2'\nExact numbered-name preference accepted: 'Banishing 3'\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "2b8804440935cc741817ce9c2c974ac7bb7dcf1e6b35ce257814dfd44abcd6f9",
+    "csv_sha256": "7617eb52c5d3d60a55dc6ca37e0a86402506a234e5008c9eaa5adba932558a68",
+    "json_sha256": "ac78403f9cc1c148163c866f2adb0e187df7dd5e2d05705831c4111625f24abd"
+  },
+  "Tripla Broccoli World": {
+    "result": {
+      "beer": "Broccoli World",
+      "brewery": "Other Half Brewing Co.",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "8.2%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/3908668",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Other Half Brewing Co. Broccoli World",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Broccoli World\nOther Half Brewing Co.\n8.2% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Broccoli World",
+          "score": 1.0,
+          "abv": 8.2,
+          "brewery": "Other Half Brewing Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/3908668",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Broccoli World: NYC Rampage",
+          "score": 0.75,
+          "abv": 9.0,
+          "brewery": "Other Half Brewing Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/3919882",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Broccoli World Special Reserve (8th Anniversary Edition)",
+          "score": 0.722,
+          "abv": 8.6,
+          "brewery": "Other Half Brewing Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/4685166",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 3 candidates\n  - 'Broccoli World' | brewery='Other Half Brewing Co.' | ABV=8.2 | score=1.000\n  - 'Broccoli World: NYC Rampage' | brewery='Other Half Brewing Co.' | ABV=9.0 | score=0.750\n  - 'Broccoli World Special Reserve (8th Anniversary Edition)' | brewery='Other Half Brewing Co.' | ABV=8.6 | score=0.722\n  exact-base preference not selected: missing or different ABV for 'Broccoli World: NYC Rampage'\nUnique exact identity accepted: 'Broccoli World' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "79431a07e710f44f482db7029928dbf2b8b23f3672d412dcef5cc9c167cebe27",
+    "csv_sha256": "27024d2703f59dfafcad4f1b5ccfecfe504ae84d6a0f126f245319a2dcdfe574",
+    "json_sha256": "a656233630256219ec2f689fffc355fcd3a5d8ed7684ca889b9b4cc9e60b3395"
+  },
+  "Tripla Ghost": {
+    "result": {
+      "beer": "Ghost In The Machine",
+      "brewery": "Parish Brewing Co.",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "8%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/593083",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Parish Brewing Co. Ghost In The Machine",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Ghost In The Machine\nParish Brewing Co.\n8.0% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Ghost In The Machine",
+          "score": 1.0,
+          "abv": 8.0,
+          "brewery": "Parish Brewing Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/593083",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "DDH Ghost In the Machine",
+          "score": 0.903,
+          "abv": 8.0,
+          "brewery": "Parish Brewing Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2422658",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "DDH Ghost In the Machine(Beijing Limited Edition)",
+          "score": 0.746,
+          "abv": 8.5,
+          "brewery": "Parish Brewing Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/4",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 3 candidates\n  - 'Ghost In The Machine' | brewery='Parish Brewing Co.' | ABV=8.0 | score=1.000\n  - 'DDH Ghost In the Machine' | brewery='Parish Brewing Co.' | ABV=8.0 | score=0.903\n  - 'DDH Ghost In the Machine(Beijing Limited Edition)' | brewery='Parish Brewing Co.' | ABV=8.5 | score=0.746\n  exact-base preference not selected: duplicate exact name or non-extension: 'DDH Ghost In the Machine'\nUnique exact identity accepted: 'Ghost In The Machine' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "1453b6d68d2603f1903a3b0c8fd78417a475be5b3ddd7280e198cf538a682458",
+    "csv_sha256": "87e431272466a219f0948e0943ea72043076e680b113ed1081c3bffd319ee23e",
+    "json_sha256": "4a82d03322f07d4808cbf0ecf544b09eb641d95d73bac05b0c9b8f54153616e3"
+  },
+  "Boston Lager": {
+    "result": {
+      "beer": "Boston Lager",
+      "brewery": "Samuel Adams",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Samuel Adams Boston Lager",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Boston Lager\nSamuel Adams\n5.0% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Boston Lager",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Samuel Adams",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Boston Lager (1985–2022)",
+          "score": 0.965,
+          "abv": 5.0,
+          "brewery": "Samuel Adams",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 2 candidates\n  - 'Boston Lager' | brewery='Samuel Adams' | ABV=5.0 | score=1.000\n  - 'Boston Lager (1985–2022)' | brewery='Samuel Adams' | ABV=5.0 | score=0.965\n  exact-base preference not selected: unrecognized qualifier '1985 2022' in 'Boston Lager (1985–2022)'\nUnique exact identity accepted: 'Boston Lager' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "5cf61caa4013209241b1b0c667ee2b6f9c53824756aee0b8134145ab7c4dbaba",
+    "csv_sha256": "85693d7a6a6f737d668d0e2ea32737a7e24dde39bc41a0125da95ef45f08e5ff",
+    "json_sha256": "e200c6f6f74087cbf87470fa43864c603cb23bb6fe56a22f985c13555eb0eda5"
+  },
+  "Schmoojee Peach Pear Dragonfruit": {
+    "result": {
+      "beer": "Schmoojee Peach Pear Dragonfruit",
+      "brewery": "Imprint Beer Co.",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "6.5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Imprint Beer Co. Schmoojee Peach Pear Dragonfruit",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Schmoojee Peach Pear Dragonfruit\nImprint Beer Co.\n6.5% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Schmoojee Peach Pear Dragonfruit",
+          "score": 1.0,
+          "abv": 6.5,
+          "brewery": "Imprint Beer Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Schmoojee Peach Pear Apricot Dragonfruit",
+          "score": 0.965,
+          "abv": 6.5,
+          "brewery": "Imprint Beer Co.",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 2 candidates\n  - 'Schmoojee Peach Pear Dragonfruit' | brewery='Imprint Beer Co.' | ABV=6.5 | score=1.000\n  - 'Schmoojee Peach Pear Apricot Dragonfruit' | brewery='Imprint Beer Co.' | ABV=6.5 | score=0.965\n  exact-base preference not selected: duplicate exact name or non-extension: 'Schmoojee Peach Pear Apricot Dragonfruit'\nUnique exact identity accepted: 'Schmoojee Peach Pear Dragonfruit' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "8e1d20d8285f232d458b93077bddb2ee9b778b6fe5cbd64331d0e2b37bd92ed1",
+    "csv_sha256": "3aed01de9e5e03873b280ea6e0a08163f1299a87dba07451df0feeb6f9bcf514",
+    "json_sha256": "194b59b49f6219d2ab5582f3905c601d5563a27763ad0db90db8c70eb9e7516b"
+  },
+  "Humble Sea ABV conflict": {
+    "result": {
+      "query": "Messorem A7Y7 X Humble Sea",
+      "status": "failed",
+      "reason": "ABV conflict: all retrieved candidates conflict with menu 6.5%",
+      "search_warning": null,
+      "search_fallback": null
+    },
+    "debug": "Excluded: A7Y7 X Humble Sea — 7.5% conflicts with menu 6.5%\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "1f98f665e33de0f75e65eba58b3af0d9f05a4e2b348aefb29970a9499cdb2732",
+    "csv_sha256": "c7ab47b0fdafdf6ae82e3984109eed3a587c60db56013be96eb92e90b02a99ef",
+    "json_sha256": "474f2827cce9a6ae0baebbd2457cd80b6265424cd3ba5c223803fd695b30227e"
+  },
+  "Production conflict False": {
+    "result": {
+      "query": "Samuel Adams Boston Lager",
+      "status": "ambiguous",
+      "match": "Boston Lager",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually.",
+      "search_warning": null,
+      "alternatives": [
+        {
+          "name": "Boston Lager",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Samuel Adams",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": false
+        },
+        {
+          "name": "Boston Lager (2025)",
+          "score": 0.9,
+          "abv": 5.0,
+          "brewery": "Samuel Adams",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": true
+        }
+      ],
+      "same_abv_variants": [],
+      "search_fallback": null,
+      "search_expanded": false
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nProduction/vintage conflict: Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually.\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "d4307b7c0493c254194e7f411827cf0ad4471144d8f4b77be816bc38b688ca3c",
+    "csv_sha256": "4d2553edfe75877d8fc688b7b651802b68bfaef03c4ad638b6024f21d9c3fef1",
+    "json_sha256": "60462d30bcd51f4132b167e35e5562d16c56bfcc145c8b3dda99f4214cfd76ff"
+  },
+  "Production conflict True": {
+    "result": {
+      "query": "Samuel Adams Boston Lager",
+      "status": "ambiguous",
+      "match": "Boston Lager",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually.",
+      "search_warning": "Search incomplete: an expansion error prevented checking all candidates.",
+      "alternatives": [
+        {
+          "name": "Boston Lager",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Samuel Adams",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": false
+        },
+        {
+          "name": "Boston Lager (2025)",
+          "score": 0.9,
+          "abv": 5.0,
+          "brewery": "Samuel Adams",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": true
+        }
+      ],
+      "same_abv_variants": [],
+      "search_fallback": null,
+      "search_expanded": false
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nProduction/vintage conflict: Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually.\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "f59a92adbf3e4057e371df8186a981801e48cd09298b7cd68381b02e4964a7c8",
+    "csv_sha256": "4d2553edfe75877d8fc688b7b651802b68bfaef03c4ad638b6024f21d9c3fef1",
+    "json_sha256": "a6948c163badbdfc7322353e9e92032560e57397de8b0da28bf356bf9bf49325"
+  },
+  "Exact base": {
+    "result": {
+      "beer": "PB&J Mixtape",
+      "brewery": "Xül",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "6.5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Xül PB&J Mixtape",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "PB&J Mixtape\nXül\n6.5% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "PB&J Mixtape",
+          "score": 1.0,
+          "abv": 6.5,
+          "brewery": "Xül",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "PB&J Mixtape Peach",
+          "score": 0.9,
+          "abv": 6.5,
+          "brewery": "Xül",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 2 candidates\n  - 'PB&J Mixtape' | brewery='Xül' | ABV=6.5 | score=1.000\n  - 'PB&J Mixtape Peach' | brewery='Xül' | ABV=6.5 | score=0.900\n  exact-base preference accepted: 'PB&J Mixtape'\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "49b852a1f9d26103f8de7691573cd0f98d85a0712dd8da7e6548be126b5e799a",
+    "csv_sha256": "96ee700db28b53dac56e62025f99f4e9f937fdd8acc9683c0d3169e05f671046",
+    "json_sha256": "98a5c7949599101d44bd6c38ed30aaadb0c045c2f220141af9d96a3058a71036"
+  },
+  "DDH": {
+    "result": {
+      "beer": "Double Dry Hopped Fort Point",
+      "brewery": "Trillium",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "6.6%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Trillium DDH Fort Point",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Double Dry Hopped Fort Point\nTrillium\n6.6% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Double Dry Hopped Fort Point",
+          "score": 1.0,
+          "abv": 6.6,
+          "brewery": "Trillium",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Mosaic Dry Hopped Fort Point",
+          "score": 0.8,
+          "abv": 6.6,
+          "brewery": "Trillium",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 2 candidates\n  - 'Double Dry Hopped Fort Point' | brewery='Trillium' | ABV=6.6 | score=1.000\n  - 'Mosaic Dry Hopped Fort Point' | brewery='Trillium' | ABV=6.6 | score=0.800\n  exact-base preference not selected: top candidate is not an exact-name match above the score threshold\nUnique exact identity not selected: expected exactly one candidate matching all three identifiers\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "fb217a1ac83047d130703bc714c2594fee64f5a7631bbb5e4d6d8221077c7ac4",
+    "csv_sha256": "50401f00ef87d965de7b7be7c4a32457c5f1f250bb022cfa5008d8888c5d9dd2",
+    "json_sha256": "ae3372c50dca5d95e2318b67b997310b3f1cad0265f60e5e00c2ea33131378fa"
+  },
+  "Incomplete capped": {
+    "result": {
+      "query": "Badlands Green Fields",
+      "status": "ambiguous",
+      "match": "Green Fields 2025",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Search incomplete: the page limit was reached; additional candidates may exist.",
+      "search_warning": "Search incomplete: the page limit was reached; additional candidates may exist.",
+      "alternatives": [
+        {
+          "name": "Green Fields 2025",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": true,
+      "search_fallback": null,
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference not selected: incomplete or early-stopped expansion\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "7e9714441890900752c29014f40cc205f610b3ec02c5fb6658c685e07f464e93",
+    "csv_sha256": "1f3fbda177811bda45ac2e15c2d6d30ba6eea3349c071765b53c17e981d83e8f",
+    "json_sha256": "c6b834834827bced2d9b6e8c180efa375bab99b3695884d1ad16be2f47a77aed"
+  },
+  "Incomplete errors": {
+    "result": {
+      "query": "Badlands Green Fields",
+      "status": "ambiguous",
+      "match": "Green Fields 2025",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Search incomplete: an expansion error prevented checking all candidates.",
+      "search_warning": "Search incomplete: an expansion error prevented checking all candidates.",
+      "alternatives": [
+        {
+          "name": "Green Fields 2025",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": true,
+      "search_fallback": null,
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference not selected: incomplete or early-stopped expansion\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "f50bbe2ad2516a934e16c110912e77cef3660400eca17b73e0ea43e49121b7e3",
+    "csv_sha256": "4ac5ea2322d330ebea3a43399a7213d3e60f68c84b4674e9c52817fc77175b43",
+    "json_sha256": "eb7a45bc8fc915ce13d6e4cd129d7ed1b7d891f5a13160d30a75be2c01bf1ac4"
+  },
+  "Incomplete ambiguity_early_stopped": {
+    "result": {
+      "query": "Badlands Green Fields",
+      "status": "ambiguous",
+      "match": "Green Fields 2025",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Search stopped after establishing ambiguity; additional candidates may exist.",
+      "search_warning": "Search stopped after establishing ambiguity; additional candidates may exist.",
+      "alternatives": [
+        {
+          "name": "Green Fields 2025",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": true,
+      "search_fallback": null,
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference not selected: incomplete or early-stopped expansion\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "e922b15e7c71dc64e9968cb0a6f9251c0bc5369f51f88eb92a3e458127e48122",
+    "csv_sha256": "196bc74e739dac563096100350cf066b0a08d452e01ee7aa0c93118efbf4c513",
+    "json_sha256": "3d2fc5c944b8b165faeed680f56e5b0597319b22aaba3a7fa29c1dd2f79a44ef"
+  },
+  "Incomplete ambiguity_established": {
+    "result": {
+      "query": "Badlands Green Fields",
+      "status": "ambiguous",
+      "match": "Green Fields 2025",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Search stopped after establishing ambiguity; additional candidates may exist.",
+      "search_warning": "Search stopped after establishing ambiguity; additional candidates may exist.",
+      "alternatives": [
+        {
+          "name": "Green Fields 2025",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": true,
+      "search_fallback": null,
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference not selected: incomplete or early-stopped expansion\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "e922b15e7c71dc64e9968cb0a6f9251c0bc5369f51f88eb92a3e458127e48122",
+    "csv_sha256": "196bc74e739dac563096100350cf066b0a08d452e01ee7aa0c93118efbf4c513",
+    "json_sha256": "3d2fc5c944b8b165faeed680f56e5b0597319b22aaba3a7fa29c1dd2f79a44ef"
+  },
+  "Review-only fallback": {
+    "result": {
+      "query": "Messorem A7Y7 X Fidens - XTRM Turbo",
+      "status": "ambiguous",
+      "match": "A7Y7 X Fidens X Freestyle Hops",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Recovered candidate name differs from the menu; manual confirmation required",
+      "search_warning": null,
+      "alternatives": [
+        {
+          "name": "A7Y7 X Fidens X Freestyle Hops",
+          "score": 1.0,
+          "abv": 7.5,
+          "brewery": "Messorem",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": false,
+      "search_fallback": "Messorem A7Y7 X Fidens",
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "a46ef8649be07a2d13f95797af1643cd6b25f27c68e1a6c330ff40082b58cc40",
+    "csv_sha256": "80031c2c44b07eda28b811034a2045e6b064be0a4dc58578d48c8d0041b6dbb8",
+    "json_sha256": "1191fe24fcb0c488323bfbd0b0d09297e3355b5cce2dc40729ca0a8399960c5d"
+  },
+  "No candidates": {
+    "result": {
+      "query": "Brewery Beer",
+      "status": "failed",
+      "reason": "No matching beer found",
+      "search_warning": null
+    },
+    "debug": "",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "e2b8aa3675562d4c6211635a667ba962f551e0e8d7f1049d1df54600d85eb1bf",
+    "csv_sha256": "2b8d7aca22c8c58725584f985931a9afee6c5434ea595a93209e583ada938d9b",
+    "json_sha256": "a90a9cf5ebc05580a091fc06fe380ef3d7fb015701afe841f879e83876378134"
+  },
+  "Brewery conflict": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "failed",
+      "reason": "Brewery conflict: retrieved candidates do not match menu brewery Badlands",
+      "search_warning": null,
+      "search_fallback": null
+    },
+    "debug": "",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "75720391534ad9309bbd0459b0baaead7596551903ec85a672a009629722c18b",
+    "csv_sha256": "fa0fc7368f1a0274a9adaeb05ea15af4fa3373a629eccc189e44081536200814",
+    "json_sha256": "03d82fc27f0ea0a6fc53727bde54b23655b09c3610c646f315c81f40328e18c1"
+  },
+  "Low confidence": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "low_confidence",
+      "match": "Weak Beer",
+      "score": 0.1,
+      "url": "https://untappd.com/b/fixture/1"
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Weak Beer' | brewery='Badlands' | ABV=None | score=0.100\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity not selected: expected exactly one candidate matching all three identifiers\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "614b0b61317bfe86cbad58da554b81cee681db9f353fe00423d291c960b61b6c",
+    "csv_sha256": "893eb099201fa66e779527bb6b53ef494fa4eeefbd2bc7758d3248c72b395aee",
+    "json_sha256": "e97de2cf49753a52701b7c56d0aca4c7a2220f7653b49c8f834b4579ec0d3d53"
+  },
+  "Same ABV family": {
+    "result": {
+      "query": "Trillium Daily Serving",
+      "status": "ambiguous",
+      "match": "Daily Serving Peach",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Multiple 5% variants found",
+      "search_warning": null,
+      "alternatives": [
+        {
+          "name": "Daily Serving Peach",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Trillium",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Daily Serving Cherry",
+          "score": 0.9,
+          "abv": 5.0,
+          "brewery": "Trillium",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [
+        {
+          "name": "Daily Serving Peach",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Trillium",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Daily Serving Cherry",
+          "score": 0.9,
+          "abv": 5.0,
+          "brewery": "Trillium",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "search_expanded": false,
+      "search_fallback": null,
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 2 candidates\n  - 'Daily Serving Peach' | brewery='Trillium' | ABV=5.0 | score=1.000\n  - 'Daily Serving Cherry' | brewery='Trillium' | ABV=5.0 | score=0.900\n  exact-base preference not selected: top candidate is not an exact-name match above the score threshold\nUnique exact identity not selected: expected exactly one candidate matching all three identifiers\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "6d29c532536e6f35305fe885d62f03731eb3f209f29d21e21118e80d407fc62f",
+    "csv_sha256": "331557729f3bed55293d907ea45199eecdae18beddff01a7343996ad9203db51",
+    "json_sha256": "fab141887a9cdc4225e902b876ac887574d2384d479ea29f87a3aee63928ec4c"
+  },
+  "Near tie": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "ambiguous",
+      "match": "Beer Alpha",
+      "score": 1.0,
+      "url": "https://untappd.com/b/fixture/1",
+      "reason": "Top candidates are too close",
+      "search_warning": null,
+      "alternatives": [
+        {
+          "name": "Beer Alpha",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        },
+        {
+          "name": "Beer Beta",
+          "score": 0.99,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": false,
+      "search_fallback": null,
+      "expanded_total_hits": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 2 candidates\n  - 'Beer Alpha' | brewery='Badlands' | ABV=5.0 | score=1.000\n  - 'Beer Beta' | brewery='Badlands' | ABV=5.0 | score=0.990\n  exact-base preference not selected: top candidate is not an exact-name match above the score threshold\nUnique exact identity not selected: expected exactly one candidate matching all three identifiers\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "f806ac1def188dd9883567e63e4a89756205caa270bbfa91781dfacba35e7838",
+    "csv_sha256": "be47839c43ef623a39803278aa3b35df248c5ae13f53b36979b5c2f3327d37a8",
+    "json_sha256": "bd2b1345a7eb4313aa847b7d2b1f9e636ac48a1f8684f9e80325b379e8f7a5e2"
+  },
+  "Detail ok": {
+    "result": {
+      "beer": "Beer",
+      "brewery": "Badlands",
+      "abv": "5%",
+      "ibu": null,
+      "rating": null,
+      "ratings": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "type_name": "IPA - Sour",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "query": "Badlands Beer",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Beer\nBadlands\n5.0% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Beer",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": null,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Beer' | brewery='Badlands' | ABV=5.0 | score=1.000\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity accepted: 'Beer' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 1
+    },
+    "html_sha256": "4f2a47f8d0fb77820c9fc02775df1bc28c8bca88a2eb1854705abad273a5638e",
+    "csv_sha256": "44ea94cfbd7c7fc47fb257a0e543643a037ae045a23a9d7cd826869350c7ec9c",
+    "json_sha256": "ab69bf0f1fdc656031e8a5c50382f94152bac6a42404dcbcf3bb741a973fc87c"
+  },
+  "Detail failed": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "failed",
+      "reason": "Controlled detail failure",
+      "url": "https://untappd.com/b/fixture/1",
+      "alternatives": [
+        {
+          "name": "Beer",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": null,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "search_fallback": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Beer' | brewery='Badlands' | ABV=5.0 | score=1.000\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity accepted: 'Beer' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 1
+    },
+    "html_sha256": "824d914726372b0f048411852520db89b27aa0a7a4497ecaa9924b0a08a285b4",
+    "csv_sha256": "c5dd07624abf0102a35d15f142370b23e88f03cb50740f1989119381689bf0c6",
+    "json_sha256": "0aa724f701f6a5dc9d40da53466b2ca4710abdc86c8877330863a41234b7f88c"
+  },
+  "Detail rate_limited": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "rate_limited",
+      "reason": "Controlled detail failure",
+      "url": "https://untappd.com/b/fixture/1",
+      "alternatives": [
+        {
+          "name": "Beer",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": null,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "search_fallback": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Beer' | brewery='Badlands' | ABV=5.0 | score=1.000\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity accepted: 'Beer' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 1
+    },
+    "html_sha256": "a7e41097ca7e9efeb61722f8239bc62444a242c1820e90d1c516eb818233fb06",
+    "csv_sha256": "0f4afe255f53a08cc9abbae62d90591ac10bea9a9af5887e95a0826f7ce43c7c",
+    "json_sha256": "1d1c7ee6b16f4d0e0b29a2468bb6f990f226e56600aa8363ae532b3425085b38"
+  },
+  "Captured metadata recovery": {
+    "result": {
+      "beer": "Beer",
+      "brewery": "Badlands",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA",
+      "query": "Beer",
+      "status": "ok",
+      "score": 1.0,
+      "search_text": "Beer\nUnknown\n5.0% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Beer",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Unknown",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": null,
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Beer' | brewery='Unknown' | ABV=5.0 | score=1.000\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity not selected: explicit name, brewery and finite ABV required\n",
+    "counters": {
+      "confirmed_from_algolia": 1,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "488b6cd4e68b87f7453e4f38d9466d9806e148fb8987494516214d6267415246",
+    "csv_sha256": "92f0a1eb7ae816c160e488e7725948f9e32aa78e47134cfa93197bcb903210cd",
+    "json_sha256": "8043138c769eaab66f479b3c0a8dfc831ba719666846e9bb2fe55757bcc2591a"
+  }
+}
