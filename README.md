@@ -1,6 +1,6 @@
-# Untap v107
+# Untap v108
 
-## Unreleased: pure decision stage
+## Pure decision stage (v108)
 
 The final identity rules now run in a browser-free decision function, with unchanged v107 matching and saved-output contracts. Browser validation and metadata retrieval remain in finalization. Internal rule names are not added to reports or snapshots.
 

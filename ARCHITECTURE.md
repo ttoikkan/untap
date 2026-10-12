@@ -1,10 +1,10 @@
 # Untap architecture contract
 
-Current through v107. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
+Current through v108. The CLI validates TSV locally, then orchestrates batch matching and browser transport. HTML/JSON are the default outputs; CSV is optional. Snapshot refresh, local review, candidate retrieval and refresh registration are separate boundaries. V103 adds interruption journals, incomplete-run guards and a shared report-identity module.
 
 V107 review corrections enforce brewery consistency and incomplete-discovery review at final resolution. The transport owns HTTP/page validation and bounded browser requests, and raises ordinary browser-availability errors; CLI boundaries translate those errors into clean command exits. Algolia request/result pairing is shared by transport, expansion and inspection. Shadow replay remains diagnostic except that HTTP 429 must stop further traffic.
 
-## Pure candidate decision stage (unreleased, v107 baseline)
+## Pure candidate decision stage (v108, v107 baseline)
 
 `untap_matcher.decide_candidates(candidates, expected, min_score, discovery, collect_diagnostics=False)` consumes already-ranked candidates and plain expected/discovery records. It returns the internal `Decision` TypedDict, including `kind`, `rule`, a provisional candidate, alternatives, same-ABV variants, reason, warning and diagnostic messages. It copies candidates and does not mutate inputs, print, import Playwright, perform network work, update counters or read timing state. Debug messages are data, not callbacks.
 
@@ -37,7 +37,7 @@ The default is 2,000 cases with seed 107, taking about 2–3 seconds locally. Fa
 UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -m unittest test_untap_decision_invariants
 ```
 
-Discovery, fallback and live response compatibility remain outside the pure-stage tests. Maintainer live comparison of Pien and CM should compare statuses and selected URLs with the saved v107 runs.
+Discovery, fallback and live response compatibility remain outside the pure-stage tests. Maintainer reports the live test works. Future live comparisons should check statuses and selected URLs against saved baseline runs.
 
 ## Dependency flow
 
