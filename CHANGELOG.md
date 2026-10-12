@@ -1,24 +1,12 @@
-# Unreleased — Search discovery phase extractions
+# v110 — Shared output, report model and explicit search phases (2026-10-12)
 
-- Audit remaining search phases and extract ordered fallback recovery behind typed internal discovery state and an explicit HTTP 429 outcome.
-- Preserve request order, weak-match and zero-hit gates, identity filters, stopping conditions, strongest-weak retention, candidate/page metadata pairing, debug output and timing boundaries.
-- Freeze nine pre-extraction request/outcome sequences and add direct rate-limit and fallback-condition checks. Extract primary retrieval and conditional expansion as separate helpers, preserving request metadata, paging strategies and early termination.
-- Validation: all 355 tests pass, including fresh installed-wheel checks; all 25 source files type-check. Existing decision/output baselines, recovery identity fixtures and 40 report-byte comparisons remain unchanged. Added explicit primary metadata and expansion-diagnostics propagation tests. No live Untappd requests were sent.
-
-# Unreleased — Typed report card presentation
-
-- Prepare ordered report cards in a pure, typed presentation model; keep HTML templates, escaping, safe links/assets and page/filter rendering in the renderer.
-- Preserve saved schemas, matching, review policy, labels, warnings and report bytes. Add a 40-case pre-extraction HTML baseline and direct presentation-model regressions.
-- Validation: all 349 tests pass, including fresh installed-wheel checks; all 25 source files type-check. All 40 fixed-date reports match the pre-extraction HTML bytes, and existing frozen output contracts remain unchanged.
-
-# Unreleased — Shared output and review policy
-
-- Extract pure review identity, row ordering and candidate eligibility from the renderer; refresh and local review use the shared policy directly. Preserve fingerprints and compatibility helper exports.
-- Extract CSV export and saved-snapshot JSON/HTML/optional CSV writing into an offline `untap_run_output` module.
-- Share output writing across batch, continuation and refresh; local review continues through the existing reviewed-run workflow.
-- Preserve CSV bytes, output order, report-date behavior, directory allocation, snapshot metadata, journal formats and recovery cleanup. Retain compatibility CSV exports from the batch and source CLI modules.
-- Remove refresh's dependency on batch/search for CSV export and enforce the new output dependency boundary.
-- Validation: all 345 tests pass, including a fresh installed wheel; all 24 source files type-check. Frozen CSV hashes and saved-run output comparisons pass, along with existing continuation and journal-cleanup failure tests. Review-policy tests cover stable ordering, candidate limits, user additions, excluded links, status/URL eligibility and fingerprints.
+- Centralize saved-snapshot JSON/HTML/optional CSV output in an offline module, preserving save order, metadata, recovery handling and compatibility exports.
+- Extract pure shared review policy for fingerprints, row order and selectable candidates; remove validators' dependence on private renderer helpers.
+- Prepare report cards through a typed, HTML-free presentation model. Preserve templates, escaping, asset safety, labels and saved schemas; 40 pre-extraction reports remain byte-identical.
+- Split search orchestration into primary retrieval, conditional expansion and fallback recovery ahead of existing decision/finalization. Preserve request order, fallback gates, identity filters, paging, metadata pairing, debug/timing boundaries and HTTP 429 termination.
+- Freeze nine search request/outcome scenarios and add output, presentation, review-policy and phase-metadata regressions.
+- Live validation: maintainer confirms each extraction behaves as before.
+- Validation: all 355 tests pass, including fresh installed-wheel checks; all 25 source files type-check. Frozen output and request-sequence contracts pass.
 
 # v109 — Review evidence and maintenance (2026-10-12)
 
