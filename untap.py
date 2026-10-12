@@ -36,7 +36,6 @@ from untap_batch import (
     run_batch,
     unattempted_result,
     debug_transcript,
-    _TeeOutput,
     print_batch_timing_summary,
 )
 from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
@@ -639,7 +638,7 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
         finally:
             if not completed:
                 for item in items[len(results):]:
-                    results.append(unattempted_result(item, "Batch interrupted before this row completed. Rerun the menu to search it."))
+                    results.append(unattempted_result(item, f"Batch interrupted before this row completed. Use untap run --continue {run_directory} to search the remaining rows."))
             snapshot = build_snapshot(results, report_title or DEFAULT_REPORT_TITLE)
             save_snapshot(snapshot, run_directory / "results.json")
             saved_results = [item["result"] for item in snapshot["items"]]

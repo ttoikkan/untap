@@ -3,6 +3,8 @@
 Run installed checks with UNTAP_TEST_ENV pointing at a fresh wheel installation.
 """
 
+import ast
+import re
 import contextlib
 import io
 import json
@@ -23,6 +25,17 @@ from untap_version import __version__
 
 
 class PackagingBoundaryTests(unittest.TestCase):
+    def test_all_runtime_modules_are_declared_without_building_a_wheel(self):
+        root = Path(__file__).parent
+        text = (root / 'pyproject.toml').read_text(encoding='utf-8')
+        section = re.search(r'(?ms)^\[tool\.setuptools\]\s*$(.*?)(?=^\[|\Z)', text)
+        self.assertIsNotNone(section, 'Missing setuptools configuration')
+        modules = re.search(r'(?ms)^py-modules\s*=\s*(\[.*?\])', section.group(1))
+        self.assertIsNotNone(modules, 'Missing flat module list')
+        declared = ast.literal_eval(modules.group(1))
+        self.assertEqual(len(declared), len(set(declared)), 'Duplicate packaged module')
+        self.assertEqual(set(declared), {path.stem for path in root.glob('untap*.py')})
+
     def test_version_exits_without_browser(self):
         with mock.patch.object(untap, 'untappd_browser_page', side_effect=AssertionError('browser opened')), contextlib.redirect_stdout(io.StringIO()) as output:
             with self.assertRaises(SystemExit) as exited:

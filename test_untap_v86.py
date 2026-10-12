@@ -48,7 +48,7 @@ class MatcherV86Tests(unittest.TestCase):
         self.assertIn("Excluded: Beer 4 — 5.5% conflicts with menu 6.5%", output.getvalue())
         self.assertEqual(matcher._exclude_abv_conflicts(rows, None), rows)
 
-    def test_all_conflicting_candidates_report_explicit_conflict_without_links(self):
+    def test_all_conflicting_candidates_report_inspection_links_without_choices(self):
         rows = [candidate("Some Beer", "Brewery", 8.5), candidate("Some Beer Peach", "Brewery", 5.0, .8, 2)]
         # Simulate completed recovery: all retrieved candidates still conflict.
         result, _ = self.run_search(rows, "Some Beer", "Brewery", 6.5,
@@ -57,7 +57,9 @@ class MatcherV86Tests(unittest.TestCase):
         self.assertIn("ABV conflict: all retrieved candidates", result["reason"])
         for field in ["url", "match", "alternatives", "same_abv_variants"]:
             self.assertNotIn(field, result)
-        self.assertNotIn("https://untappd.com/b/fixture", report.render_html_report([result]))
+        html = report.render_html_report([result])
+        self.assertIn("https://untappd.com/b/fixture", html)
+        self.assertNotIn('class="candidate-card"', html)
 
     def test_conflicts_are_absent_from_ambiguous_result_and_report(self):
         rows = [candidate("Each A Little Token", "Sante Adairius Rustic Ales", 5.2),

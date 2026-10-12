@@ -1,3 +1,12 @@
+# v109 — Review evidence and maintenance (2026-10-12)
+
+- Preserve ABV and brewery conflict candidates as inspection-only report links with exclusion reasons, separately from selectable alternatives. Matching decisions remain unchanged.
+- Add an always-on packaging module-list check and whole-chain invariants for minimum score and same-ABV families.
+- Point incomplete-run guidance to `untap run --continue`.
+- Organize the README by task, mark per-module changelogs as historical, and remove unused imports.
+- Live validation: maintainer confirms behavior works as before.
+- Validation: all 336 tests pass, including fresh installed-wheel checks; all 22 source files type-check. Default and 10,000-case invariants pass. Offline Chromium confirms inspection links remain non-selectable and the review script initializes without errors.
+
 # v108 — Pure decision stage (2026-10-12; v107 baseline)
 
 - Characterize 24 v107 rule interactions before extraction, preserving full results, debug messages, counter deltas and fixed-date HTML/CSV/JSON bytes.

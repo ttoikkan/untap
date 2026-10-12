@@ -74,6 +74,11 @@ class DiscoveryContext(TypedDict, total=False):
     expanded_total_hits: Optional[int]
 
 
+class ExcludedCandidate(TypedDict):
+    candidate: CandidateRecord
+    reason: str
+
+
 class Decision(TypedDict):
     """Internal identity decision, never serialized as part of MatchResult."""
     kind: DecisionKind
@@ -84,6 +89,7 @@ class Decision(TypedDict):
     same_abv_variants: List[CandidateRecord]
     search_warning: Optional[str]
     diagnostics: List[str]
+    excluded_candidates: List[ExcludedCandidate]
 
 
 class AlternativeRecord(TypedDict, total=False):
@@ -103,6 +109,10 @@ class AlternativeRecord(TypedDict, total=False):
     in_production: object
 
 
+class ExcludedAlternative(AlternativeRecord, total=False):
+    exclusion_reason: str
+
+
 class MatchResult(TypedDict, total=False):
     """Matcher/batch result contract.
 
@@ -120,6 +130,7 @@ class MatchResult(TypedDict, total=False):
     score: float
     url: Optional[str]
     alternatives: List[AlternativeRecord]
+    excluded_candidates: List[ExcludedAlternative]
     same_abv_variants: List[AlternativeRecord]
     search_expanded: bool
     search_fallback: Optional[str]

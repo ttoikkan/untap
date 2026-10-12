@@ -1,3 +1,5 @@
+> Historical module changelog. Current release notes are maintained in [CHANGELOG.md](CHANGELOG.md).
+
 # Archive publisher changelog
 
 ## v86

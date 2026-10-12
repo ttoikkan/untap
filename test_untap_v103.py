@@ -250,7 +250,7 @@ class LowPriorityIntegrityTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(output.stat().st_mode), stat.S_IMODE(normal.stat().st_mode))
 
     def test_tee_exposes_terminal_attributes(self):
-        from untap import _TeeOutput
+        from untap_batch import _TeeOutput
         with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as terminal:
             log = io.StringIO()
             tee = _TeeOutput(terminal, log)

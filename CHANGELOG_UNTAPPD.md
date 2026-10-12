@@ -1,3 +1,5 @@
+> Historical module changelog. Current release notes are maintained in [CHANGELOG.md](CHANGELOG.md).
+
 # v74 transport notes
 
 - Adds a manual live smoke probe above the existing v73 self-healing transport.

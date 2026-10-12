@@ -107,6 +107,10 @@ def observe(case):
 class DecisionCharacterizationTests(unittest.TestCase):
     def test_v107_results_debug_counters_and_output_bytes(self):
         expected = json.loads(FIXTURE.read_text())
+        # Explicit output changes: conflict inspection links and continuation guidance.
+        overlay = json.loads(FIXTURE.with_name('decision_review_links.json').read_text())
+        self.assertEqual(set(overlay), {'Humble Sea ABV conflict', 'Brewery conflict', 'Detail rate_limited'})
+        expected.update(overlay)
         for case in characterization_cases():
             with self.subTest(case=case['name']):
                 self.assertEqual(observe(case), expected[case['name']])

@@ -1,3 +1,5 @@
+> Historical module changelog. Current release notes are maintained in [CHANGELOG.md](CHANGELOG.md).
+
 # v103 — Production/vintage review guard (2026-10-11)
 
 - Require review when a yearless exact name/brewery/ABV match is explicitly out of production and a pure vintage sibling at the same brewery and ABV is explicitly current. Unknown status and rating counts do not decide identity.

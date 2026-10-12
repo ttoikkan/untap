@@ -6,7 +6,8 @@ from copy import deepcopy
 from time import perf_counter
 
 from untap_types import (AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult,
-                         Decision, DecisionKind, DecisionRule, ExpectedEvidence, DiscoveryContext)
+                         Decision, DecisionKind, DecisionRule, ExpectedEvidence, DiscoveryContext,
+                         ExcludedCandidate, ExcludedAlternative)
 
 from untap_parser import (
     normalize,
@@ -3681,6 +3682,7 @@ def decide_candidates(
     candidates = deepcopy(list(candidates))
     beer, brewery, abv, style = expected["beer"], expected["brewery"], expected["abv"], expected["style"]
     diagnostics: List[str] = []
+    excluded: List[ExcludedCandidate] = []
     expansion = discovery.get("expansion_diagnostics")
     sorted_scan = discovery.get("abv_sorted_diagnostics")
     incomplete = any(d and (d.get("capped") or d.get("errors") or d.get("ambiguity_early_stopped")
@@ -3699,7 +3701,7 @@ def decide_candidates(
         rows = [] if kind == "failed" else candidates if ordered is None else ordered
         return {"kind": kind, "rule": rule, "candidate": rows[0] if rows else None,
                 "reason": reason, "alternatives": list(rows), "same_abv_variants": variants or [],
-                "search_warning": warning, "diagnostics": diagnostics}
+                "search_warning": warning, "diagnostics": diagnostics, "excluded_candidates": excluded}
 
     # 1. Empty retrieval, then 2–3. ABV and explicit brewery conflicts.
     if not candidates:
@@ -3707,10 +3709,15 @@ def decide_candidates(
     eligible = _exclude_abv_conflicts(candidates, abv, debug=collect_diagnostics, diagnostics=diagnostics)
     abv_exclusions = len(eligible) != len(candidates)
     if not eligible:
+        excluded = [{"candidate": row, "reason": f"ABV conflicts with menu {abv:g}%"} for row in candidates]
         return outcome("failed", "abv_conflict", f"ABV conflict: all retrieved candidates conflict with menu {abv:g}%")
     brewery_eligible = [item for item in eligible if candidate_has_brewery_overlap(item, brewery)]
     brewery_exclusions = len(brewery_eligible) != len(eligible)
     if not brewery_eligible:
+        excluded = [{"candidate": row,
+                     "reason": f"Brewery does not match menu brewery {brewery}"
+                     if any(row is survivor for survivor in eligible)
+                     else f"ABV conflicts with menu {abv:g}%"} for row in candidates]
         return outcome("failed", "brewery_conflict", f"Brewery conflict: retrieved candidates do not match menu brewery {brewery}")
     candidates = brewery_eligible
     if collect_diagnostics:
@@ -3804,6 +3811,13 @@ def _finalize_decision(page: Any, query: str, decision: Decision,
                                "search_warning": search_warning}
         if rule != "no_candidates":
             failed["search_fallback"] = fallback_query_used
+        if decision["excluded_candidates"]:
+            links: List[ExcludedAlternative] = []
+            for excluded in decision["excluded_candidates"][:10]:
+                item: ExcludedAlternative = {**_alternative_from_candidate(excluded["candidate"]),
+                                            "exclusion_reason": excluded["reason"]}
+                links.append(item)
+            failed["excluded_candidates"] = links
         return failed
     best = decision["candidate"]
     if best is None:

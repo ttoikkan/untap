@@ -9,7 +9,7 @@ import sys
 from typing import Any, Dict, List, Optional, Sequence
 
 from untap_matcher import _run_page0_search_transport
-from untap_parser import MenuValidationError, normalize, read_validated_menu
+from untap_parser import MenuValidationError, read_validated_menu
 from untap_untappd import (
     MAX_ALGOLIA_EXPANSION_PAGES,
     _fetch_algolia_page,

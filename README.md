@@ -1,71 +1,163 @@
-# Untap v108
+# Untap
 
-## Pure decision stage (v108)
+Untap matches beer menus against Untappd and creates self-contained HTML reports. Review uncertain matches locally, save your choices, and publish completed reports to a local archive.
 
-The final identity rules now run in a browser-free decision function, with unchanged v107 matching and saved-output contracts. Browser validation and metadata retrieval remain in finalization. Internal rule names are not added to reports or snapshots.
+## Install
 
-The tests include 24 frozen v107 decision/output cases and a reproducible 2,000-case invariant suite. To run more generated cases, use:
-
-```bash
-UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -m unittest test_untap_decision_invariants
-```
-
-## Review corrections (v107)
-
-Explicit brewery conflicts cannot be confirmed automatically. Searches stopped by an expansion error, page limit or established ambiguity retain their warning and candidates for manual review. Detail fallback validates the selected beer's page before confirming; a blocked page is a failure and HTTP 429 stops the batch.
-
-Browser search requests, including response-body reading, have a 10-second deadline. Missing Chromium during local candidate retrieval returns an error without closing the review session. Interrupted journal recovery also tolerates a torn UTF-8 final record while rejecting damaged complete records.
-
-`--shadow-search-transport N` compares up to N successful UI bootstrap/recovery captures with a diagnostic replay. It sends additional requests only when explicitly enabled. Replay candidates do not influence matching, and HTTP 429 stops further traffic.
-
-## Unified commands (v106)
-
-```bash
-untap run --menu menu.tsv --report-title "My menu"
-untap run --continue results/<unfinished-run>/
-untap review results/<run>/
-untap refresh results/<run>/
-untap publish results/<run>/ /path/to/untap-results
-untap inspect --query "Kin Kinetic Hazy"
-untap smoke
-```
-
-Use `untap --help` for the command list and `untap <command> --help` for each tool's arguments. `run` retains local validation (`--validate-menu`) and all existing search options. `smoke` is an explicit live check and uses the existing smoke fixtures and exit codes.
-
-Legacy `untap --menu ...`, single-query searches, separate installed commands and source scripts remain supported without deprecation warnings. Only a leading exact subcommand name is reserved: for a query starting with `run`, `review`, `refresh`, `publish`, `inspect` or `smoke`, use `untap run "review Brewery Beer"` or `untap -- "review Brewery Beer"`. Intermixed search arguments keep their existing behavior.
-
-If v105 is already installed with pipx, run `pipx install --force .` from this checkout to test the local v106 commands.
-
-From a checkout, use `python3 -m untap_cli ...` for unified commands. `python3 untap.py ...` remains the legacy search entry point. Subcommands share their tools' argument definitions, validation and execution functions; output locations and matching behavior are unchanged.
-
-## Installation (v105)
-
-Untap requires Python 3.9 or newer. Install the command-line tools in an isolated environment with pipx:
+Python 3.9 or newer is required. Install with pipx, then download the browser used for searches:
 
 ```bash
 pipx install git+https://github.com/ttoikkan/untap.git
 untap-install-browser
 untap --version
-untap --menu menu.tsv --report-title "My menu"
 ```
 
-`untap-install-browser` downloads Playwright's Chromium using Untap's own Python environment. Browser installation is explicit; local validation, help, version reporting and offline report operations do not require Chromium. A search without the browser installed explains how to install it.
+From a checkout, install with `pipx install .`; update your installed copy after local changes with `pipx install --force .`. If the installed commands are missing from your shell, run `python3 -m pipx ensurepath` and open a new terminal.
 
-| Installed command | Existing source entry point |
-| --- | --- |
-| `untap` | `python3 untap.py` |
-| `untap-review` | `python3 untap_local_review.py` |
-| `untap-refresh` | `python3 untap_refresh.py` |
-| `untap-publish` | `python3 untap_publish.py` |
-| `untap-inspect` | `python3 untap_inspect.py` |
+Browser installation is explicit. Help, menu validation and offline report operations work without Chromium. Searches explain how to install it if it is missing.
 
-From a source checkout, `pipx install .` installs the local version.
+## Process a menu
 
-Each command retains its existing arguments; use `--help` for details. Live smoke checks remain `untap --smoke-test`. Source-checkout commands remain supported. Matching, report contents and output locations are unchanged: normal searches write `results/` and inspections write `inspections/` relative to the current directory; continuation creates a sibling of the source run.
+```bash
+untap run --validate-menu menu.tsv
+untap run --menu menu.tsv --report-title "My menu"
+```
 
-The wheel includes the review JavaScript in `untap_assets`, read through Python's resource API and embedded inline in HTML. `untap_version.py` is the single source of the distribution and CLI version (`106.0`, release tag `v106`). Packaging validation installs the wheel outside the checkout and compares fixed-input HTML, CSV and JSON against pre-packaging outputs.
+The input is a tab-separated file with four columns: **brewery, beer, ABV, style**. Style may be empty, but its column must remain. An optional header, blank lines and a UTF-8 BOM are supported. ABV accepts decimal points or commas and an optional percent sign, including zero.
 
-To repeat the installed-wheel checks from the checkout:
+```text
+brewery	beer	abv	style
+Badlands	Green Fields	6.5%	IPA
+```
+
+See [SUPPORTED_MENU_FORMATS.md](SUPPORTED_MENU_FORMATS.md) for the exact input contract. Older free-form menu formats are no longer supported.
+
+Each run creates a folder under `results/` in the current directory. It contains `results.html` and `results.json`; `--csv` also writes `results.csv` in that folder. `--csv` takes no filename. Add `--debug` to retain diagnostic output.
+
+For a single beer:
+
+```bash
+untap run "Badlands Green Fields"
+```
+
+Use `untap --help` for the command list and `untap run --help` for search options. Unknown options fail before searching.
+
+## Preview and review
+
+Open `results.html` directly in your browser for a static preview. For local review with saving and candidate retrieval:
+
+```bash
+untap review results/<run-folder>/
+```
+
+The review server runs on the local machine and opens the report in your browser. Confirm candidates, change a selection, or add a candidate by its Untappd beer URL. Candidate retrieval sends an explicit request to Untappd. Saving creates a new reviewed run folder and preserves the original snapshot and decision history. Stop the server with Ctrl-C.
+
+Candidates excluded because their brewery or ABV conflicts with the menu appear as inspection links with their exclusion reasons. These links are separate from selectable candidates and cannot be confirmed directly. A failed match remains unresolved.
+
+Static reports can also store choices in the browser and export them. Apply that export to its matching snapshot:
+
+```bash
+untap refresh results/<run-folder>/ --selections selections.json
+```
+
+Browser choices are never applied automatically. Pending candidate URLs in an export require `--fetch-candidates`, which contacts Untappd. If an old export no longer matches, refresh the original snapshot and export choices from its new HTML.
+
+## Continue an unfinished run
+
+After an HTTP 429, wait for the rate limit to clear, then use:
+
+```bash
+untap run --continue results/<unfinished-run-folder>/
+```
+
+Continuation searches only rate-limited and not-attempted rows. Completed matches, failed searches, ambiguous results, manual decisions and item IDs are retained. It creates a sibling folder and leaves the original run untouched. A normal menu run searches the entire menu again.
+
+During a batch, Untap writes a full `results.input.json` manifest and flushes each completed row to `results.partial.jsonl`. Ctrl-C and ordinary exceptions also save a final snapshot and report with unfinished rows marked **Not Attempted**. Recovery files remain after incomplete runs or failed saves and are removed after all outputs save successfully.
+
+Continuation uses `results.json` when available, otherwise the manifest and journal. A torn final journal record is ignored with a warning; malformed complete records and mismatched identities are rejected. For a crashed legacy v103 run without a manifest, provide the exact original menu in its original order:
+
+```bash
+untap run --continue results/<legacy-run-folder>/ --recovery-menu original-menu.tsv
+```
+
+Older snapshots that silently omitted rows cannot recover the missing identities; process the original menu again. Incomplete reports cannot be published or registered for refresh.
+
+## Publish a report
+
+```bash
+untap publish results/<reviewed-run-folder>/ ../untap-results
+```
+
+Publishing copies a completed report into a local archive and updates its index. Use `--replace` to replace an existing archive entry. This does not commit or push the archive to Git. Keep your saved run snapshots for future review and refresh.
+
+## Refresh saved reports
+
+```bash
+untap refresh results/<run-folder>/
+untap refresh results/<run-folder>/ --output results/my-refreshed-report
+```
+
+Refresh rebuilds HTML from the saved snapshot without repeating the menu search. It creates a new output folder and retains applied manual decisions. Use `--csv` for optional CSV output. To publish the refreshed report as well, add `--archive ../untap-results --replace`.
+
+For several reports, create a configuration whose paths are relative to the configuration file:
+
+```json
+{
+  "reports": [
+    {
+      "source": "results/my-reviewed-run",
+      "archive": "../untap-results",
+      "replace": true
+    }
+  ]
+}
+```
+
+```bash
+untap refresh --batch refresh-reports.json
+```
+
+Use reviewed snapshots as sources to preserve your choices. Entries may include a `selections` path. Omit `archive` and `replace` for refresh-only operation. Malformed configuration is rejected before starting; individual failures are reported while remaining entries continue, with exit code 2 if any fail. Successful entries are retained.
+
+A menu run can register its completed snapshot using `--register-refresh refresh-reports.json`. Registration skips missing sources with a warning; other invalid entries still require correction. The configuration is not automatically changed to point to refreshed outputs.
+
+## Inspect search results
+
+```bash
+untap inspect --query "Kin Kinetic Hazy"
+untap inspect --menu menu.tsv
+```
+
+Inspection saves raw search hits under `inspections/` in the current directory, without making matching decisions. Use `untap inspect --help` for query files, paging and diagnostics.
+
+`--shadow-search-transport N` on a search compares up to N successful browser captures with diagnostic replay requests. It sends additional requests only when explicitly enabled. Replay candidates never affect matching, and HTTP 429 stops further traffic.
+
+## Use a source checkout
+
+Unified commands also work without installation:
+
+```bash
+python3 -m untap_cli --help
+python3 -m untap_cli run --menu menu.tsv
+```
+
+Legacy query forms, `python3 untap.py`, and the separate `untap-review`, `untap-refresh`, `untap-publish` and `untap-inspect` commands remain supported. Leading subcommand names are reserved: for a query beginning with one, use `untap run "review Brewery Beer"` or `untap -- "review Brewery Beer"`.
+
+## Develop and validate
+
+```bash
+python3 -m pip install -r requirements-dev.txt
+python3 -B -m unittest discover
+python3 -m mypy untap*.py untap_assets
+```
+
+The ordinary suite includes a packaging module-list check, frozen decision/output cases, and 2,000 seeded invariant cases. Run a larger invariant sample with:
+
+```bash
+UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -B -m unittest test_untap_decision_invariants
+```
+
+Installed-wheel checks are optional in source-only runs. To exercise entry points, bundled assets, missing-browser diagnostics and output equivalence outside the checkout:
 
 ```bash
 python3 -m pip install build
@@ -75,476 +167,6 @@ python3 -m venv /tmp/untap-installed-check
 UNTAP_TEST_ENV=/tmp/untap-installed-check python3 -B -m unittest discover
 ```
 
-The installed checks run in temporary working directories with no browser binaries, verifying command entry points, local validation, missing-browser diagnostics, bundled assets and identical outputs. They are skipped in ordinary source-only test runs.
+Run `untap smoke` only when you want the explicit live integration check. It contacts Untappd.
 
-## Continue unfinished runs (v104)
-
-```bash
-python3 untap.py --continue results/<unfinished-run>/
-python3 untap.py --continue results/<unfinished-run>/ --debug --csv
-```
-
-Continuation searches only **rate-limited** and **not attempted** rows, preserving completed matches (including ambiguous and failed results), manual decisions, alternatives and item IDs. It creates a new sibling folder, keeps the saved report title, and never modifies the source run. Wait for the rate limit to clear before continuing. Normal searches still rerun the full menu.
-
-New runs retain a full `results.input.json` manifest and a flushed `results.partial.jsonl` journal until all final outputs save successfully. A complete run removes both temporary recovery files. Incomplete runs and save failures retain them. Continuation prefers `results.json`; if a crash prevented it, the manifest and journal recover completed progress. A torn final journal line is ignored with a warning; mismatched identities and malformed complete lines are rejected before searching.
-
-For a v103 journal without an input manifest:
-
-```bash
-python3 untap.py --continue results/<crashed-v103-run>/ --recovery-menu original-menu.tsv
-```
-
-Use the exact original TSV in the original order. The legacy recovery title defaults to its filename stem. Legacy snapshots that silently omitted rows cannot be continued safely; rerun the menu. This continuation mechanism replaces no completed decisions and is separate from the removed CSV resume feature.
-
-
-## Integrity and CLI validation (v103)
-
-For a menu without a year, an explicitly out-of-production exact-name match remains ambiguous when a same-brewery vintage sibling at the menu ABV is explicitly in production. Both releases are offered for manual review; unknown production status and rating counts do not establish this conflict. An explicitly named vintage remains governed by the existing exact-identity rule.
-
-Completed batch results are written immediately to a flushed `results.partial.jsonl`. Ctrl-C or an exception also saves HTML and JSON with unfinished rows marked **Not Attempted**. An abrupt process kill or machine crash cannot run shutdown code, but already written journal rows remain available; automatic resume is not added.
-
-Missing refresh-registry source files are skipped with a warning; their entries remain in the configuration. Brewery names are omitted from queries only when their complete normalized token sequence already appears in the beer name.
-
-Unknown or abbreviated CLI options now fail before searching. `--csv` takes no filename: use it alone to export in the run folder. Positional search text cannot be combined with `--menu`, `--file` or `--validate-menu`. Single-beer queries and existing valid options remain supported.
-
-After an HTTP 429, remaining menu rows are retained as **Not Attempted**, with their original input identity. The HTML warns that the run is incomplete; incomplete runs cannot be published or registered for refresh. Rerun the menu after the rate limit clears. Older truncated snapshots cannot recover the missing row identities, but refreshing them now displays the stored remainder count and blocks publication.
-
-Changing a selection clears the previous beer’s IBU and search-only fields, and stores ABV consistently as a percentage string. Original result data remains in decision history.
-
-
-## Simpler input and output (v102)
-
-Menus use exactly four tab-separated fields: **brewery, beer, ABV, style**. Brewery, beer and percentage ABV are required; style may be empty. Blank lines and an optional `brewery<TAB>beer<TAB>ABV<TAB>style` header are accepted. ABV accepts up to two decimal places (ambiguous `1,000%` is rejected). Decimal commas, zero ABV, accents and punctuation in beer names are preserved. Convert older menu layouts to TSV; they are no longer guessed or parsed. Single-query and `--file` query-list searches remain available.
-
-Batch runs now save **HTML and JSON by default**. Add `--csv` to export `results.csv` for spreadsheet use. The same option works with `untap_refresh.py` (including `--batch`) and `untap_local_review.py`. Existing output files are untouched. `--html` remains accepted for older commands; it is no longer necessary.
-
-```bash
-python3 untap.py --menu menu.txt --report-title "My menu"
-python3 untap.py --menu menu.txt --csv
-python3 untap_refresh.py results/<run-folder>/ --csv
-```
-
-## Guarded exact identities (v101)
-
-After a complete search, exactly one candidate matching the explicit menu name,
-brewery and ABV can be confirmed regardless of its score ranking. Existing name
-and brewery normalization and the exact-ABV tolerance are used. Differently named
-vintage, batch and ingredient variants do not block that match. Two candidates
-matching all three identifiers, or missing data that could conceal a second such
-match, prevent this override. Incomplete searches and review-only recovered
-candidates still require caution; no candidate scores are changed.
-
-## Explicit series numbers (v100)
-
-A unique exact name such as `Banishing 3` can now be confirmed over otherwise
-identical differently numbered siblings when brewery and exact ABV agree.
-This rule only handles terminal series numbers 1–999 and complete searches;
-unnumbered input, duplicate exact names, added qualifiers and vintage handling
-remain unchanged. Candidate scores are not modified.
-
-## Matcher refinements (v99)
-
-Standalone `DDH` is compared as `Double Dry Hopped`, while hop varieties and
-release years remain distinct. When a zero-hit `XTRM Turbo` search recovers a
-plausible name extension with brewery and exact ABV agreement, that candidate
-is offered for manual confirmation rather than discarded. It is never
-automatically confirmed by this recovery rule. ABV conflicts and vintage
-ambiguities remain protected; inserted-ingredient cases such as Imprint's
-Apricot variant still require review.
-
-## Local browser review (v98)
-
-```bash
-python3 untap_local_review.py results/<saved-run-folder>/
-```
-
-This opens one saved snapshot in your browser through a temporary server bound
-only to 127.0.0.1. Leave the command running while reviewing. Use `--no-open`
-to print the private session URL without opening the browser automatically.
-
-- **Add candidate by URL → Fetch candidate** retrieves the exact beer using
-  the existing Untappd transport and reloads the report. Retrieval is explicit;
-  adding a candidate does not confirm it. Existing choices are carried forward.
-- Confirm or change selections as usual, without exporting or importing JSON.
-- **Save reviewed run** writes HTML and JSON (plus CSV with `--csv`) to a new sibling folder and
-  displays its path. The original run is untouched. Saving does not fetch.
-- Save before closing the session. Unsaved browser choices and fetched candidates
-  are not durable. Ctrl-C stops the server; reopen a saved output to continue.
-
-Publishing, Git operations and refresh-configuration changes remain separate.
-Published reports retain the existing export/import workflow. Local session
-credentials are not embedded in the saved HTML. The server exposes only its
-session page and actions, not arbitrary files; write requests require its token
-and same-origin checks.
-
-## Add a candidate by URL (v97)
-
-Failed and ambiguous cards have **Add candidate by URL**. Paste a full HTTPS
-Untappd beer URL on the relevant card. The URL is saved as a pending candidate,
-not a confirmation; remove it on that card if needed. Export selections to keep
-pending candidates together with their report and stable menu-item IDs.
-
-Refresh that exact snapshot with explicit network permission:
-
-```bash
-python3 untap_refresh.py results/<source-run>/ \
-  --selections ~/Downloads/untap-selections.json --fetch-candidates
-```
-
-Ordinary refresh remains offline. This flag uses the existing search transport
-to search the URL name, accepting only the exact requested beer ID. A stale or
-unsearchable slug may fail; a similarly named beer is never substituted. URL
-inputs do not trigger arbitrary HTTP fetches. Retrieval failure leaves the
-source unchanged and creates no output folder.
-
-Open the newly refreshed HTML to inspect the user-added cards and their menu
-context. They have no automatic match score and remain unconfirmed. Confirm
-only after checking brewery, ABV and other evidence, then export again and
-apply to **the newly refreshed snapshot** using --selections as usual.
-Use --archive/--replace if you also want local publication. Fetching pending
-URLs is currently single-run only, not enabled in batch configurations.
-
-Regenerate or refresh existing reports to get the URL form. At most 20 pending
-candidates are accepted per export, deduplicated by item and Untappd beer ID.
-
-v96 adds a zero-hit recovery for an interior standalone capital
-`I` misread from `|`, as in Rosa Shock I The Laser Dude. It requires a
-brewery, at least two words on each side, and matching recovered name,
-brewery and explicit ABV. Original input and scoring remain unchanged.
-It also tries removing an extra leading The together with a one- or two-word
-terminal parenthetical annotation, using the same strict verification.
-Numeric annotations such as years are excluded from this combined recovery.
-
-## Automatic registration (v95)
-
-Add `--register-refresh refresh-reports.json` to your normal batch command
-with `--report-title "Menu title"`. After saving the run, Untap adds
-a source-only entry for a new menu, creating the configuration if absent.
-Add archive/replace and optional selections settings yourself; publication
-can also use explicit top-level defaults. Paths are relative to the configuration.
-
-Set `"defaults": {"archive": "../untap-results", "replace": true}` alongside
-`"reports"` to apply those settings to all entries, including newly registered
-menus. Per-entry values override defaults, including `"replace": false`.
-Source and selections paths are never inherited. Existing configurations without
-defaults retain their previous behavior.
-
-Existing menu titles use the publisher's identity rules and are left untouched,
-including their selections and archive settings. Missing or unreadable existing
-snapshots prevent registration rather than risking duplicates. A registration
-error is reported without discarding the completed run.
-
-## Saved run snapshots (v94)
-
-New batch runs also save a versioned `results.json`, alongside the HTML report. It retains full result and candidate records, including images,
-production status, and search warnings, plus report title/date and stable
-occurrence-aware menu-item IDs. CSV and HTML use the same saved result data.
-Keep this file for future offline report refreshes.
-
-The snapshot reserves a manual-decision list (empty for a new run).
-Multiple saved runs can be refreshed using the batch configuration below.
-Existing runs need a one-time rerun to obtain this lossless snapshot.
-
-Refresh one saved run offline (no Untappd requests):
-
-```bash
-python3 untap_refresh.py results/<run-folder>/
-```
-
-This creates a new sibling folder containing JSON and HTML (plus CSV with `--csv`), preserving
-the saved title, date and matching results. An optional `--output NEW_FOLDER`
-chooses the destination; existing folders are never overwritten.
-To also update the local archive, preserving an existing report's URL:
-
-```bash
-python3 untap_refresh.py results/<run-folder>/ --archive ../untap-results --replace
-```
-
-Git commit/push remain separate. If publication fails, the refreshed folder
-is retained. To apply exported choices, add `--selections ~/Downloads/untap-selections.json`.
-The entire export is validated against the snapshot before writing anything.
-Selected candidates become confirmed in HTML and optional CSV; JSON retains the original
-ambiguous result and decision history. HTML labels them “Manually confirmed”.
-Refreshes of that reviewed snapshot preserve the decisions.
-
-Older exports use an incompatible browser fingerprint: refresh the original
-snapshot with this version, open or publish its HTML, and export choices again
-before applying them. Browser-only choices are never read automatically.
-
-### Batch refresh
-
-Create a JSON configuration (paths are relative to that configuration file):
-
-```json
-{
-  "reports": [
-    {
-      "source": "results/<reviewed-run-folder>",
-      "archive": "../untap-results",
-      "replace": true
-    },
-    {
-      "source": "results/<another-run-folder>",
-      "archive": "../untap-results",
-      "replace": true
-    }
-  ]
-}
-```
-
-Run `python3 untap_refresh.py --batch refresh-reports.json`.
-Use reviewed snapshots as sources to retain applied manual choices. Entries
-may optionally include a `selections` path; omit `archive` and `replace` for
-refresh-only operation. The configuration is not rewritten to point to outputs.
-Malformed configuration is rejected before starting; individual run failures
-are reported while remaining entries continue. Any failure returns exit code 2.
-Successful entries are not rolled back. Each run gets a new output folder;
-Git commit and push remain explicit.
-
-## Personal review in reports (v93)
-
-Newly generated `results.html` files include personal review, both locally and
-when published. No separate review command or copy is needed. Regenerate and
-republish older reports to add these controls. Ambiguous candidates have **Confirm this beer**
-buttons. Selecting one updates the counts and sorts by its Untappd rating;
-**Change selection** restores the original alternatives. Choices are stored in
-the browser when available and can be exported as `untap-selections.json`.
-The report-content fingerprint and row index keep selections scoped to this
-particular report, including repeated menu entries.
-
-Candidates that share an Untappd beer ID with another confirmed menu item show
-an “Already matched” tag, with “Already matched to another menu item” as its
-tooltip and accessible label. This hint updates after confirmation and undo,
-and does not prevent selecting the candidate. A “Manually confirmed” tag sits
-beside “Change selection”; candidates within each ambiguity group share equal
-row heights.
-
-Choices are personal to each visitor's browser: they do not change the shared
-report, CSV, archive counts, or other visitors' views. The export is a record of
-choices, not an input to the CLI. Use **Import selections** to restore it in
-another browser on the exact same report. The whole file is validated before
-applying anything; imported rows replace choices for those rows, while other
-choices are kept. Keep the source report with the export.
-Browser choices may be unavailable after moving the file, regenerating the
-report, or clearing browser storage. Without JavaScript, the original report
-remains readable. Reports without ambiguous items show no review toolbar.
-The companion `untap_assets/untap_review.js` is bundled inline during report generation;
-publishing still requires only the HTML file.
-
-The publisher also accepts a run directory and automatically uses its
-`results.html`, for example:
-
-```bash
-python3 untap_publish.py results/<run-folder>/ ../untap-results --replace
-```
-
-v92 refines report cards with consistent thumbnail sizes and rating/count
-columns, separate candidate match labels, clearer brewery/style hierarchy,
-and quieter production notes. Matching behavior is unchanged.
-
-v91 adds Algolia response inspection, diagnostic alias/style observations, and
-visible incomplete-search warnings. The deterministic suite contains 202 tests.
-Menu-versus-Untappd ABV comparison notes are planned for a later release.
-
-## Search completeness and style diagnostics
-
-Ambiguous HTML cards and batch terminal output retain a separate warning when
-search expansion reaches its page cap, encounters an error, or stops early
-after establishing ambiguity. The warning supplements the beer-family reason.
-Historical reports must be regenerated to show this information. The CSV schema
-is unchanged; search warnings are currently available in HTML and terminal output.
-
-With `--debug`, explicit stout-versus-IPA style contradictions are printed for
-ABV-compatible candidates. This deliberately narrow diagnostic does not filter
-or rescore candidates. Unknown styles and other style combinations are silent.
-Konttori fixtures preserve the current Just Fruit shared-prefix ambiguity and
-Messorem numbered-name recovery behavior for future policy comparisons.
-
-## Read-only Algolia response inspection
-
-`untap_inspect.py` records the exact page-zero beer hits returned by ordinary
-Untappd searches without scoring, matching, expanding result pages, or visiting
-beer detail pages:
-
-```bash
-python3 untap_inspect.py --query "Sante Adairius Tomorrow, Today"
-python3 untap_inspect.py --query "Xül PB&J Mixtape" --query "Old Nation M-43"
-python3 untap_inspect.py --file queries.txt
-python3 untap_inspect.py --menu menu.txt
-python3 untap_inspect.py --query "Old Nation M-43" --all-pages
-```
-
-Each run creates a unique `inspections/<timestamp>_<input>/` directory containing
-`summary.txt` and `hits.json`. The summary highlights potentially useful fields
-and inventories every field, its presence rate, observed JSON types, and sample
-values. The JSON retains every page-zero hit field and value for later analysis.
-The default remains page zero only. `--all-pages` serially inspects additional
-pages using the captured request, validates pagination metadata, and stops at the
-same 20-page safety cap used by Untap's established expansion boundary. The tool
-stops after HTTP 429 and returns a nonzero exit status for incomplete inspections.
-Its output is observational evidence only and never changes matcher behavior.
-
-When the main command runs with `--debug`, it also performs shadow-only alias
-analysis on the final brewery- and ABV-compatible candidate set. It checks exact
-normalized matches against the menu beer and beer-plus-style text, reports one
-uniquely supported candidate or an inconclusive multi-candidate result, and then
-explicitly confirms that scores, ordering, and match status were unchanged.
-Algolia aliases are not used to make matching decisions.
-
-Untap v90 displays explicit Untappd production metadata consistently on every
-confirmed beer and ambiguous candidate card: **Listed as in production on
-Untappd** or **Listed as out of production on Untappd**. Missing and unfamiliar
-values make no claim but reserve the same status-row height, keeping comparable
-cards aligned. The metadata remains informational and does not affect matching,
-scores, ordering, or CSV output.
-
-Untap v89 carries two more existing Algolia fields into report presentation,
-without changing matching. A thumbnail with a valid `beer_label_hd` URL becomes
-a keyboard-accessible preview button. The HD image is requested only when the
-user opens the native dialog; Escape, the close button, or the backdrop closes
-it and focus returns to the originating thumbnail. If the HD URL is absent or
-untrusted, the existing thumbnail remains non-clickable.
-
-When Untappd's `in_production` field is explicitly false, an ambiguous candidate
-shows **Listed as out of production on Untappd**. Confirmed cards never show the
-hint; true, missing, and unrecognized values are also silent. Production status
-is context for manual ambiguity review only: it never affects scores, ordering,
-or confirmation.
-
-Untap v88 adds optional remote beer-label thumbnails to HTML reports using the
-label URL already present in Untappd's Algolia search result. This does not add
-matching requests or affect candidate scores. Images are lazy-loaded only from
-`https://assets.untappd.com`, send no referrer, reserve their layout space, and
-disappear cleanly on failure. The report markup remains portable and fully
-usable offline, although label images naturally require a connection.
-
-Reports also gain an independent **Show** filter for all, ambiguous, or failed
-results. Style filters continue to combine with that selection.
-
-For batch runs, `--debug` now mirrors the terminal diagnostics into an
-incrementally flushed `debug.txt` beside `results.json` and `results.html`. Without `--debug`, no log is created; single-beer searches
-remain terminal-only. Diagnostic scores display to three decimals, exact-base
-messages distinguish an inapplicable rule from a rejected preference, and the
-terminal summary reports confirmed, ambiguous, and failed counts separately.
-
-## Per-run output folders (v87)
-
-Every `--menu` or `--file` run saves `results.html` and `results.json` in a new folder, for example `results/2026-09-04_091530_nailo-new-arrivals/`. Add `--csv` to save `results.csv` alongside them. The folder uses local run-start time and a filesystem-safe report title, falling back to the input filename stem. Same-second runs receive a numeric suffix; existing run folders are never reused. Single-beer searches and validation-only commands do not create output folders.
-
-Every batch run searches its full input. `--resume` and `--resume-from` remain unsupported; the old `--csv FILENAME` form is replaced by the boolean `--csv` flag. Existing CSV files are untouched.
-
-Use the chosen run's HTML path when publishing, as shown below.
-
-Untap v86 adds bounded zero-hit search recovery for an extra leading `On` and guarded exact-base-name acceptance over recognized flavor/process variants. Candidate scores are unchanged; batch/year and unknown qualifiers still preserve ambiguity. Report and archive summaries now distinguish ambiguous, failed, and other unresolved results. See [v86 manual regression checks](V86_VALIDATION.md) before release.
-
-## Mobile-friendly HTML results
-
-HTML is generated automatically with `--menu` or `--file`:
-
-```bash
-python3 untap.py --menu menu10.txt
-python3 untap.py --menu menu10.txt --report-title "September Bottle Share"
-```
-
-`--report-title` is optional and requires batch input. When supplied, the descriptive title appears in both the browser tab and the report heading. If omitted, the title remains `Untap Results`. Empty titles are rejected before browser startup.
-
-Untap writes `results.json` and `results.html`, plus `results.csv` with `--csv` in the unique run folder, plus its normal terminal summary. The report is a single portable file with inline CSS and a small inline JavaScript style filter; it has no external assets or runtime dependencies and can be opened directly from disk in a desktop or mobile browser.
-
-Confirmed and ambiguous results now share one **Results** list sorted from highest report rating to lowest. A confirmed result uses its own Untappd rating. An ambiguous result uses the Untappd rating of its highest match-score candidate; a lower-scoring candidate never changes the result's list position even if that candidate has a higher beer rating. The ambiguous card's content and candidate ordering remain unchanged, while v84 removes its obsolete extra bottom margin so all top-level cards use the Results list's common spacing. Results without a usable sort rating appear after rated results. Canonical Untappd beer links remain unchanged.
-
-v80 derives broad style groups only from canonical Untappd `type_name` values actually present in the report. The group is the leading component before Untappd's structural `" - "` subtype separator; a style without that separator remains its own group. No style taxonomy or predefined group list exists in Untap. v82 presents those same case-insensitively sorted, checked-by-default filters as selectable chips with a clear selected checkmark, hover treatment, and keyboard focus state. Unselecting a group immediately hides beer cards in that family; selecting it again restores them. Detailed Untappd styles remain visible on the beer cards.
-
-The report is generated only from already completed `MatchResult` data. It makes no additional Untappd requests and has no parsing, matching, browser, Algolia, or CSV responsibility. v78 also embeds the report title, generation date, total beer count, confirmed count, and needs-review count as simple HTML `<meta>` fields so a later archive publisher can index reports without understanding matcher internals.
-
-## Local report archive publishing
-
-After Untap has generated a v78+ HTML report, publish it into a local `untap-results` repository with:
-
-```bash
-python3 untap_publish.py results/2026-09-04_091530_nailo-new-arrivals/results.html ../untap-results
-```
-
-The publisher reads the embedded `untap-*` metadata, validates the report, derives a permanent filename such as:
-
-```text
-reports/2026-09-01-pien-new-arrivals-september-2026.html
-```
-
-and regenerates the archive `index.html` with reports ordered newest-first. v84 gives that self-contained, JavaScript-free index the same adaptive light/dark palette, 900px responsive content width, typography, link treatment, rounded cards, borders, and spacing rhythm as the HTML reports. The descriptive report title is the logical archive identity; the embedded report date is generation metadata used when the report is first published. By default the publisher refuses to replace an existing logical report and fails closed if the source report or an already archived HTML report has malformed/missing Untap metadata.
-
-When a report has intentionally been regenerated, replacement must be requested explicitly:
-
-```bash
-python3 untap_publish.py results/2026-09-04_091530_nailo-new-arrivals/results.html ../untap-results --replace
-```
-
-`--replace` matches an existing logical report by normalized descriptive title, even when the regenerated report has a later generation date. The existing archive filename is preserved, so replacement keeps the public report URL stable. The source and all existing archived reports still undergo the normal validation first. If replacement succeeds but the subsequent index update fails, the previous report is restored. If no report with that logical title exists, `--replace` behaves like an ordinary new publication. A filename collision belonging to a different title is never replaceable through this flag.
-
-`untap_publish.py` is intentionally local-filesystem-only. It does **not** run Git, authenticate with GitHub, call GitHub APIs, push commits, or make network requests. After a successful local publication it prints the remaining explicit Git commands (`git add .`, a descriptive `git commit`, and `git push`). This keeps credentials and public publication under user control while removing the tedious filename/copy/index work.
-
-## Manual live smoke check
-
-Untap now has a small production integration probe that can be run manually on any machine that already runs Untap:
-
-```bash
-python3 untap.py --smoke-test
-```
-
-Add `--debug-timing` when transport timing is useful. The smoke check is deliberately tiny and serial. It verifies the live UI bootstrap, Algolia request-template capture, authoritative browser-context transport, the confirmed-result response contract, and known beer identities. It never asserts a fixed rating or ratings count, and it does not deliberately probe Untappd's rate-limit threshold.
-
-The current operating model is **manual/local only**. GitHub automation is not used and no `.github/workflows/` configuration is included. The smoke command is intentionally platform-neutral so it can be invoked manually now and, if desired later, by `launchd`, `cron`, a NAS, a VPS, or another scheduler without changing Untap itself.
-
-Exit status is machine-usable: `0` means healthy; distinct nonzero codes identify bootstrap/template, direct transport, response-contract, identity, HTTP 429, or unexpected runtime failures.
-
-
-## Self-healing search transport
-
-The first search still uses Untappd's rendered search UI to capture the current Algolia request shape. Later primary and fallback searches remain serial browser-context fetches.
-
-If one of those direct searches fails for a non-429 transport reason, v73 now:
-
-1. invalidates the cached request template;
-2. runs that same search once through the established UI path;
-3. captures a fresh request template from the UI request;
-4. uses the UI result for that item; and
-5. resumes direct serial transport for later searches.
-
-Recovery is deliberately bounded to one UI attempt for the affected search. There is no retry loop. HTTP 429 remains fail-fast and never triggers recovery, because rate limiting is not evidence that the request shape is stale and an extra UI request would only add traffic.
-
-With `--debug-timing`, the transport summary reports UI bootstrap searches, UI recovery searches, template invalidations, successful/failed recoveries, direct searches, errors, and 429s. A healthy menu9 regression should normally show zero recoveries.
-
-## Full mypy coverage
-
-Local static validation runs mypy across all runtime modules and the asset package:
-
-```bash
-python3 -m mypy untap*.py untap_assets
-```
-
-`untap_types.py` now includes explicit request/event/result contracts for the Algolia transport boundary. The live request-template mutation and browser-fetch response path are annotated so payload-shape wiring is no longer outside static checking.
-
-## Safety properties preserved
-
-- Matching/scoring/ambiguity logic is unchanged.
-- Fallback-query selection and expansion behavior are unchanged.
-- Confirmed-result Algolia authority from v70 is unchanged.
-- Search transport remains fully serial; no parallelism was added.
-- No sleeps, pacing, or automatic backoff were added.
-- HTTP 429 remains fail-fast.
-- One non-429 direct failure can no longer poison the remaining batch through a stale cached template.
-- Invalid/validation-only menus still fail before browser startup.
-
-## Validation
-
-Run:
-
-```bash
-python3 -m mypy untap*.py untap_assets
-python3 -m unittest discover -v
-python3 untap.py --help
-python3 untap.py --menu menu9.txt --debug-timing
-```
-
-The deterministic v83 suite contains 137 tests in this release artifact. The live acceptance target remains the historical menu9 result: 38 confirmed beers, one deliberate Populus ambiguity, zero unnecessary detail-page fallbacks, and normally zero transport recoveries.
-
-Automatically confirmed beers with retained alternatives offer **Change selection**. The candidate list highlights the automatic choice; **Cancel** keeps it. Confirming a candidate marks it **Manually confirmed** and uses the existing export or local **Save reviewed run** workflow. Refreshing an older report cannot recover candidates absent from its JSON; rerun the menu to retain them.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for dependencies and decision rules, and [CHANGELOG.md](CHANGELOG.md) for release history. The six per-module changelogs are retained as historical references. Distribution and CLI versions come from `untap_version.py`.

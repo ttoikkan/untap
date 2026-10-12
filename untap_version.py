@@ -1,3 +1,3 @@
 """Single source for the installed distribution and CLI release version."""
 
-__version__ = "108.0"
+__version__ = "109.0"

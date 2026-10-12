@@ -1,0 +1,100 @@
+{
+  "Humble Sea ABV conflict": {
+    "result": {
+      "query": "Messorem A7Y7 X Humble Sea",
+      "status": "failed",
+      "reason": "ABV conflict: all retrieved candidates conflict with menu 6.5%",
+      "search_warning": null,
+      "search_fallback": null,
+      "excluded_candidates": [
+        {
+          "name": "A7Y7 X Humble Sea",
+          "score": 1.0,
+          "abv": 7.5,
+          "brewery": "Messorem",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null,
+          "exclusion_reason": "ABV conflicts with menu 6.5%"
+        }
+      ]
+    },
+    "debug": "Excluded: A7Y7 X Humble Sea — 7.5% conflicts with menu 6.5%\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "e05e88874d8a4c8e9f6a5d0f9d46eca09e8f9c2fc90ebaca246b70c95e8dc59d",
+    "csv_sha256": "c7ab47b0fdafdf6ae82e3984109eed3a587c60db56013be96eb92e90b02a99ef",
+    "json_sha256": "bc0b4b1c55b389a8e0ad65cdd7b2eb5733d60799ba2be87db8e31ceaa690d22a"
+  },
+  "Brewery conflict": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "failed",
+      "reason": "Brewery conflict: retrieved candidates do not match menu brewery Badlands",
+      "search_warning": null,
+      "search_fallback": null,
+      "excluded_candidates": [
+        {
+          "name": "Beer",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Unrelated",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null,
+          "exclusion_reason": "Brewery does not match menu brewery Badlands"
+        }
+      ]
+    },
+    "debug": "",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "b6df544cbb6eb65c0cf6da3c7f18ca2cb144984a9e6bf46751785f44247cfc03",
+    "csv_sha256": "fa0fc7368f1a0274a9adaeb05ea15af4fa3373a629eccc189e44081536200814",
+    "json_sha256": "209d14f4f67e2b82c85e31f413715255b46d31b1f6830089e7ccefd887f3d62e"
+  },
+  "Detail rate_limited": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "rate_limited",
+      "reason": "Controlled detail failure",
+      "url": "https://untappd.com/b/fixture/1",
+      "alternatives": [
+        {
+          "name": "Beer",
+          "score": 1.0,
+          "abv": 5.0,
+          "brewery": "Badlands",
+          "rating": null,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "search_fallback": null
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Beer' | brewery='Badlands' | ABV=5.0 | score=1.000\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity accepted: 'Beer' (name, brewery and ABV)\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 1
+    },
+    "html_sha256": "448514d20b0a395eff20b6511c2b00d9d1e8b3af3511f24eaa16ab50e30abeb1",
+    "csv_sha256": "0f4afe255f53a08cc9abbae62d90591ac10bea9a9af5887e95a0826f7ce43c7c",
+    "json_sha256": "1d1c7ee6b16f4d0e0b29a2468bb6f990f226e56600aa8363ae532b3425085b38"
+  }
+}

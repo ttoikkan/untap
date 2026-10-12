@@ -61,7 +61,7 @@ def generated_case(rng):
         rows.append(row)
     # Directed generation ensures rare precedence interactions are exercised.
     mode = rng.randrange(8)
-    if mode < 4:
+    if mode < 6:
         expected['brewery'] = expected['brewery'] or 'Badlands'
         expected['abv'] = target
         if mode == 3:
@@ -74,8 +74,14 @@ def generated_case(rng):
                 rows[0]['in_production'], rows[1]['in_production'] = False, True
         elif mode == 2:
             rows.append(make_candidate(beer + ' Peach', brewery, target, 2, expected))
-        else:
+        elif mode == 3:
             rows.append(make_candidate('Banishing 2', brewery, target, 2, expected))
+        elif mode == 4:
+            expected['beer'] = 'Green Fields'
+            rows = [make_candidate('Green Fields ' + flavor, brewery, target, index, expected)
+                    for index, flavor in enumerate(('Peach', 'Cherry'), 1)]
+        else:
+            rows = [make_candidate('Unrelated Nebula', brewery, target, 1, expected)]
     rows.sort(key=lambda row: row['score'], reverse=True)  # Stable ties, as in production.
     flag = rng.choice([None, None, 'capped', 'errors', 'ambiguity_early_stopped', 'ambiguity_established'])
     diagnostics = {flag: ['generated error'] if flag == 'errors' else True} if flag else None
@@ -86,7 +92,7 @@ def generated_case(rng):
         context['abv_sorted_diagnostics'] = diagnostics
     if context['fallback_review_required']:
         context['fallback_query_used'] = 'generated recovery'
-    return dict(rows=rows, expected=expected, min_score=rng.choice([.425, .6, .75]),
+    return dict(rows=rows, expected=expected, min_score=.75 if mode == 5 else rng.choice([.425, .6, .75]),
                 discovery=coherent_discovery(rows, expected, context))
 
 
@@ -139,6 +145,21 @@ def check_case(case):
         distracted['rows'].append(extra)
         distracted['rows'].sort(key=lambda row: row['score'], reverse=True)
         assert decide(distracted) == decision, 'I9: excluded distractor changed decision'
+    # I11: the score gate is inclusive; exact acceptance rules remain exempt.
+    if decision['rule'] == 'score':
+        assert decision['candidate']['score'] >= case['min_score'], 'I11: score selection below minimum'
+    if decision['kind'] == 'low_confidence':
+        assert decision['candidate']['score'] < case['min_score'], 'I11: low confidence at/above minimum'
+        boundary = copy.deepcopy(case)
+        boundary['min_score'] = decision['candidate']['score']
+        assert decide(boundary)['kind'] == 'selected', 'I11: score threshold boundary is not inclusive'
+    # I12: family review wins over generic ambiguity/score, after higher-priority guards.
+    survivors = eligible(case['rows'], case['expected'])
+    family = matcher.same_abv_family_variants(survivors, case['expected']['beer'], case['expected']['abv'])
+    if (len(family) >= 2 and not case['discovery'].get('fallback_review_required')
+            and decision['rule'] not in {'production_conflict', 'exact_base', 'exact_numbered', 'unique_exact_identity'}):
+        assert decision['kind'] == 'ambiguous' and decision['rule'] == 'same_abv_family', 'I12: same-ABV family did not require review'
+        assert decision['same_abv_variants'] == family, 'I12: family variants lost or reordered'
     statuses = {'failed': {'failed'}, 'ambiguous': {'ambiguous'},
                 'low_confidence': {'low_confidence'}, 'selected': {'ok', 'failed', 'rate_limited'}}
     assert statuses[decision['kind']] <= matcher.MATCH_RESULT_STATUSES, 'I10: unsupported finalization status'
@@ -265,6 +286,17 @@ class DecisionInvariantTests(unittest.TestCase):
         self.assertNotIn('in_production', reduced['rows'][0])
         self.assertEqual(reduced['discovery'], coherent_discovery(reduced['rows'], expected, reduced['discovery']))
         self.assertEqual(case, before)
+
+    def test_minimum_score_and_family_properties_are_exercised(self):
+        expected = dict(beer='Green Fields', brewery='Badlands', abv=5., style='IPA')
+        for names, minimum, rule in ((['Unrelated Nebula'], .75, 'low_confidence'),
+                                     (['Green Fields Peach', 'Green Fields Cherry'], .425, 'same_abv_family')):
+            rows = [make_candidate(name, 'Badlands', 5., index, expected) for index, name in enumerate(names, 1)]
+            rows.sort(key=lambda row: row['score'], reverse=True)
+            case = dict(rows=rows, expected=expected, min_score=minimum,
+                        discovery=coherent_discovery(rows, expected, {}))
+            self.assertEqual(decide(case)['rule'], rule)
+            check_case(case)
 
     def test_decision_type_is_internal_and_checked(self):
         self.assertIs(get_type_hints(matcher.decide_candidates)['return'], Decision)

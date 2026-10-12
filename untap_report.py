@@ -326,7 +326,15 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
                 """.format(name=_linked_name(result.get("match"), result.get("url")))
             )
 
-        candidates_html = "".join(candidate_cards) or '<p class="empty">No linked candidate was available.</p>'
+        excluded_links = []
+        for excluded in result.get("excluded_candidates") or []:
+            excluded_links.append('<li class="excluded-candidate"><h4>' +
+                _linked_name(excluded.get("name"), excluded.get("url")) + '</h4><p class="meta">' +
+                _meta_parts([excluded.get("brewery"), _format_abv(excluded.get("abv"))]) +
+                '</p><p class="review-reason">' + escape(str(excluded.get("exclusion_reason") or "Identity conflict")) + '</p></li>')
+        excluded_html = ('<div class="excluded-candidates"><p class="review-reason">Excluded from matching — links for inspection only.</p>'
+                         '<ul>' + "".join(excluded_links) + '</ul></div>') if excluded_links else ""
+        candidates_html = "".join(candidate_cards) or ("" if excluded_links else '<p class="empty">No linked candidate was available.</p>')
         menu_abv_text = escape(_format_abv(result.get("input_abv")))
         search_warning = (
             '<p class="review-reason">' + escape(str(result["search_warning"])) + '</p>'
@@ -342,9 +350,9 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
               <p class="meta menu-abv">Menu ABV: {menu_abv}</p>
               <p class="review-reason">{reason}</p>
               {search_warning}
-              <ol class="candidate-list">{candidates}</ol>
+              <ol class="candidate-list">{candidates}</ol>{excluded}
             </article>
-            """.format(automatic_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" and not result.get("manually_confirmed") else "", menu_abv=menu_abv_text, item_id=identifiers[row_index], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html)
+            """.format(automatic_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" and not result.get("manually_confirmed") else "", menu_abv=menu_abv_text, item_id=identifiers[row_index], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html, excluded=excluded_html)
         )
 
     return "".join(result_cards) or '<p class="empty">No beers.</p>'
@@ -378,7 +386,7 @@ def render_html_report(
         incomplete_warning = (
             '<p class="review-reason" role="alert"><strong>Incomplete run:</strong> '
             f'{not_attempted + omitted} menu rows were not searched; {rate_limited} rows were rate-limited. '
-            'Rerun the menu when searching is available. This report cannot be published.</p>'
+            'When searching is available, use <code>untap run --continue &lt;run-folder&gt;</code>. This report cannot be published.</p>'
         )
     style_groups = _style_groups(results)
 

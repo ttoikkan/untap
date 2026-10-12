@@ -336,7 +336,7 @@ def run_batch(
                     matcher_seconds=get_last_matcher_timing_seconds(),
                 )
             for remaining in items[i:]:
-                skipped = unattempted_result(remaining, "Not searched because an earlier menu row hit HTTP 429. Rerun the menu after the rate limit clears.")
+                skipped = unattempted_result(remaining, "Not searched because an earlier menu row hit HTTP 429. After the rate limit clears, use untap run --continue <run-folder>.")
                 results.append(skipped)
                 if on_result is not None:
                     on_result(skipped)

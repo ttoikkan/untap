@@ -1,3 +1,5 @@
+> Historical module changelog. Current release notes are maintained in [CHANGELOG.md](CHANGELOG.md).
+
 # v103 — Input identity preservation (2026-10-11)
 
 - Compare complete normalized brewery token sequences when building queries. Preserve trailing tabs in original rows, explain empty-style input and reject ABV precision beyond two decimals.
