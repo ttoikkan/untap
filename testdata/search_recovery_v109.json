@@ -1,0 +1,248 @@
+{
+  "strong_primary": {
+    "trace": [
+      "primary",
+      "expansion",
+      "finalization"
+    ],
+    "result": {
+      "beer": "Different",
+      "brewery": "Brewery",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/1",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Brewery Beer",
+      "status": "ok",
+      "score": 0.9,
+      "search_text": "Different\nBrewery\n5.0% ABV",
+      "search_fallback": null,
+      "alternatives": [
+        {
+          "name": "Different",
+          "score": 0.9,
+          "abv": 5.0,
+          "brewery": "Brewery",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "",
+    "selected_fallback": null
+  },
+  "zero_hit_recovery": {
+    "trace": [
+      "primary",
+      "expansion",
+      "fallback plan: trailing=True",
+      "fallback: Recovery One",
+      "fallback: Recovery Two",
+      "finalization"
+    ],
+    "result": {
+      "beer": "Different",
+      "brewery": "Brewery",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/3",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Brewery Beer",
+      "status": "ok",
+      "score": 0.8,
+      "search_text": "Different\nBrewery\n5.0% ABV",
+      "search_fallback": "Recovery Two",
+      "alternatives": [
+        {
+          "name": "Different",
+          "score": 0.8,
+          "abv": 5.0,
+          "brewery": "Brewery",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/3",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "",
+    "selected_fallback": "Recovery Two"
+  },
+  "nonzero_weak_recovery": {
+    "trace": [
+      "primary",
+      "expansion",
+      "fallback plan: trailing=False",
+      "fallback: Recovery One",
+      "fallback: Recovery Two",
+      "finalization"
+    ],
+    "result": {
+      "beer": "Different",
+      "brewery": "Brewery",
+      "rating": 4.0,
+      "ratings": 100,
+      "abv": "5%",
+      "ibu": null,
+      "url": "https://untappd.com/b/fixture/3",
+      "image_url": null,
+      "image_hd_url": null,
+      "in_production": null,
+      "type_name": "IPA - Sour",
+      "query": "Brewery Beer",
+      "status": "ok",
+      "score": 0.8,
+      "search_text": "Different\nBrewery\n5.0% ABV",
+      "search_fallback": "Recovery Two",
+      "alternatives": [
+        {
+          "name": "Different",
+          "score": 0.8,
+          "abv": 5.0,
+          "brewery": "Brewery",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/3",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "",
+    "selected_fallback": "Recovery Two"
+  },
+  "strongest_weak": {
+    "trace": [
+      "primary",
+      "expansion",
+      "fallback plan: trailing=False",
+      "fallback: Recovery One",
+      "fallback: Recovery Two",
+      "fallback: Recovery Three",
+      "finalization"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "low_confidence",
+      "match": "Different",
+      "score": 0.3,
+      "url": "https://untappd.com/b/fixture/3"
+    },
+    "debug": "",
+    "selected_fallback": "Recovery Two"
+  },
+  "ambiguous_recovery": {
+    "trace": [
+      "primary",
+      "expansion",
+      "fallback plan: trailing=False",
+      "fallback: Recovery One",
+      "finalization"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "ambiguous",
+      "match": "Different",
+      "score": 0.2,
+      "url": "https://untappd.com/b/fixture/2",
+      "reason": "Multiple candidates",
+      "search_warning": null,
+      "alternatives": [
+        {
+          "name": "Different",
+          "score": 0.2,
+          "abv": 5.0,
+          "brewery": "Brewery",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/2",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ],
+      "same_abv_variants": [],
+      "search_expanded": false,
+      "search_fallback": "Recovery One",
+      "expanded_total_hits": null
+    },
+    "debug": "",
+    "selected_fallback": "Recovery One"
+  },
+  "primary_429": {
+    "trace": [
+      "primary"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "rate_limited",
+      "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
+      "http_status": 429
+    },
+    "debug": "",
+    "selected_fallback": null
+  },
+  "transport_error": {
+    "trace": [
+      "primary"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "failed",
+      "reason": "Search transport failed: broken"
+    },
+    "debug": "",
+    "selected_fallback": null
+  },
+  "expansion_429": {
+    "trace": [
+      "primary",
+      "expansion"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "rate_limited",
+      "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
+      "http_status": 429
+    },
+    "debug": "",
+    "selected_fallback": null
+  },
+  "fallback_429": {
+    "trace": [
+      "primary",
+      "expansion",
+      "fallback plan: trailing=False",
+      "fallback: Recovery One"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "rate_limited",
+      "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
+      "http_status": 429
+    },
+    "debug": "",
+    "selected_fallback": null
+  }
+}

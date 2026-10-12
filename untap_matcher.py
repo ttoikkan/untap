@@ -3,11 +3,12 @@ import math
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Sequence, TypedDict
 from copy import deepcopy
+from dataclasses import dataclass
 from time import perf_counter
 
 from untap_types import (AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult,
                          Decision, DecisionKind, DecisionRule, ExpectedEvidence, DiscoveryContext,
-                         ExcludedCandidate, ExcludedAlternative)
+                         ExcludedCandidate, ExcludedAlternative, AlgoliaTransportEvent)
 
 from untap_parser import (
     normalize,
@@ -3160,256 +3161,47 @@ def _print_primary_search_diagnostics(candidates, search_diagnostics, network_ev
         )
 
 
-def _search_one_impl(
-    page: Any,
-    query: str,
-    min_score: float = DEFAULT_MIN_SCORE,
-    debug: bool = False,
-    expected_beer: Optional[str] = None,
-    expected_brewery: Optional[str] = None,
-    expected_abv: Optional[float] = None,
-    expected_style: Optional[str] = None,
-) -> MatchResult:
-    _reset_beer_algolia_debug_stats()
-
-    transport = _run_page0_search_transport(
-        page, query, include_search_urls=True
-    )
-    algolia_request = transport["request_event"]
-    network_events = transport["events"]
-    transport_error = transport.get("error")
-
-    algolia_status = _matching_algolia_response_status(
-        network_events,
-        query,
-    )
-
-    if algolia_status == RATE_LIMIT_HTTP_STATUS:
-        if debug:
-            _print_algolia_network_summary(rate_limited_query=query)
-        return {
-            "query": query,
-            "status": "rate_limited",
-            "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
-            "http_status": RATE_LIMIT_HTTP_STATUS,
-        }
-
-    if transport_error is not None:
-        return {
-            "query": query,
-            "status": "failed",
-            "reason": f"Search transport failed: {transport_error}",
-        }
-
-    primary_nb_hits = _matching_algolia_nb_hits(network_events, query)
-    primary_algolia_page = _matching_algolia_initial_page(
-        network_events, query
-    )
-
-    candidates = _timed_matcher_call(
-        "Algolia candidate construction",
-        query,
-        lambda: _algolia_page0_candidates(
-            primary_algolia_page,
-            query,
-            expected_beer=expected_beer,
-            expected_brewery=expected_brewery,
-            expected_abv=expected_abv,
-        ),
-    )
-    search_diagnostics = {
-        "algolia_hits_on_page": len((primary_algolia_page or {}).get("hits") or []),
-        "candidates_passing_filter": len(candidates),
-    }
-
-    if debug:
-        _print_primary_search_diagnostics(candidates, search_diagnostics, network_events, query)
+@dataclass
+class _SearchDiscovery:
+    """Internal candidate state passed between impure discovery phases."""
+    candidates: List[CandidateRecord]
+    ambiguity_reason: Optional[str]
+    expanded_candidates: List[CandidateRecord]
+    expansion_diagnostics: Optional[Dict[str, Any]]
+    abv_sorted_diagnostics: Optional[Dict[str, Any]]
+    primary_algolia_page: Optional[Dict[str, Any]]
+    fallback_query_used: Optional[str] = None
+    fallback_review_required: bool = False
 
 
-    # Decide whether this search needs the slower, complete Algolia pass.
-    evaluation = _timed_matcher_call(
-        "candidate evaluation / expansion",
-        query,
-        lambda: evaluate_and_expand_candidates(
-            page,
-            query,
-            candidates,
-            algolia_request,
-            min_score,
-            expected_beer=expected_beer,
-            expected_brewery=expected_brewery,
-            expected_abv=expected_abv,
-            initial_nb_hits=primary_nb_hits,
-            initial_algolia_page=primary_algolia_page,
-        ),
-    )
+def _recover_search_discovery(
+    page: Any, query: str, discovery: _SearchDiscovery,
+    primary_nb_hits: Optional[int], min_score: float, debug: bool,
+    expected_beer: Optional[str], expected_brewery: Optional[str],
+    expected_abv: Optional[float], expected_style: Optional[str],
+) -> tuple[_SearchDiscovery, Optional[MatchResult]]:
+    """Try ordered recovery queries; propagate 429 before another phase runs.
 
-    candidates = evaluation["candidates"]
-    ambiguity_reason = evaluation["ambiguity_reason"]
-    release_qualifier_trigger = evaluation["release_qualifier_trigger"]
-    needs_expansion = evaluation["needs_expansion"]
-    expanded_candidates = evaluation["expanded_candidates"]
-    expansion_diagnostics = evaluation["expansion_diagnostics"]
-    abv_sorted_diagnostics = evaluation.get("abv_sorted_diagnostics")
-
-    if evaluation.get("rate_limited"):
-        if debug:
-            _print_algolia_network_summary(rate_limited_query=query)
-        return {
-            "query": query,
-            "status": "rate_limited",
-            "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
-            "http_status": RATE_LIMIT_HTTP_STATUS,
-        }
-
-    if debug and needs_expansion:
-        print()
-        print("Conditional Algolia expansion:")
-
-        if release_qualifier_trigger:
-            print(
-                "  trigger: candidate adds release year "
-                "not present in menu beer name"
-            )
-
-        if abv_sorted_diagnostics:
-            print(
-                "  ABV-sorted ambiguity scan: "
-                f"{abv_sorted_diagnostics.get('index')}"
-            )
-            print(
-                "  sort direction: "
-                f"{abv_sorted_diagnostics.get('direction')} "
-                f"({abv_sorted_diagnostics.get('sort_label')})"
-            )
-            print(
-                f"  target ABV: "
-                f"{abv_sorted_diagnostics.get('target_abv'):g}%"
-            )
-            if abv_sorted_diagnostics.get("threshold_reason"):
-                print("  strategy reason: " + abv_sorted_diagnostics.get("threshold_reason"))
-            print(
-                f"  sorted pages: "
-                f"{abv_sorted_diagnostics.get('pages_succeeded', 0)}/"
-                f"{abv_sorted_diagnostics.get('pages_requested', 0)} succeeded"
-            )
-            print(
-                f"  sorted raw hits fetched: "
-                f"{abv_sorted_diagnostics.get('raw_hits', 0)}"
-            )
-            direction = abv_sorted_diagnostics.get("direction")
-            if direction == "ascending":
-                print(
-                    "  crossed above target ABV: "
-                    + ("yes" if abv_sorted_diagnostics.get("crossed_above_target") else "no")
-                )
-            else:
-                print(
-                    "  crossed below target ABV: "
-                    + ("yes" if abv_sorted_diagnostics.get("crossed_below_target") else "no")
-                )
-            print(
-                "  target ABV band exhausted: "
-                + ("yes" if abv_sorted_diagnostics.get("target_band_exhausted") else "no")
-            )
-            print(
-                f"  exact-ABV brewery candidates: "
-                f"{abv_sorted_diagnostics.get('exact_abv_candidates', 0)}"
-            )
-            print(
-                "  ambiguity established by sorted scan: "
-                + ("yes" if abv_sorted_diagnostics.get("ambiguity_established") else "no")
-            )
-            if abv_sorted_diagnostics.get("stopped_after_page") is not None:
-                print(
-                    f"  sorted scan stopped after page: "
-                    f"{abv_sorted_diagnostics.get('stopped_after_page')}"
-                )
-            if abv_sorted_diagnostics.get("capped"):
-                print("  sorted scan capped: yes")
-            for err in abv_sorted_diagnostics.get("errors") or []:
-                print(f"  sorted scan error: {err}")
-
-        if expansion_diagnostics:
-            print(
-                "  primary page 0 reused: "
-                + (
-                    "yes"
-                    if expansion_diagnostics.get("pages_reused", 0)
-                    else "no"
-                )
-            )
-            if expansion_diagnostics.get("pages_reused", 0):
-                print(
-                    f"  primary hits reused: "
-                    f"{expansion_diagnostics.get('reused_hits', 0)}"
-                )
-            print(
-                f"  additional pages: "
-                f"{expansion_diagnostics.get('pages_succeeded', 0)}/"
-                f"{expansion_diagnostics.get('pages_requested', 0)} succeeded"
-            )
-            print(
-                f"  page limit: "
-                f"{expansion_diagnostics.get('page_limit')}"
-            )
-            if expansion_diagnostics.get("capped"):
-                print(
-                    "  expansion capped: yes "
-                    "(remaining Algolia pages were not requested)"
-                )
-            if expansion_diagnostics.get("ambiguity_early_stopped"):
-                print(
-                    "  ambiguity early stop: yes "
-                    "(input is brewery-like and already matches multiple exact-ABV beers)"
-                )
-                print(
-                    f"  exact-ABV beers establishing ambiguity: "
-                    f"{expansion_diagnostics.get('ambiguity_early_stop_candidate_count', 0)}"
-                )
-                print(
-                    f"  stopped after Algolia page: "
-                    f"{expansion_diagnostics.get('ambiguity_early_stop_after_page')}"
-                )
-            print(
-                f"  Algolia total: "
-                f"{expansion_diagnostics.get('nbHits')} hits across "
-                f"{expansion_diagnostics.get('nbPages')} pages"
-            )
-            print(
-                f"  additional raw hits fetched: "
-                f"{expansion_diagnostics.get('raw_hits', 0)}"
-            )
-            print(
-                f"  total raw hits scored: "
-                f"{expansion_diagnostics.get('raw_hits_scored', 0)}"
-            )
-            print(
-                f"  unique candidates scored: "
-                f"{expansion_diagnostics.get('unique_candidates', 0)}"
-            )
-
-            for err in expansion_diagnostics.get("errors") or []:
-                print(f"  error: {err}")
-
-        if expanded_candidates:
-            print("  top expanded candidates:")
-            for item in expanded_candidates[:10]:
-                print(
-                    f"    - {item['name']} "
-                    f"(score {item['score']:.3f}, "
-                    f"ABV {item.get('abv') if item.get('abv') is not None else 'N/A'})"
-                )
-
+    Preserve the existing weak-match gate, zero-hit-only trailing relaxation,
+    filters, first plausible/ambiguous stop and strongest weak fallback rule.
+    Candidate retrieval/scoring and debug timing remain in their existing helpers.
+    """
+    candidates = discovery.candidates
+    ambiguity_reason = discovery.ambiguity_reason
+    expanded_candidates = discovery.expanded_candidates
+    expansion_diagnostics = discovery.expansion_diagnostics
+    abv_sorted_diagnostics = discovery.abv_sorted_diagnostics
+    primary_algolia_page = discovery.primary_algolia_page
     # v23: if the full structured query still has poor recall after the
     # normal DOM/Algolia path, retry with progressively less brittle search
     # strings. The original brewery and ABV remain verification signals.
     current_best = candidates[0] if candidates else None
+    current_best_abv = current_best.get("abv") if current_best is not None else None
     current_abv_mismatch = (
         current_best is not None
         and expected_abv is not None
-        and current_best.get("abv") is not None
-        and abs(expected_abv - current_best["abv"]) >= ABV_MISMATCH_DIFF
+        and current_best_abv is not None
+        and abs(expected_abv - current_best_abv) >= ABV_MISMATCH_DIFF
     )
     current_weak_match = (
         current_best is None
@@ -3567,7 +3359,7 @@ def _search_one_impl(
                 _print_algolia_network_summary(
                     rate_limited_query=fallback_query
                 )
-            return {
+            return discovery, {
                 "query": query,
                 "status": "rate_limited",
                 "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
@@ -3659,6 +3451,311 @@ def _search_one_impl(
             f"  using fallback result set from: "
             f"{fallback_query_used}"
         )
+
+    return _SearchDiscovery(candidates, ambiguity_reason, expanded_candidates,
+                            expansion_diagnostics, abv_sorted_diagnostics,
+                            primary_algolia_page, fallback_query_used,
+                            fallback_review_required), None
+
+
+@dataclass
+class _PrimaryDiscovery:
+    """Matched page-0 candidates and their query-specific transport metadata."""
+    candidates: List[CandidateRecord]
+    algolia_request: Optional[AlgoliaTransportEvent]
+    primary_nb_hits: Optional[int]
+    primary_algolia_page: Optional[Dict[str, Any]]
+
+
+def _retrieve_primary_discovery(
+    page: Any, query: str, debug: bool, expected_beer: Optional[str],
+    expected_brewery: Optional[str], expected_abv: Optional[float],
+) -> tuple[Optional[_PrimaryDiscovery], Optional[MatchResult]]:
+    """Retrieve page 0 once and stop before expansion on transport failure/429."""
+    transport = _run_page0_search_transport(
+        page, query, include_search_urls=True
+    )
+    algolia_request = transport["request_event"]
+    network_events = transport["events"]
+    transport_error = transport.get("error")
+
+    algolia_status = _matching_algolia_response_status(
+        network_events,
+        query,
+    )
+
+    if algolia_status == RATE_LIMIT_HTTP_STATUS:
+        if debug:
+            _print_algolia_network_summary(rate_limited_query=query)
+        return None, {
+            "query": query,
+            "status": "rate_limited",
+            "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
+            "http_status": RATE_LIMIT_HTTP_STATUS,
+        }
+
+    if transport_error is not None:
+        return None, {
+            "query": query,
+            "status": "failed",
+            "reason": f"Search transport failed: {transport_error}",
+        }
+
+    primary_nb_hits = _matching_algolia_nb_hits(network_events, query)
+    primary_algolia_page = _matching_algolia_initial_page(
+        network_events, query
+    )
+
+    candidates = _timed_matcher_call(
+        "Algolia candidate construction",
+        query,
+        lambda: _algolia_page0_candidates(
+            primary_algolia_page,
+            query,
+            expected_beer=expected_beer,
+            expected_brewery=expected_brewery,
+            expected_abv=expected_abv,
+        ),
+    )
+    search_diagnostics = {
+        "algolia_hits_on_page": len((primary_algolia_page or {}).get("hits") or []),
+        "candidates_passing_filter": len(candidates),
+    }
+
+    if debug:
+        _print_primary_search_diagnostics(candidates, search_diagnostics, network_events, query)
+
+
+    return _PrimaryDiscovery(candidates, algolia_request, primary_nb_hits, primary_algolia_page), None
+
+
+def _expand_primary_discovery(
+    page: Any, query: str, primary: _PrimaryDiscovery, min_score: float, debug: bool,
+    expected_beer: Optional[str], expected_brewery: Optional[str], expected_abv: Optional[float],
+) -> tuple[Optional[_SearchDiscovery], Optional[MatchResult]]:
+    """Apply existing conditional paging strategies and stop on expansion 429."""
+    candidates = primary.candidates
+    algolia_request = primary.algolia_request
+    primary_nb_hits = primary.primary_nb_hits
+    primary_algolia_page = primary.primary_algolia_page
+    # Decide whether this search needs the slower, complete Algolia pass.
+    evaluation = _timed_matcher_call(
+        "candidate evaluation / expansion",
+        query,
+        lambda: evaluate_and_expand_candidates(
+            page,
+            query,
+            candidates,
+            algolia_request,
+            min_score,
+            expected_beer=expected_beer,
+            expected_brewery=expected_brewery,
+            expected_abv=expected_abv,
+            initial_nb_hits=primary_nb_hits,
+            initial_algolia_page=primary_algolia_page,
+        ),
+    )
+
+    candidates = evaluation["candidates"]
+    ambiguity_reason = evaluation["ambiguity_reason"]
+    release_qualifier_trigger = evaluation["release_qualifier_trigger"]
+    needs_expansion = evaluation["needs_expansion"]
+    expanded_candidates = evaluation["expanded_candidates"]
+    expansion_diagnostics = evaluation["expansion_diagnostics"]
+    abv_sorted_diagnostics = evaluation.get("abv_sorted_diagnostics")
+
+    if evaluation.get("rate_limited"):
+        if debug:
+            _print_algolia_network_summary(rate_limited_query=query)
+        return None, {
+            "query": query,
+            "status": "rate_limited",
+            "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
+            "http_status": RATE_LIMIT_HTTP_STATUS,
+        }
+
+    if debug and needs_expansion:
+        print()
+        print("Conditional Algolia expansion:")
+
+        if release_qualifier_trigger:
+            print(
+                "  trigger: candidate adds release year "
+                "not present in menu beer name"
+            )
+
+        if abv_sorted_diagnostics:
+            print(
+                "  ABV-sorted ambiguity scan: "
+                f"{abv_sorted_diagnostics.get('index')}"
+            )
+            print(
+                "  sort direction: "
+                f"{abv_sorted_diagnostics.get('direction')} "
+                f"({abv_sorted_diagnostics.get('sort_label')})"
+            )
+            print(
+                f"  target ABV: "
+                f"{abv_sorted_diagnostics.get('target_abv'):g}%"
+            )
+            if abv_sorted_diagnostics.get("threshold_reason"):
+                print("  strategy reason: " + abv_sorted_diagnostics.get("threshold_reason"))
+            print(
+                f"  sorted pages: "
+                f"{abv_sorted_diagnostics.get('pages_succeeded', 0)}/"
+                f"{abv_sorted_diagnostics.get('pages_requested', 0)} succeeded"
+            )
+            print(
+                f"  sorted raw hits fetched: "
+                f"{abv_sorted_diagnostics.get('raw_hits', 0)}"
+            )
+            direction = abv_sorted_diagnostics.get("direction")
+            if direction == "ascending":
+                print(
+                    "  crossed above target ABV: "
+                    + ("yes" if abv_sorted_diagnostics.get("crossed_above_target") else "no")
+                )
+            else:
+                print(
+                    "  crossed below target ABV: "
+                    + ("yes" if abv_sorted_diagnostics.get("crossed_below_target") else "no")
+                )
+            print(
+                "  target ABV band exhausted: "
+                + ("yes" if abv_sorted_diagnostics.get("target_band_exhausted") else "no")
+            )
+            print(
+                f"  exact-ABV brewery candidates: "
+                f"{abv_sorted_diagnostics.get('exact_abv_candidates', 0)}"
+            )
+            print(
+                "  ambiguity established by sorted scan: "
+                + ("yes" if abv_sorted_diagnostics.get("ambiguity_established") else "no")
+            )
+            if abv_sorted_diagnostics.get("stopped_after_page") is not None:
+                print(
+                    f"  sorted scan stopped after page: "
+                    f"{abv_sorted_diagnostics.get('stopped_after_page')}"
+                )
+            if abv_sorted_diagnostics.get("capped"):
+                print("  sorted scan capped: yes")
+            for err in abv_sorted_diagnostics.get("errors") or []:
+                print(f"  sorted scan error: {err}")
+
+        if expansion_diagnostics:
+            print(
+                "  primary page 0 reused: "
+                + (
+                    "yes"
+                    if expansion_diagnostics.get("pages_reused", 0)
+                    else "no"
+                )
+            )
+            if expansion_diagnostics.get("pages_reused", 0):
+                print(
+                    f"  primary hits reused: "
+                    f"{expansion_diagnostics.get('reused_hits', 0)}"
+                )
+            print(
+                f"  additional pages: "
+                f"{expansion_diagnostics.get('pages_succeeded', 0)}/"
+                f"{expansion_diagnostics.get('pages_requested', 0)} succeeded"
+            )
+            print(
+                f"  page limit: "
+                f"{expansion_diagnostics.get('page_limit')}"
+            )
+            if expansion_diagnostics.get("capped"):
+                print(
+                    "  expansion capped: yes "
+                    "(remaining Algolia pages were not requested)"
+                )
+            if expansion_diagnostics.get("ambiguity_early_stopped"):
+                print(
+                    "  ambiguity early stop: yes "
+                    "(input is brewery-like and already matches multiple exact-ABV beers)"
+                )
+                print(
+                    f"  exact-ABV beers establishing ambiguity: "
+                    f"{expansion_diagnostics.get('ambiguity_early_stop_candidate_count', 0)}"
+                )
+                print(
+                    f"  stopped after Algolia page: "
+                    f"{expansion_diagnostics.get('ambiguity_early_stop_after_page')}"
+                )
+            print(
+                f"  Algolia total: "
+                f"{expansion_diagnostics.get('nbHits')} hits across "
+                f"{expansion_diagnostics.get('nbPages')} pages"
+            )
+            print(
+                f"  additional raw hits fetched: "
+                f"{expansion_diagnostics.get('raw_hits', 0)}"
+            )
+            print(
+                f"  total raw hits scored: "
+                f"{expansion_diagnostics.get('raw_hits_scored', 0)}"
+            )
+            print(
+                f"  unique candidates scored: "
+                f"{expansion_diagnostics.get('unique_candidates', 0)}"
+            )
+
+            for err in expansion_diagnostics.get("errors") or []:
+                print(f"  error: {err}")
+
+        if expanded_candidates:
+            print("  top expanded candidates:")
+            for item in expanded_candidates[:10]:
+                print(
+                    f"    - {item['name']} "
+                    f"(score {item['score']:.3f}, "
+                    f"ABV {item.get('abv') if item.get('abv') is not None else 'N/A'})"
+                )
+
+    return _SearchDiscovery(candidates, ambiguity_reason, expanded_candidates,
+                            expansion_diagnostics, abv_sorted_diagnostics, primary_algolia_page), None
+
+
+def _search_one_impl(
+    page: Any,
+    query: str,
+    min_score: float = DEFAULT_MIN_SCORE,
+    debug: bool = False,
+    expected_beer: Optional[str] = None,
+    expected_brewery: Optional[str] = None,
+    expected_abv: Optional[float] = None,
+    expected_style: Optional[str] = None,
+) -> MatchResult:
+    _reset_beer_algolia_debug_stats()
+
+    primary, terminal = _retrieve_primary_discovery(
+        page, query, debug, expected_beer, expected_brewery, expected_abv,
+    )
+    if terminal is not None:
+        return terminal
+    assert primary is not None
+    discovery, terminal = _expand_primary_discovery(
+        page, query, primary, min_score, debug, expected_beer, expected_brewery, expected_abv,
+    )
+    if terminal is not None:
+        return terminal
+    assert discovery is not None
+
+    discovery, rate_limited = _recover_search_discovery(
+        page, query, discovery, primary.primary_nb_hits, min_score, debug,
+        expected_beer, expected_brewery, expected_abv, expected_style,
+    )
+    if rate_limited is not None:
+        return rate_limited
+    candidates = discovery.candidates
+    ambiguity_reason = discovery.ambiguity_reason
+    expanded_candidates = discovery.expanded_candidates
+    expansion_diagnostics = discovery.expansion_diagnostics
+    abv_sorted_diagnostics = discovery.abv_sorted_diagnostics
+    primary_algolia_page = discovery.primary_algolia_page
+    fallback_query_used = discovery.fallback_query_used
+    fallback_review_required = discovery.fallback_review_required
 
     if debug:
         _print_algolia_network_summary()

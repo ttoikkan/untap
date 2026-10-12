@@ -1,3 +1,10 @@
+# Unreleased — Search discovery phase extractions
+
+- Audit remaining search phases and extract ordered fallback recovery behind typed internal discovery state and an explicit HTTP 429 outcome.
+- Preserve request order, weak-match and zero-hit gates, identity filters, stopping conditions, strongest-weak retention, candidate/page metadata pairing, debug output and timing boundaries.
+- Freeze nine pre-extraction request/outcome sequences and add direct rate-limit and fallback-condition checks. Extract primary retrieval and conditional expansion as separate helpers, preserving request metadata, paging strategies and early termination.
+- Validation: all 355 tests pass, including fresh installed-wheel checks; all 25 source files type-check. Existing decision/output baselines, recovery identity fixtures and 40 report-byte comparisons remain unchanged. Added explicit primary metadata and expansion-diagnostics propagation tests. No live Untappd requests were sent.
+
 # Unreleased — Typed report card presentation
 
 - Prepare ordered report cards in a pure, typed presentation model; keep HTML templates, escaping, safe links/assets and page/filter rendering in the renderer.
