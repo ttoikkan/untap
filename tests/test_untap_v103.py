@@ -289,7 +289,7 @@ class FetchRefactorTests(unittest.TestCase):
 class SearchDiagnosticRefactorTests(unittest.TestCase):
     def test_debug_search_still_prints_captured_candidates(self):
         import untap_matcher as matcher
-        from test_untap_v86 import MatcherV86Tests, candidate
+        from tests.test_untap_v86 import MatcherV86Tests, candidate
         original = matcher.search_one
         def debug_search(*args, **kwargs):
             kwargs['debug'] = True
@@ -303,7 +303,7 @@ class SearchDiagnosticRefactorTests(unittest.TestCase):
 
 class ProductionVintageGuardTests(unittest.TestCase):
     def rows(self, base=False, sibling=True, suffix=' (2026)', brewery='Samuel Adams', abv=5):
-        from test_untap_v86 import candidate
+        from tests.test_untap_v86 import candidate
         rows = [candidate('Boston Lager', 'Samuel Adams', 5, 1., 1), candidate('Boston Lager' + suffix, brewery, abv, .9, 2)]
         rows[0].update(in_production=base, rating_count=999999)
         rows[1].update(in_production=sibling, rating_count=1)
@@ -311,7 +311,7 @@ class ProductionVintageGuardTests(unittest.TestCase):
 
     def test_retired_exact_and_current_same_abv_vintage_require_review(self):
         import untap_matcher as matcher
-        from test_untap_v86 import MatcherV86Tests
+        from tests.test_untap_v86 import MatcherV86Tests
         for base, sibling in [(False, True), (0, 1), ('false', 'true'), ('0', '1')]:
             rows = self.rows(base, sibling)
             with self.subTest(base=base, sibling=sibling):
@@ -341,7 +341,7 @@ class ProductionVintageGuardTests(unittest.TestCase):
         self.assertIs(matcher.unique_exact_identity_candidate(rows, 'Boston Lager (2025)', 'Samuel Adams', 5), rows[0])
 
     def test_conflict_cannot_be_bypassed_by_score_or_incomplete_discovery(self):
-        from test_untap_v86 import MatcherV86Tests
+        from tests.test_untap_v86 import MatcherV86Tests
         rows = self.rows()
         for diagnostics in [None, {'capped': True}]:
             with self.subTest(diagnostics=diagnostics):

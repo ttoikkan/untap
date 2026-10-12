@@ -9,7 +9,7 @@ import untap_parser
 from untap_types import AlternativeRecord, CsvRow, MatchResult, MatchStatus, NormalizedMenuRecord
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 
 
 class StaticContractTests(unittest.TestCase):

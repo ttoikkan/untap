@@ -4,8 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from test_untap_decision_characterization import observe
-from test_untap_v86 import candidate
+from tests.test_untap_decision_characterization import observe
+from tests.test_untap_v86 import candidate
 from untap_report import render_html_report, selection_report_id, _review_candidates
 from untap_refresh import apply_selection_payload
 from untap_snapshot import build_snapshot, save_snapshot, load_snapshot

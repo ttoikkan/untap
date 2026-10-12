@@ -26,7 +26,7 @@ from untap_version import __version__
 
 class PackagingBoundaryTests(unittest.TestCase):
     def test_all_runtime_modules_are_declared_without_building_a_wheel(self):
-        root = Path(__file__).parent
+        root = Path(__file__).parent.parent
         text = (root / 'pyproject.toml').read_text(encoding='utf-8')
         section = re.search(r'(?ms)^\[tool\.setuptools\]\s*$(.*?)(?=^\[|\Z)', text)
         self.assertIsNotNone(section, 'Missing setuptools configuration')
@@ -159,7 +159,7 @@ class InstalledDistributionTests(unittest.TestCase):
                                   'import json; from importlib.metadata import files; print(json.dumps([str(f) for f in files("untap")]))')
         self.assertEqual(result.returncode, 0, result.stderr)
         contents = json.loads(result.stdout)
-        expected_modules = {path.name for path in Path(__file__).parent.glob('untap*.py')}
+        expected_modules = {path.name for path in Path(__file__).parent.parent.glob('untap*.py')}
         self.assertTrue(expected_modules.issubset(contents))
         self.assertIn('untap_assets/untap_review.js', contents)
         self.assertFalse(any(path.startswith('test') or 'refresh-reports.json' in path for path in contents))
@@ -178,7 +178,7 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertFalse((self.cwd / 'no-browsers').exists())
 
     def test_installed_outputs_equal_source_outputs_byte_for_byte(self):
-        from test_untap_report import HtmlReportTests
+        from tests.test_untap_report import HtmlReportTests
         from untap_report import render_html_report
         from untap_snapshot import build_snapshot
         from untap_batch import save_csv

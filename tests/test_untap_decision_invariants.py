@@ -11,7 +11,7 @@ from contextlib import ExitStack
 
 import untap_matcher as matcher
 from untap_types import Decision
-import test_untap_decision_characterization as characterization
+from tests import test_untap_decision_characterization as characterization
 
 
 def expected_for(case):

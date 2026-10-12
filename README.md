@@ -32,9 +32,9 @@ Badlands	Green Fields	6.5%	IPA
 
 See [SUPPORTED_MENU_FORMATS.md](SUPPORTED_MENU_FORMATS.md) for the exact input contract. Older free-form menu formats are no longer supported.
 
-Each run creates a folder under `results/` in the current directory. It contains `results.html` and `results.json`; `--csv` also writes `results.csv` in that folder. `--csv` takes no filename. Add `--debug` to retain diagnostic output.
+Each batch run creates a folder under `results/` in the current directory. It contains `results.html` and `results.json`; `--csv` also writes `results.csv` in that folder. `--csv` takes no filename. Add `--debug` to retain diagnostic output.
 
-For a single beer:
+For a single beer, results are printed in the terminal without creating a report folder:
 
 ```bash
 untap run "Badlands Green Fields"
@@ -119,7 +119,14 @@ untap refresh --batch refresh-reports.json
 
 Use reviewed snapshots as sources to preserve your choices. Entries may include a `selections` path. Omit `archive` and `replace` for refresh-only operation. Malformed configuration is rejected before starting; individual failures are reported while remaining entries continue, with exit code 2 if any fail. Successful entries are retained.
 
-A menu run can register its completed snapshot using `--register-refresh refresh-reports.json`. Registration skips missing sources with a warning; other invalid entries still require correction. The configuration is not automatically changed to point to refreshed outputs.
+Register a completed menu run with its required report title:
+
+```bash
+untap run --menu menu.tsv --report-title "My menu" \
+  --register-refresh refresh-reports.json
+```
+
+Registration skips an existing logical menu title and keeps its current entry unchanged. Missing sources are skipped with a warning; other invalid entries still require correction. The configuration is not automatically changed to point to refreshed outputs.
 
 ## Inspect search results
 
@@ -147,24 +154,25 @@ Legacy query forms, `python3 untap.py`, and the separate `untap-review`, `untap-
 
 ```bash
 python3 -m pip install -r requirements-dev.txt
-python3 -B -m unittest discover
+python3 -B -m unittest discover -s tests -t .
 python3 -m mypy untap*.py untap_assets
 ```
 
 The ordinary suite includes a packaging module-list check, frozen decision/output cases, and 2,000 seeded invariant cases. Run a larger invariant sample with:
 
 ```bash
-UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -B -m unittest test_untap_decision_invariants
+UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -B -m unittest tests.test_untap_decision_invariants
 ```
 
 Installed-wheel checks are optional in source-only runs. To exercise entry points, bundled assets, missing-browser diagnostics and output equivalence outside the checkout:
 
 ```bash
 python3 -m pip install build
-python3 -m build
-python3 -m venv /tmp/untap-installed-check
-/tmp/untap-installed-check/bin/python -m pip install dist/untap-*.whl
-UNTAP_TEST_ENV=/tmp/untap-installed-check python3 -B -m unittest discover
+untap_check_dir=$(mktemp -d)
+python3 -m build --wheel --outdir "$untap_check_dir/dist"
+python3 -m venv "$untap_check_dir/venv"
+"$untap_check_dir/venv/bin/python" -m pip install "$untap_check_dir"/dist/untap-*.whl
+UNTAP_TEST_ENV="$untap_check_dir/venv" python3 -B -m unittest discover -s tests -t .
 ```
 
 Run `untap smoke` only when you want the explicit live integration check. It contacts Untappd.

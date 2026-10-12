@@ -4,8 +4,8 @@ from contextlib import ExitStack
 from unittest.mock import patch
 
 import untap_matcher as matcher
-import test_untap_v86 as fixtures
-from test_untap_v86 import candidate
+from tests import test_untap_v86 as fixtures
+from tests.test_untap_v86 import candidate
 
 
 class MatcherV99Tests(unittest.TestCase):

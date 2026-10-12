@@ -1,3 +1,11 @@
+# Unreleased — Test directory organization
+
+- Move test modules and their unchanged fixtures into `tests/`, with package-qualified cross-test imports.
+- Clarify batch-only output folders and registration requirements; use a fresh wheel-validation directory and unified menu-format examples.
+- Consolidate `ARCHITECTURE.md` around current v110 ownership, dependencies and search phases; replace superseded transport, CSV, debug and resume descriptions with current contracts.
+- Update source-root paths and documented discovery/invariant commands. Runtime modules, packaging and output behavior are unchanged.
+- Validation: both default and explicit test discovery collect all 355 tests; installed-wheel checks pass. All seven moved fixture files remain byte-identical, and the package-qualified invariant command passes.
+
 # v110 — Shared output, report model and explicit search phases (2026-10-12)
 
 - Centralize saved-snapshot JSON/HTML/optional CSV output in an offline module, preserving save order, metadata, recovery handling and compatibility exports.

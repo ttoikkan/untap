@@ -10,7 +10,7 @@ from unittest.mock import patch
 import untap_run_output as output
 from untap_report import render_html_report
 from untap_snapshot import build_snapshot, save_snapshot
-from test_untap_decision_characterization import FIXTURE, characterization_cases, observe
+from tests.test_untap_decision_characterization import FIXTURE, characterization_cases, observe
 import json
 import hashlib
 

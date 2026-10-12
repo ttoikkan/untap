@@ -12,9 +12,9 @@ Badlands<TAB>Pop Pop (2026)<TAB>6.5%<TAB>IPA
 Legacy brewery-heading blocks, multiline beer/style/ABV records, `//` records, webshop catalogs and copied tap lists are no longer parsed. Convert them to TSV before searching. Invalid input reports its source line before any browser or network activity.
 
 ```bash
-python3 untap.py --formats
-python3 untap.py --validate-menu menu.txt --show-queries
-python3 untap.py --menu menu.txt --report-title "My menu"
+untap run --formats
+untap run --validate-menu menu.tsv --show-queries
+untap run --menu menu.tsv --report-title "My menu"
 ```
 
 Single-beer queries and `--file` one-query-per-line input remain separate search modes. Batch runs save HTML and JSON automatically; add the boolean `--csv` flag for spreadsheet export.

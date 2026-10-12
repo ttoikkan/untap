@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 import untap_matcher as matcher
-from test_untap_v86 import candidate
+from tests.test_untap_v86 import candidate
 
 CASES = ('strong_primary', 'zero_hit_recovery', 'nonzero_weak_recovery',
          'strongest_weak', 'ambiguous_recovery', 'primary_429', 'transport_error',

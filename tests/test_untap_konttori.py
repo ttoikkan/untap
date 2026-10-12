@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 
 import untap_matcher as matcher
 import untap_report as report
-import test_untap_v86 as fixtures
+from tests import test_untap_v86 as fixtures
 
 
 class KonttoriTests(unittest.TestCase):

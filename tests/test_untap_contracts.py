@@ -94,7 +94,7 @@ class ArchitectureContractTests(unittest.TestCase):
         self.assertEqual(results[0]["input_abv"], "6.5")
 
     def test_dependency_graph_remains_one_way(self):
-        roots = Path(__file__).parent
+        roots = Path(__file__).parent.parent
         imports = {}
         for path in roots.glob("untap*.py"):
             filename = path.name

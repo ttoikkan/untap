@@ -223,7 +223,7 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
         self.assertEqual(candidates[0]["brewery"], "Sante Adairius Rustic Ales")
 
     def test_v68_primary_candidate_discovery_does_not_scrape_dom(self):
-        from test_untap_v86 import MatcherV86Tests, candidate
+        from tests.test_untap_v86 import MatcherV86Tests, candidate
         page0_rows = [candidate('Fazy', 'Badlands', 5)]
         result, _ = MatcherV86Tests().run_search(page0_rows, 'Fazy', 'Badlands', 5)
         self.assertEqual(result['status'], 'ok')
@@ -411,7 +411,7 @@ class DetailAlgoliaParityTests(unittest.TestCase):
         self.assertIsNone(_confirmed_info_from_algolia(candidate, "Brewery"))
 
     def test_v70_detail_navigation_is_only_fallback_after_algolia_fast_path(self):
-        from test_untap_v86 import MatcherV86Tests, candidate
+        from tests.test_untap_v86 import MatcherV86Tests, candidate
         for complete in (True, False):
             rows = [candidate('Fazy', 'Badlands', 5)]
             if not complete:

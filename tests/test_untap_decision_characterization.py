@@ -14,9 +14,9 @@ import untap_matcher as matcher
 from untap_batch import save_csv
 from untap_report import render_html_report
 from untap_snapshot import build_snapshot
-from test_untap_v86 import candidate
-import test_untap_v100
-import test_untap_v101
+from tests.test_untap_v86 import candidate
+from tests import test_untap_v100
+from tests import test_untap_v101
 
 FIXTURE = Path(__file__).with_name('testdata') / 'decision_v107.json'
 

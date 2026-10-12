@@ -3,7 +3,7 @@ import copy
 import unittest
 
 import untap_matcher as matcher
-import test_untap_v86 as fixtures
+from tests import test_untap_v86 as fixtures
 
 
 class NumberedNameTests(unittest.TestCase):

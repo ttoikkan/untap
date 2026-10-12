@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import test_untap_report
+from tests import test_untap_report
 from untap_report import render_html_report
 from untap_snapshot import build_snapshot, load_snapshot, save_snapshot
 
