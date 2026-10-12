@@ -49,6 +49,43 @@ class CandidateRecord(TypedDict, total=False):
     beer_id: Union[str, int]
 
 
+DecisionKind = Literal["failed", "ambiguous", "low_confidence", "selected"]
+DecisionRule = Literal[
+    "no_candidates", "abv_conflict", "brewery_conflict", "production_conflict",
+    "exact_base", "exact_numbered", "unique_exact_identity", "incomplete_discovery",
+    "fallback_review", "same_abv_family", "ambiguity", "low_confidence", "score",
+]
+
+
+class ExpectedEvidence(TypedDict):
+    beer: Optional[str]
+    brewery: Optional[str]
+    abv: Optional[float]
+    style: Optional[str]
+
+
+class DiscoveryContext(TypedDict, total=False):
+    ambiguity_reason: Optional[str]
+    expansion_diagnostics: Optional[Dict[str, Any]]
+    abv_sorted_diagnostics: Optional[Dict[str, Any]]
+    fallback_review_required: bool
+    fallback_query_used: Optional[str]
+    expanded: bool
+    expanded_total_hits: Optional[int]
+
+
+class Decision(TypedDict):
+    """Internal identity decision, never serialized as part of MatchResult."""
+    kind: DecisionKind
+    rule: DecisionRule
+    candidate: Optional[CandidateRecord]
+    reason: Optional[str]
+    alternatives: List[CandidateRecord]
+    same_abv_variants: List[CandidateRecord]
+    search_warning: Optional[str]
+    diagnostics: List[str]
+
+
 class AlternativeRecord(TypedDict, total=False):
     """Compact candidate representation surfaced in ambiguous results."""
 

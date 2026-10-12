@@ -1,10 +1,12 @@
 import re
 import math
 from difflib import SequenceMatcher
-from typing import Any, Dict, Optional, TypedDict
+from typing import Any, Dict, List, Optional, Sequence, TypedDict
+from copy import deepcopy
 from time import perf_counter
 
-from untap_types import AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult
+from untap_types import (AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult,
+                         Decision, DecisionKind, DecisionRule, ExpectedEvidence, DiscoveryContext)
 
 from untap_parser import (
     normalize,
@@ -1569,7 +1571,16 @@ def leading_the_annotation_recovery(beer, brewery):
     return final_query_cleanup(base)
 
 
-def _exclude_abv_conflicts(candidates, expected_abv, debug=False):
+def _emit_diagnostic(messages: Optional[List[str]], *values: object) -> None:
+    """Return debug text through a supplied collector; preserve legacy printing."""
+    text = " ".join(str(value) for value in values)
+    if messages is None:
+        print(text)
+    else:
+        messages.append(text)
+
+
+def _exclude_abv_conflicts(candidates, expected_abv, debug=False, diagnostics=None):
     """Remove clear ABV conflicts at the final decision boundary, not retrieval.
 
     Preserve scores/order and unknown ABVs. Search expansion/fallbacks still see
@@ -1585,7 +1596,7 @@ def _exclude_abv_conflicts(candidates, expected_abv, debug=False):
             abv = math.nan
         if math.isfinite(abv) and abs(abv - expected_abv) >= ABV_MISMATCH_DIFF:
             if debug:
-                print(f"Excluded: {candidate.get('name')} — {abv:g}% conflicts "
+                _emit_diagnostic(diagnostics, f"Excluded: {candidate.get('name')} — {abv:g}% conflicts "
                       f"with menu {expected_abv:g}%")
         else:
             eligible.append(candidate)
@@ -1642,27 +1653,27 @@ def shadow_alias_support(candidates, expected_beer, expected_brewery=None,
 
 
 def print_shadow_alias_support(candidates, expected_beer, expected_brewery=None,
-                               expected_abv=None, expected_style=None):
+                               expected_abv=None, expected_style=None, diagnostics=None):
     """Print alias evidence without changing scores, ordering, or outcomes."""
     supported = shadow_alias_support(
         candidates, expected_beer, expected_brewery, expected_abv, expected_style
     )
-    print("Algolia alias shadow analysis:")
+    _emit_diagnostic(diagnostics, "Algolia alias shadow analysis:")
     if not supported:
-        print("  no eligible candidate received exact alias support")
+        _emit_diagnostic(diagnostics, "  no eligible candidate received exact alias support")
     elif len(supported) == 1:
         item = supported[0]
-        print(f"  unique support: {item['candidate'].get('name')!r} via "
+        _emit_diagnostic(diagnostics, f"  unique support: {item['candidate'].get('name')!r} via "
               f"{item['aliases'][0]!r}")
     else:
-        print(f"  inconclusive: {len(supported)} eligible candidates received alias support")
+        _emit_diagnostic(diagnostics, f"  inconclusive: {len(supported)} eligible candidates received alias support")
         for item in supported:
-            print(f"  - {item['candidate'].get('name')!r} via {item['aliases'][0]!r}")
-    print("  shadow only: scores, ordering, and match status unchanged")
+            _emit_diagnostic(diagnostics, f"  - {item['candidate'].get('name')!r} via {item['aliases'][0]!r}")
+    _emit_diagnostic(diagnostics, "  shadow only: scores, ordering, and match status unchanged")
     return supported
 
 
-def print_style_shadow(candidates, expected_style):
+def print_style_shadow(candidates, expected_style, diagnostics=None):
     """Observe clear stout/IPA contradictions without changing candidates."""
     words = set(normalize(expected_style or "").split())
     if "stout" in words:
@@ -1674,7 +1685,7 @@ def print_style_shadow(candidates, expected_style):
     for item in candidates:
         style = item.get("type_name") or ""
         if set(normalize(style).split()) & opposite:
-            print(f"Style diagnostic: {item.get('name')!r} | menu={expected_style!r} "
+            _emit_diagnostic(diagnostics, f"Style diagnostic: {item.get('name')!r} | menu={expected_style!r} "
                   f"| Untappd={style!r} | possible contradiction; diagnostic only")
 
 
@@ -1751,7 +1762,7 @@ def production_vintage_conflict(candidates, expected_beer, expected_brewery, exp
 
 
 def unique_exact_identity_candidate(candidates, expected_beer, expected_brewery, expected_abv,
-                                    debug=False):
+                                    debug=False, diagnostics=None):
     """Return the sole candidate matching the explicit name, brewery and ABV.
 
     Differently named releases and qualifiers do not veto an exact identity.
@@ -1760,7 +1771,7 @@ def unique_exact_identity_candidate(candidates, expected_beer, expected_brewery,
     """
     def rejected(reason):
         if debug:
-            print(f"Unique exact identity not selected: {reason}")
+            _emit_diagnostic(diagnostics, f"Unique exact identity not selected: {reason}")
         return None
 
     target = normalize(expected_beer or "")
@@ -1787,12 +1798,12 @@ def unique_exact_identity_candidate(candidates, expected_beer, expected_brewery,
     if production_vintage_conflict(candidates, expected_beer, expected_brewery, expected_abv):
         return rejected("out-of-production exact match competes with an in-production vintage at the menu ABV")
     if debug:
-        print(f"Unique exact identity accepted: {best['name']!r} (name, brewery and ABV)")
+        _emit_diagnostic(diagnostics, f"Unique exact identity accepted: {best['name']!r} (name, brewery and ABV)")
     return best
 
 
 def exact_numbered_candidate(candidates, expected_beer, expected_brewery, expected_abv,
-                             min_score=DEFAULT_MIN_SCORE, debug=False):
+                             min_score=DEFAULT_MIN_SCORE, debug=False, diagnostics=None):
     """Resolve an exact numbered name only against differently numbered siblings.
 
     Limit this rule to a single terminal positive series number (1-999),
@@ -1818,12 +1829,12 @@ def exact_numbered_candidate(candidates, expected_beer, expected_brewery, expect
         if abv is None or not math.isfinite(float(abv)) or abs(float(abv) - expected_abv) > EXACT_ABV_EPSILON:
             return None
     if debug:
-        print(f"Exact numbered-name preference accepted: {best['name']!r}")
+        _emit_diagnostic(diagnostics, f"Exact numbered-name preference accepted: {best['name']!r}")
     return best
 
 
 def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_abv,
-                         min_score=DEFAULT_MIN_SCORE, debug=False):
+                         min_score=DEFAULT_MIN_SCORE, debug=False, diagnostics=None):
     """Prefer an exact base only over recognized flavor/process extensions.
 
     Unknown, batch/year, duplicate exact-name and unrelated identities fail
@@ -1831,19 +1842,19 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
     """
     def rejected(reason):
         if debug:
-            print(f"  exact-base preference not selected: {reason}")
+            _emit_diagnostic(diagnostics, f"  exact-base preference not selected: {reason}")
         return None
 
     if debug:
-        print(f"Exact-base preference: {len(candidates)} candidates")
+        _emit_diagnostic(diagnostics, f"Exact-base preference: {len(candidates)} candidates")
         for candidate in candidates:
             score = candidate.get("score")
             score_text = f"{float(score):.3f}" if score is not None else "N/A"
-            print(f"  - {candidate.get('name')!r} | brewery={candidate.get('brewery')!r} "
+            _emit_diagnostic(diagnostics, f"  - {candidate.get('name')!r} | brewery={candidate.get('brewery')!r} "
                   f"| ABV={candidate.get('abv')!r} | score={score_text}")
     if len(candidates) < 2 or not expected_beer or not expected_brewery or expected_abv is None:
         if debug and len(candidates) < 2:
-            print("  exact-base preference not applicable: fewer than two candidates")
+            _emit_diagnostic(diagnostics, "  exact-base preference not applicable: fewer than two candidates")
             return None
         return rejected("beer, brewery, and ABV input are required")
     target = normalize(expected_beer)
@@ -1867,7 +1878,7 @@ def exact_base_candidate(candidates, expected_beer, expected_brewery, expected_a
         if suffix not in EXACT_BASE_FLAVOR_QUALIFIERS and not EXACT_BASE_PROCESS_QUALIFIER_RE.fullmatch(suffix):
             return rejected(f"unrecognized qualifier {suffix!r} in {candidate.get('name')!r}")
     if debug:
-        print(f"  exact-base preference accepted: {best['name']!r}")
+        _emit_diagnostic(diagnostics, f"  exact-base preference accepted: {best['name']!r}")
     return best
 
 
@@ -3657,176 +3668,165 @@ def _search_one_impl(
     )
 
 
+def decide_candidates(
+    candidates: Sequence[CandidateRecord], expected: ExpectedEvidence,
+    min_score: float, discovery: DiscoveryContext, *, collect_diagnostics: bool = False,
+) -> Decision:
+    """Apply v107 identity rules in order, without I/O or mutable global state.
+
+    Candidates are already ranked by retrieval/scoring. Preserve that order,
+    including ties. Diagnostics are returned as data; callers choose how to
+    display them. Selection is provisional until impure finalization succeeds.
+    """
+    candidates = deepcopy(list(candidates))
+    beer, brewery, abv, style = expected["beer"], expected["brewery"], expected["abv"], expected["style"]
+    diagnostics: List[str] = []
+    expansion = discovery.get("expansion_diagnostics")
+    sorted_scan = discovery.get("abv_sorted_diagnostics")
+    incomplete = any(d and (d.get("capped") or d.get("errors") or d.get("ambiguity_early_stopped")
+                            or d.get("ambiguity_established")) for d in (expansion, sorted_scan))
+    warning = None
+    if any(d and d.get("capped") for d in (expansion, sorted_scan)):
+        warning = "Search incomplete: the page limit was reached; additional candidates may exist."
+    elif any(d and d.get("errors") for d in (expansion, sorted_scan)):
+        warning = "Search incomplete: an expansion error prevented checking all candidates."
+    elif any(d and (d.get("ambiguity_early_stopped") or d.get("ambiguity_established")) for d in (expansion, sorted_scan)):
+        warning = "Search stopped after establishing ambiguity; additional candidates may exist."
+
+    def outcome(kind: DecisionKind, rule: DecisionRule, reason: Optional[str] = None,
+                ordered: Optional[List[CandidateRecord]] = None,
+                variants: Optional[List[CandidateRecord]] = None) -> Decision:
+        rows = candidates if ordered is None else ordered
+        return {"kind": kind, "rule": rule, "candidate": rows[0] if rows else None,
+                "reason": reason, "alternatives": list(rows), "same_abv_variants": variants or [],
+                "search_warning": warning, "diagnostics": diagnostics}
+
+    # 1. Empty retrieval, then 2–3. ABV and explicit brewery conflicts.
+    if not candidates:
+        return outcome("failed", "no_candidates", "No matching beer found")
+    eligible = _exclude_abv_conflicts(candidates, abv, debug=collect_diagnostics, diagnostics=diagnostics)
+    abv_exclusions = len(eligible) != len(candidates)
+    if not eligible:
+        return outcome("failed", "abv_conflict", f"ABV conflict: all retrieved candidates conflict with menu {abv:g}%")
+    brewery_eligible = [item for item in eligible if candidate_has_brewery_overlap(item, brewery)]
+    brewery_exclusions = len(brewery_eligible) != len(eligible)
+    if not brewery_eligible:
+        return outcome("failed", "brewery_conflict", f"Brewery conflict: retrieved candidates do not match menu brewery {brewery}")
+    candidates = brewery_eligible
+    if collect_diagnostics:
+        print_style_shadow(candidates, style, diagnostics=diagnostics)
+        diagnostics.append("")
+        print_shadow_alias_support(candidates, beer, brewery, abv, style, diagnostics=diagnostics)
+    ambiguity = discovery.get("ambiguity_reason")
+    if abv_exclusions or brewery_exclusions:
+        ambiguity = ("Search incomplete; remaining candidates cannot be resolved safely"
+                     if incomplete and ambiguity else detect_candidate_ambiguity(candidates, beer, abv))
+
+    # 4. Production conflict routes to review even with incomplete discovery.
+    conflict = production_vintage_conflict(candidates, beer, brewery, abv)
+    if conflict:
+        reason = "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually."
+        if collect_diagnostics:
+            diagnostics.append(f"Production/vintage conflict: {reason}")
+        ordered = conflict + [item for item in candidates if not any(item is c for c in conflict)]
+        return outcome("ambiguous", "production_conflict", reason, ordered)
+
+    # 5. Exact rules are guarded by complete discovery and non-review fallback.
+    review_only = discovery.get("fallback_review_required", False)
+    exact = None
+    rule: DecisionRule = "score"
+    if not incomplete and not review_only:
+        exact = exact_base_candidate(candidates, beer, brewery, abv, min_score,
+                                     debug=collect_diagnostics, diagnostics=diagnostics)
+        if exact is not None:
+            rule = "exact_base"
+        else:
+            exact = exact_numbered_candidate(candidates, beer, brewery, abv, min_score,
+                                             debug=collect_diagnostics, diagnostics=diagnostics)
+            if exact is not None:
+                rule = "exact_numbered"
+            else:
+                exact = unique_exact_identity_candidate(candidates, beer, brewery, abv,
+                                                        debug=collect_diagnostics, diagnostics=diagnostics)
+                if exact is not None:
+                    rule = "unique_exact_identity"
+    if collect_diagnostics and incomplete:
+        diagnostics.append("Exact-base preference not selected: incomplete or early-stopped expansion")
+    if exact is not None:
+        ambiguity = None
+        candidates = [exact] + [item for item in candidates if item is not exact]
+    # 6. Recovery review, followed by the stronger incomplete-discovery guard.
+    if review_only:
+        ambiguity = "Recovered candidate name differs from the menu; manual confirmation required"
+    if incomplete:
+        ambiguity = warning or "Search incomplete; remaining candidates cannot be resolved safely"
+
+    # 7–8. Family ambiguity precedes the remaining ambiguity explanation.
+    variants = [] if exact is not None or review_only else same_abv_family_variants(candidates, beer, abv)
+    if len(variants) >= 2:
+        return outcome("ambiguous", "same_abv_family", f"Multiple {abv:g}% variants found", variants=variants)
+    if ambiguity:
+        return outcome("ambiguous", "incomplete_discovery" if incomplete else "fallback_review" if review_only else "ambiguity", ambiguity)
+    # 9–10. Minimum confidence, then provisional selection.
+    if candidates[0]["score"] < min_score and exact is None:
+        return outcome("low_confidence", "low_confidence")
+    return outcome("selected", rule)
+
+
 def _resolve_discovered_candidates(
     page, query, min_score, debug, expected_beer, expected_brewery, expected_abv, expected_style,
     candidates, ambiguity_reason, expanded_candidates, expansion_diagnostics, abv_sorted_diagnostics, fallback_query_used, fallback_review_required, primary_algolia_page,
 ) -> MatchResult:
-    """Apply ambiguity/identity policy and build the final selected beer."""
-    # Never override uncertainty from an incomplete expansion.
-    incomplete = any(
-        diagnostics and (diagnostics.get("capped") or diagnostics.get("errors")
-                         or diagnostics.get("ambiguity_early_stopped")
-                         or diagnostics.get("ambiguity_established"))
-        for diagnostics in (expansion_diagnostics, abv_sorted_diagnostics)
-    )
-    search_warning = None
-    if any(d and d.get("capped") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
-        search_warning = "Search incomplete: the page limit was reached; additional candidates may exist."
-    elif any(d and d.get("errors") for d in (expansion_diagnostics, abv_sorted_diagnostics)):
-        search_warning = "Search incomplete: an expansion error prevented checking all candidates."
-    elif any(d and (d.get("ambiguity_early_stopped") or d.get("ambiguity_established"))
-             for d in (expansion_diagnostics, abv_sorted_diagnostics)):
-        search_warning = "Search stopped after establishing ambiguity; additional candidates may exist."
-    if not candidates:
-        return {
-            "query": query,
-            "status": "failed",
-            "reason": "No matching beer found",
-            "search_warning": search_warning,
-        }
+    """Compatibility boundary: pure decision, diagnostics, then finalization."""
+    expected: ExpectedEvidence = {"beer": expected_beer, "brewery": expected_brewery,
+                                  "abv": expected_abv, "style": expected_style}
+    discovery: DiscoveryContext = {
+        "ambiguity_reason": ambiguity_reason, "expansion_diagnostics": expansion_diagnostics,
+        "abv_sorted_diagnostics": abv_sorted_diagnostics, "fallback_review_required": fallback_review_required,
+        "fallback_query_used": fallback_query_used, "expanded": bool(expanded_candidates),
+        "expanded_total_hits": expansion_diagnostics.get("nbHits") if expansion_diagnostics else None,
+    }
+    decision = decide_candidates(candidates, expected, min_score, discovery, collect_diagnostics=debug)
+    for message in decision["diagnostics"]:
+        print(message)
+    return _finalize_decision(page, query, decision, discovery, primary_algolia_page)
 
-    eligible = _exclude_abv_conflicts(candidates, expected_abv, debug=debug)
-    abv_exclusions = len(eligible) != len(candidates)
-    if not eligible:
-        return {
-            "query": query,
-            "status": "failed",
-            "reason": f"ABV conflict: all retrieved candidates conflict with menu {expected_abv:g}%",
-            "search_warning": search_warning,
-            "search_fallback": fallback_query_used,
-        }
-    brewery_eligible = [item for item in eligible
-                        if candidate_has_brewery_overlap(item, expected_brewery)]
-    brewery_exclusions = len(brewery_eligible) != len(eligible)
-    if not brewery_eligible:
-        return {"query": query, "status": "failed",
-                "reason": f"Brewery conflict: retrieved candidates do not match menu brewery {expected_brewery}",
-                "search_warning": search_warning,
-                "search_fallback": fallback_query_used}
-    candidates = brewery_eligible
 
-    if debug:
-        print_style_shadow(candidates, expected_style)
-        print()
-        print_shadow_alias_support(
-            candidates, expected_beer, expected_brewery, expected_abv, expected_style
-        )
-
-    if abv_exclusions or brewery_exclusions:
-        # Earlier explanations may refer to candidates that are no longer
-        # eligible. Recompute from survivors, preserving incomplete-search doubt.
-        ambiguity_reason = (
-            "Search incomplete; remaining candidates cannot be resolved safely"
-            if incomplete and ambiguity_reason
-            else detect_candidate_ambiguity(candidates, expected_beer, expected_abv)
-        )
-    production_conflict = production_vintage_conflict(
-        candidates, expected_beer, expected_brewery, expected_abv)
-    if production_conflict:
-        reason = "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually."
-        if debug:
-            print(f"Production/vintage conflict: {reason}")
-        best = production_conflict[0]
-        # Preserve both sides even when a sibling ranks below the display cap.
-        alternatives = production_conflict + [item for item in candidates
-                                               if not any(item is conflict for conflict in production_conflict)]
+def _finalize_decision(page: Any, query: str, decision: Decision,
+                       discovery: DiscoveryContext, primary_algolia_page: Any) -> MatchResult:
+    """Build legacy results; selected identities still need metadata validation."""
+    kind, rule = decision["kind"], decision["rule"]
+    fallback_query_used = discovery.get("fallback_query_used")
+    search_warning = decision["search_warning"]
+    reason = decision["reason"] or ""
+    if kind == "failed":
+        failed: MatchResult = {"query": query, "status": "failed", "reason": reason,
+                               "search_warning": search_warning}
+        if rule != "no_candidates":
+            failed["search_fallback"] = fallback_query_used
+        return failed
+    best = decision["candidate"]
+    if best is None:
+        raise ValueError("Non-failed decision must identify a candidate")
+    candidates = decision["alternatives"]
+    if kind == "ambiguous":
+        if rule == "production_conflict":
+            return {"query": query, "status": "ambiguous", "match": best["name"],
+                    "score": best["score"], "url": best.get("url"), "reason": reason,
+                    "search_warning": search_warning,
+                    "alternatives": [_alternative_from_candidate(item) for item in candidates[:10]],
+                    "same_abv_variants": [], "search_fallback": fallback_query_used,
+                    "search_expanded": discovery.get("expanded", False)}
         return {"query": query, "status": "ambiguous", "match": best["name"],
                 "score": best["score"], "url": best.get("url"), "reason": reason,
                 "search_warning": search_warning,
-                "alternatives": [_alternative_from_candidate(item) for item in alternatives[:10]],
-                "same_abv_variants": [], "search_fallback": fallback_query_used,
-                "search_expanded": bool(expanded_candidates)}
-
-    exact_base = None if incomplete or fallback_review_required else exact_base_candidate(
-        candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
-    )
-    if exact_base is None and not incomplete and not fallback_review_required:
-        exact_base = exact_numbered_candidate(
-            candidates, expected_beer, expected_brewery, expected_abv, min_score, debug=debug
-        )
-    if exact_base is None and not incomplete and not fallback_review_required:
-        exact_base = unique_exact_identity_candidate(
-            candidates, expected_beer, expected_brewery, expected_abv, debug=debug
-        )
-    if debug and incomplete:
-        print("Exact-base preference not selected: incomplete or early-stopped expansion")
-    if exact_base is not None:
-        ambiguity_reason = None
-        candidates = [exact_base] + [item for item in candidates if item is not exact_base]
-    if fallback_review_required:
-        ambiguity_reason = "Recovered candidate name differs from the menu; manual confirmation required"
-    if incomplete:
-        ambiguity_reason = search_warning or "Search incomplete; remaining candidates cannot be resolved safely"
-
-    same_abv_variants = [] if exact_base is not None or fallback_review_required else same_abv_family_variants(
-        candidates,
-        expected_beer,
-        expected_abv,
-    )
-
-    # If the expanded result set contains multiple variants from the same
-    # named family at the exact menu ABV, that is the most useful ambiguity
-    # explanation for the user. Prefer it over a generic near-tie message.
-    if len(same_abv_variants) >= 2:
-        best = candidates[0]
-
-        return {
-            "query": query,
-            "status": "ambiguous",
-            "match": best["name"],
-            "score": best["score"],
-            "url": best.get("url"),
-            "reason": f"Multiple {expected_abv:g}% variants found",
-            "search_warning": search_warning,
-            "alternatives": [
-                _alternative_from_candidate(item) for item in candidates[:10]
-            ],
-            "same_abv_variants": [
-                _alternative_from_candidate(item) for item in same_abv_variants
-            ],
-            "search_expanded": bool(expanded_candidates),
-            "search_fallback": fallback_query_used,
-            "expanded_total_hits": (
-                expansion_diagnostics.get("nbHits")
-                if expansion_diagnostics
-                else None
-            ),
-        }
-
-    if ambiguity_reason:
-        best = candidates[0]
-
-        return {
-            "query": query,
-            "status": "ambiguous",
-            "match": best["name"],
-            "score": best["score"],
-            "url": best.get("url"),
-            "reason": ambiguity_reason,
-            "search_warning": search_warning,
-            "alternatives": [
-                _alternative_from_candidate(item) for item in candidates[:10]
-            ],
-            "same_abv_variants": [],
-            "search_expanded": bool(expanded_candidates),
-            "search_fallback": fallback_query_used,
-            "expanded_total_hits": (
-                expansion_diagnostics.get("nbHits")
-                if expansion_diagnostics
-                else None
-            ),
-        }
-
-    best = candidates[0]
-
-    if best["score"] < min_score and exact_base is None:
-        return {
-            "query": query,
-            "status": "low_confidence",
-            "match": best["name"],
-            "score": best["score"],
-            "url": best["url"],
-        }
+                "alternatives": [_alternative_from_candidate(item) for item in candidates[:10]],
+                "same_abv_variants": [_alternative_from_candidate(item) for item in decision["same_abv_variants"]],
+                "search_expanded": discovery.get("expanded", False), "search_fallback": fallback_query_used,
+                "expanded_total_hits": discovery.get("expanded_total_hits")}
+    if kind == "low_confidence":
+        return {"query": query, "status": "low_confidence", "match": best["name"],
+                "score": best["score"], "url": best["url"]}
 
     brewery = best.get("brewery")
     if not brewery or normalize(brewery) == "unknown":
