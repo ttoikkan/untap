@@ -9,7 +9,8 @@ import sys
 import webbrowser
 
 from untap_refresh import apply_selection_payload, write_reviewed_run
-from untap_report import render_html_report, _sorted_report_results
+from untap_report import render_html_report
+from untap_review_policy import sorted_review_results
 from untap_snapshot import load_snapshot
 
 
@@ -46,7 +47,7 @@ class ReviewSession:
         if request["action"] == "fetch" and not payload.get("pending_candidates"):
             raise ValueError("No candidate URL supplied")
         updated = deepcopy(self.snapshot)
-        ordered = _sorted_report_results([i["result"] for i in updated["items"]])
+        ordered = sorted_review_results([i["result"] for i in updated["items"]])
         # The shared validator runs before any network or filesystem mutation.
         apply_selection_payload(updated, payload, fetch_pending=request["action"] == "fetch")
         chosen_rows = {entry["row"] for entry in payload["selections"]}

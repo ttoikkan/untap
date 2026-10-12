@@ -6,8 +6,6 @@ parsing, matching, browser automation, network requests, or CSV persistence.
 """
 
 from datetime import date
-import hashlib
-import json
 from html import escape
 from importlib.resources import files
 from typing import Any, Dict, Iterable, List, Optional, Sequence
@@ -15,15 +13,17 @@ from urllib.parse import urlparse
 
 from untap_types import AlternativeRecord, MatchResult
 from untap_snapshot import menu_item_ids
+# Compatibility names remain available to callers of older source versions.
+from untap_review_policy import (
+    DEFAULT_REPORT_TITLE as DEFAULT_REPORT_TITLE,
+    selection_report_id as selection_report_id,
+    review_candidates as _review_candidates,
+    sorted_review_results as _sorted_report_results,
+    result_sort_rating as _result_sort_rating,
+)
 
 
 DEFAULT_HTML_REPORT = "results.html"
-DEFAULT_REPORT_TITLE = "Untap Results"
-
-
-def selection_report_id(results: Sequence[MatchResult], title: str, report_date: str) -> str:
-    payload = {"results": results, "title": title.strip() or DEFAULT_REPORT_TITLE, "date": report_date}
-    return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False).encode("utf-8")).hexdigest()
 
 
 def _canonical_untappd_beer_url(value: Any) -> Optional[str]:
@@ -163,51 +163,6 @@ def _linked_name(name: Any, url: Any) -> str:
         f'<a class="beer-link" href="{escape(canonical, quote=True)}" '
         f'target="_blank" rel="noopener noreferrer">{label}</a>'
     )
-
-
-def _review_candidates(result: MatchResult) -> List[AlternativeRecord]:
-    raw = result.get("same_abv_variants") or result.get("alternatives") or []
-    candidates = list(raw)
-    candidates.sort(
-        key=lambda item: (
-            -(float(item.get("score") or 0)),
-            str(item.get("name") or "").casefold(),
-        )
-    )
-    return [item for item in candidates if not item.get("user_added")][:10] + [
-        item for item in candidates if item.get("user_added")]
-
-
-def _rating_value(value: Any) -> Optional[float]:
-    if value in (None, ""):
-        return None
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
-
-
-def _result_sort_rating(result: MatchResult) -> Optional[float]:
-    """Return the rating used only to position one top-level report result."""
-    if result.get("status") == "ok":
-        return _rating_value(result.get("rating"))
-
-    candidates = _review_candidates(result)
-    if not candidates:
-        return None
-    return _rating_value(candidates[0].get("rating"))
-
-
-def _sorted_report_results(results: Sequence[MatchResult]) -> List[MatchResult]:
-    ordered = list(results)
-    ordered.sort(
-        key=lambda result: (
-            _result_sort_rating(result) is not None,
-            _result_sort_rating(result) or 0.0,
-        ),
-        reverse=True,
-    )
-    return ordered
 
 
 def _meta_parts(parts: Iterable[Any]) -> str:

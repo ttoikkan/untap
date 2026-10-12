@@ -1,11 +1,12 @@
-import csv
 import sys
 import contextlib
 from pathlib import Path
 from time import perf_counter
-from typing import Callable, Any, Iterator, TextIO, List, Mapping, Optional, Sequence, TypedDict, Union, cast
+from typing import Callable, Any, Iterator, TextIO, List, Optional, Sequence, TypedDict, Union
 
 from untap_types import MatchResult, NormalizedMenuRecord
+# Compatibility exports for source callers; implementation belongs to output.
+from untap_run_output import CSV_FIELDS as CSV_FIELDS, save_csv as save_csv
 
 from untap_matcher import (
     DEFAULT_MIN_SCORE,
@@ -15,27 +16,6 @@ from untap_matcher import (
 )
 from untap_untappd import _reset_run_algolia_debug_stats, debug_timing_enabled
 
-
-CSV_FIELDS = (
-    "original_menu_text",
-    "input_brewery",
-    "input_beer",
-    "input_abv",
-    "input_style",
-    "query",
-    "status",
-    "beer",
-    "brewery",
-    "rating",
-    "ratings",
-    "abv",
-    "ibu",
-    "type_name",
-    "score",
-    "reason",
-    "alternatives",
-    "url",
-)
 
 class _BatchTimingStats(TypedDict):
     count: int
@@ -129,92 +109,6 @@ def print_batch_timing_summary() -> None:
 # This module consumes already-normalized menu records or plain query strings;
 # it does not parse raw menu text and it does not perform direct browser or
 # Algolia transport operations.
-
-
-def _format_candidate_list(items):
-    """
-    Render a list of candidate dicts (as produced for "alternatives" /
-    "same_abv_variants") into a single readable CSV cell, e.g.:
-      "Fresh (0.612, 6.5%); Fresh - Hazy (0.598, 6.5%)"
-    """
-    if not items:
-        return ""
-
-    parts = []
-
-    for item in items[:5]:
-        name = item.get("name") or ""
-        score = item.get("score")
-        abv = item.get("abv")
-
-        score_str = f"{score:.3f}" if score is not None else "N/A"
-        abv_str = f"{abv:g}%" if abv is not None else "N/A"
-
-        parts.append(f"{name} ({score_str}, {abv_str})")
-
-    return "; ".join(parts)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def save_csv(results: Sequence[MatchResult], filename: str) -> None:
-    fields = CSV_FIELDS
-
-    with open(
-        filename,
-        "w",
-        newline="",
-        encoding="utf-8",
-    ) as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=fields,
-        )
-
-        writer.writeheader()
-
-        for r in results:
-            # CSV_FIELDS is dynamic at runtime, so view the TypedDict through a
-            # generic mapping for schema-driven serialization.
-            r_mapping = cast(Mapping[str, Any], r)
-            row = {
-                field: r_mapping.get(
-                    field,
-                    "",
-                )
-                for field in fields
-            }
-
-            # "ok" results already have a confirmed "beer" field. Everything
-            # else (ambiguous / low_confidence / failed) only ever stored the
-            # best guess under "match" -- surface it in "beer" instead of
-            # leaving the row blank.
-            if not row["beer"] and r.get("match"):
-                row["beer"] = r["match"]
-
-            # Prefer same-ABV-family variants when present (they are the
-            # more specific ambiguity explanation); fall back to the
-            # general "alternatives" list otherwise.
-            row["alternatives"] = _format_candidate_list(
-                r.get("same_abv_variants") or r.get("alternatives") or []
-            )
-
-            writer.writerow(row)
-
-    print()
-    print(
-        f"Saved CSV: {filename}"
-    )
 
 
 # ============================================================

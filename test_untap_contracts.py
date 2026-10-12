@@ -150,13 +150,21 @@ class ArchitectureContractTests(unittest.TestCase):
             self.assertNotIn('untap_publish', reachable(module), module)
         for module in ('untap_types', 'untap_identity', 'untap_refresh_config'):
             self.assertFalse({name for name in reachable(module) if name.startswith('untap')}, module)
-        for module in ('untap_report', 'untap_snapshot', 'untap_publish'):
+        for module in ('untap_report', 'untap_snapshot', 'untap_publish', 'untap_run_output', 'untap_review_policy'):
             self.assertTrue(reachable(module).isdisjoint({'untap_batch', 'untap_matcher', 'untap_untappd', 'playwright'}), module)
         for module in graph:
             if module != 'untap_cli':
                 self.assertNotIn('untap_cli', reachable(module), module)
         expected = {'untap_cli', 'untap_inspect', 'untap_local_review', 'untap_manual_candidates', 'untap_refresh', 'untap_refresh_config', 'untap_registry', 'untap_snapshot', 'untap_identity'}
         self.assertTrue(expected.issubset(graph))
+        self.assertNotIn("untap_batch", reachable("untap_refresh"))
+        self.assertEqual({name for name in reachable("untap_review_policy") if name.startswith("untap")}, {"untap_types"})
+        for filename in ("untap_refresh.py", "untap_local_review.py"):
+            tree = ast.parse((roots / filename).read_text())
+            renderer_imports = {alias.name for node in ast.walk(tree)
+                                if isinstance(node, ast.ImportFrom) and node.module == "untap_report"
+                                for alias in node.names}
+            self.assertEqual(renderer_imports, {"render_html_report"})
 
     def test_importing_architecture_modules_remains_playwright_lazy(self):
         # The transport imports Playwright only inside untappd_browser_page().
@@ -165,7 +173,7 @@ class ArchitectureContractTests(unittest.TestCase):
     def test_cli_uses_owned_boundary_entry_points(self):
         self.assertIs(untap.run_batch, untap_batch.run_batch)
         self.assertIs(untap.search_one, untap_matcher.search_one)
-        self.assertEqual(untap.save_html_report.__module__, 'untap_report')
+        self.assertEqual(untap.write_run_outputs.__module__, 'untap_run_output')
 
 
 if __name__ == "__main__":

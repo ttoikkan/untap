@@ -294,16 +294,15 @@ class HtmlReportTests(unittest.TestCase):
                  mock.patch.object(untap, "untappd_browser_page", return_value=FakeBrowserContext()), \
                  mock.patch.object(untap, "run_batch", return_value=fake_result), \
                  mock.patch.object(untap, "print_batch_results"), \
-                 mock.patch.object(untap, "save_csv"), \
                  mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()), \
                  mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), \
-                 mock.patch.object(untap, "save_html_report") as save_report, \
+                 mock.patch.object(untap, "write_run_outputs") as save_report, \
                  contextlib.redirect_stdout(output):
                 untap.main()
 
-            save_report.assert_called_once_with(
-                fake_result, "test-run/results.html", title=untap.DEFAULT_REPORT_TITLE
-            )
+            self.assertEqual(save_report.call_args.args[0]['items'][0]['result'], fake_result[0])
+            self.assertEqual(save_report.call_args.args[0]['report']['title'], untap.DEFAULT_REPORT_TITLE)
+            self.assertEqual(save_report.call_args.args[1], Path("test-run"))
         finally:
             if not menu.closed:
                 menu.close()
@@ -343,14 +342,11 @@ class HtmlReportTests(unittest.TestCase):
                 untap, "untappd_browser_page", return_value=FakeBrowserContext()
             ), mock.patch.object(
                 untap, "run_batch", return_value=fake_result
-            ), mock.patch.object(untap, "print_batch_results"), mock.patch.object(
-                untap, "save_csv"
-            ), mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "save_html_report") as save_report:
+            ), mock.patch.object(untap, "print_batch_results"), mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()), mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), mock.patch.object(untap, "write_run_outputs") as save_report:
                 untap.main()
 
-            save_report.assert_called_once_with(
-                fake_result, "test-run/results.html", title="September Bottle Share"
-            )
+            self.assertEqual(save_report.call_args.args[0]['report']['title'], "September Bottle Share")
+            self.assertEqual(save_report.call_args.args[1], Path("test-run"))
         finally:
             if not menu.closed:
                 menu.close()

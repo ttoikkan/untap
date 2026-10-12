@@ -31,14 +31,14 @@ from untap_matcher import (
     print_algolia_confirmation_summary,
 )
 from untap_batch import (
-    save_csv,
     read_queries_from_file,
     run_batch,
     unattempted_result,
     debug_transcript,
     print_batch_timing_summary,
 )
-from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE, save_html_report
+from untap_report import DEFAULT_HTML_REPORT, DEFAULT_REPORT_TITLE
+from untap_run_output import write_run_outputs, save_csv as save_csv
 from untap_snapshot import build_snapshot, save_snapshot
 from untap_registry import register_run_safely
 from untap_untappd import (
@@ -640,12 +640,10 @@ def _run_and_save_batch(page, items, run_directory: Path, *, min_score: float,
                 for item in items[len(results):]:
                     results.append(unattempted_result(item, f"Batch interrupted before this row completed. Use untap run --continue {run_directory} to search the remaining rows."))
             snapshot = build_snapshot(results, report_title or DEFAULT_REPORT_TITLE)
-            save_snapshot(snapshot, run_directory / "results.json")
-            saved_results = [item["result"] for item in snapshot["items"]]
-            if csv_requested:
-                save_csv(saved_results, str(run_directory / "results.csv"))
-            save_html_report(saved_results, str(run_directory / DEFAULT_HTML_REPORT),
-                             title=report_title or DEFAULT_REPORT_TITLE)
+            write_run_outputs(snapshot, run_directory, csv_requested=csv_requested,
+                              csv_first=True, use_snapshot_date=False)
+            print()
+            print(f"Saved HTML report: {run_directory / DEFAULT_HTML_REPORT}")
             if completed and not any(result.get("status") in ("rate_limited", "not_attempted") for result in results):
                 (run_directory / "results.partial.jsonl").unlink(missing_ok=True)
                 (run_directory / "results.input.json").unlink(missing_ok=True)

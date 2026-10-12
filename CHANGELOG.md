@@ -1,3 +1,12 @@
+# Unreleased — Shared output and review policy
+
+- Extract pure review identity, row ordering and candidate eligibility from the renderer; refresh and local review use the shared policy directly. Preserve fingerprints and compatibility helper exports.
+- Extract CSV export and saved-snapshot JSON/HTML/optional CSV writing into an offline `untap_run_output` module.
+- Share output writing across batch, continuation and refresh; local review continues through the existing reviewed-run workflow.
+- Preserve CSV bytes, output order, report-date behavior, directory allocation, snapshot metadata, journal formats and recovery cleanup. Retain compatibility CSV exports from the batch and source CLI modules.
+- Remove refresh's dependency on batch/search for CSV export and enforce the new output dependency boundary.
+- Validation: all 345 tests pass, including a fresh installed wheel; all 24 source files type-check. Frozen CSV hashes and saved-run output comparisons pass, along with existing continuation and journal-cleanup failure tests. Review-policy tests cover stable ordering, candidate limits, user additions, excluded links, status/URL eligibility and fingerprints.
+
 # v109 — Review evidence and maintenance (2026-10-12)
 
 - Preserve ABV and brewery conflict candidates as inspection-only report links with exclusion reasons, separately from selectable alternatives. Matching decisions remain unchanged.

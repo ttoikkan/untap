@@ -91,7 +91,7 @@ class ContinuationTests(unittest.TestCase):
         for fail in (False, True):
             with self.subTest(fail=fail), tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
                 root = Path(tmp)
-                with patch.object(untap, 'run_batch', return_value=[]), patch.object(untap, 'save_html_report', side_effect=OSError('save failed') if fail else None):
+                with patch.object(untap, 'run_batch', return_value=[]), patch('untap_run_output.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
                     if fail:
                         with self.assertRaises(OSError):
                             untap._run_and_save_batch(object(), [], root, min_score=.425, debug=False, report_title='Menu')
@@ -184,7 +184,7 @@ class RecoveryEdgeTests(unittest.TestCase):
                 def search(page, query, **kwargs):
                     print('continued row diagnostic')
                     return {'query': query, 'status': 'failed', 'reason': 'no match'}
-                with patch('untap_continue.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap_batch.search_one', side_effect=search), patch('untap_continue.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
+                with patch('untap_continue.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap_batch.search_one', side_effect=search), patch('untap_run_output.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
                     if fail:
                         with self.assertRaises(OSError):
                             continue_run(source, debug=True)

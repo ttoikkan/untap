@@ -48,7 +48,7 @@ class BatchContractTests(unittest.TestCase):
     def test_architecture_boundary_keeps_batch_and_cli_responsibilities_separate(self):
         import untap
         self.assertEqual(untap.run_batch.__module__, 'untap_batch')
-        self.assertEqual(untap.save_csv.__module__, 'untap_batch')
+        self.assertEqual(untap.save_csv.__module__, 'untap_run_output')
         self.assertFalse(hasattr(untap_batch, 'load_resume_csv'))
 
     def test_batch_timing_reports_per_item_and_whole_batch(self):

@@ -8,10 +8,11 @@ from uuid import uuid4
 from pathlib import Path
 from typing import Optional, Sequence
 
-from untap_batch import save_csv
+from untap_run_output import write_run_outputs
 from untap_publish import PublishError, publish_report
-from untap_report import render_html_report, selection_report_id, _sorted_report_results, _review_candidates
-from untap_snapshot import load_snapshot, save_snapshot
+from untap_report import render_html_report
+from untap_review_policy import selection_report_id, sorted_review_results, review_candidates, available_review_candidate
+from untap_snapshot import load_snapshot
 from untap_refresh_config import config_defaults
 from untap_manual_candidates import parse_beer_url, fetch_candidates
 
@@ -27,7 +28,7 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
     if (not isinstance(payload, dict) or payload.get("format") != "untap-manual-review-trial-v1"
             or payload.get("report_id") != expected or not isinstance(payload.get("selections"), list)):
         raise ValueError("Selections do not match this snapshot. Refresh the report with the current version, then export selections again.")
-    ordered = _sorted_report_results(results)
+    ordered = sorted_review_results(results)
     pending = payload.get("pending_candidates", [])
     if not isinstance(pending, list) or len(pending) > 20:
         raise ValueError("At most 20 pending candidates are allowed")
@@ -46,7 +47,7 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
             raise ValueError("Duplicate pending candidate")
         pending_seen.add(pending_key)
         existing_ids = set()
-        for existing_candidate in _review_candidates(item["result"]):
+        for existing_candidate in review_candidates(item["result"]):
             try:
                 existing_ids.add(parse_beer_url(existing_candidate.get("url"))[0])
             except ValueError:
@@ -66,8 +67,8 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
             raise ValueError("Invalid or duplicate selection row")
         seen.add(row)
         result = ordered[row]
-        candidate = next((c for c in _review_candidates(result) if c.get("url") == url), None)
-        if (result.get("status") not in ("ambiguous", "ok")) or not isinstance(url, str) or not url.startswith("https://untappd.com/b/") or candidate is None:
+        candidate = available_review_candidate(result, url)
+        if candidate is None:
             raise ValueError("Selection is not an available review candidate")
         item = next(item for item in snapshot["items"] if item["result"] is result)
         validated.append((item, candidate, url))
@@ -124,10 +125,7 @@ def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None, cs
         output.mkdir()
     else:
         output.mkdir(exist_ok=False)
-    save_snapshot(snapshot, output / "results.json")
-    (output / "results.html").write_text(html, encoding="utf-8")
-    if csv_requested:
-        save_csv(results, str(output / "results.csv"))
+    write_run_outputs(snapshot, output, csv_requested=csv_requested, html=html)
     return output
 
 

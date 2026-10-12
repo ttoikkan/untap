@@ -259,3 +259,11 @@ The dispatcher is above all runtime modules; search, report, registry and transp
 ### Conflict inspection evidence
 
 When all retrieved candidates are rejected for ABV or brewery conflicts, the decision retains their ordered evidence and individual exclusion reasons. Finalization projects up to ten into `excluded_candidates` in the saved result. The renderer provides inspection-only links outside candidate cards. Review selection validation reads only selectable alternatives and same-ABV variants, so these links cannot become confirmations. This is an intentional additive output change after the frozen v107/v108 contract; matching outcomes and eligible alternatives remain unchanged.
+
+### Shared run-output serialization
+
+`untap_run_output.py` owns the CSV schema/export and writing an existing snapshot's JSON, HTML and optional CSV into a directory already reserved by its caller. It depends only on shared types, snapshots and the renderer, with no batch, matching, transport or publishing imports. Batch retains CSV-before-HTML ordering and the renderer's current-date behavior. Continuation uses saved report metadata and HTML-before-CSV ordering. Refresh renders before reserving its output directory and passes that HTML to the shared writer. Folder naming, snapshot creation, journals and cleanup remain workflow responsibilities; output failures propagate without removing recovery files. `untap_batch.save_csv` and `CSV_FIELDS` remain compatibility exports.
+
+### Shared review policy
+
+`untap_review_policy.py` owns the selection report fingerprint, review-candidate precedence/order/limits, selectable-candidate lookup, and report row rating order. It is pure and depends only on shared types. The renderer consumes this policy, while refresh and local review import it directly rather than importing private renderer helpers. Excluded inspection links remain ineligible; user-added candidates, stable ties, URL validation and existing report fingerprints are unchanged. Renderer helper names remain compatibility exports for older source callers. Selection mutation and history still belong to refresh; network retrieval and HTML remain outside policy.

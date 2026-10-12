@@ -11,10 +11,10 @@ from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from untap_matcher import DEFAULT_MIN_SCORE, MATCH_RESULT_STATUSES
-from untap_batch import run_batch, unattempted_result, save_csv, debug_transcript
+from untap_batch import run_batch, unattempted_result, debug_transcript
 from untap_parser import read_validated_menu, validate_normalized_menu
 from untap_snapshot import load_snapshot, save_snapshot, build_snapshot, menu_item_ids
-from untap_report import render_html_report
+from untap_run_output import write_run_outputs
 from untap_untappd import untappd_browser_page
 
 UNFINISHED = {"rate_limited", "not_attempted"}
@@ -145,11 +145,8 @@ def continue_run(source: Path, *, min_score: float = DEFAULT_MIN_SCORE, debug: b
                 old = item["result"]
                 reason = "Continuation interrupted before this row completed"
                 item["result"] = unattempted_result(_search_input(old), reason)
-            save_snapshot(snapshot, output / "results.json")
+            write_run_outputs(snapshot, output, csv_requested=csv_requested)
             results = [item["result"] for item in snapshot["items"]]
-            (output / "results.html").write_text(render_html_report(results, snapshot["report"]["title"], snapshot["report"]["date"]), encoding="utf-8")
-            if csv_requested:
-                save_csv(results, str(output / "results.csv"))
             if completed and not any(result.get("status") in UNFINISHED for result in results):
                 (output / "results.partial.jsonl").unlink()
                 (output / "results.input.json").unlink()
