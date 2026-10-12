@@ -11,8 +11,9 @@ from importlib.resources import files
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
-from untap_types import AlternativeRecord, MatchResult
-from untap_snapshot import menu_item_ids
+from untap_types import MatchResult
+from untap_report_model import (prepare_report_rows, format_rating as _format_rating,
+                                format_count, format_abv as _format_abv, production_label)
 # Compatibility names remain available to callers of older source versions.
 from untap_review_policy import (
     DEFAULT_REPORT_TITLE as DEFAULT_REPORT_TITLE,
@@ -38,20 +39,8 @@ def _canonical_untappd_beer_url(value: Any) -> Optional[str]:
     return text
 
 
-def _format_rating(value: Any) -> str:
-    try:
-        return f"{float(value):.2f}"
-    except (TypeError, ValueError):
-        return "N/A"
-
-
 def _format_count(value: Any) -> str:
-    if value is None or value == "":
-        return "N/A"
-    try:
-        return f"{int(value):,}"
-    except (TypeError, ValueError):
-        return escape(str(value))
+    return escape(format_count(value))
 
 
 def _untappd_asset_url(value: Any) -> Optional[str]:
@@ -79,30 +68,18 @@ def _label_image(value: Any, hd_value: Any, name: Any) -> str:
                 hd=escape(hd_text, quote=True), alt=alt, image=image)
 
 
-def _production_status(value: Any) -> str:
-    """Render explicit production metadata or a height-preserving empty row."""
-    is_false = value is False or (
-        not isinstance(value, bool) and isinstance(value, (int, float)) and value == 0
-    ) or (isinstance(value, str) and value.strip().casefold() in {"0", "false"})
-    is_true = value is True or (
-        not isinstance(value, bool) and isinstance(value, (int, float)) and value == 1
-    ) or (isinstance(value, str) and value.strip().casefold() in {"1", "true"})
-    if is_false:
-        text = "Listed as out of production on Untappd"
-    elif is_true:
-        text = "Listed as in production on Untappd"
-    else:
+def _production_html(text: Optional[str]) -> str:
+    if text is None:
         return '<p class="production-status production-status-empty" aria-hidden="true">&nbsp;</p>'
     return f'<p class="production-status">{text}</p>'
 
 
-def _format_abv(value: Any) -> str:
-    if value is None or value == "":
-        return "N/A"
-    if isinstance(value, (int, float)):
-        return f"{value:g}%"
-    text = str(value).strip()
-    return text if text.endswith("%") else f"{text}%"
+def _production_status(value: Any) -> str:
+    """Render explicit production metadata or a height-preserving empty row."""
+    text = production_label(value)
+    if text is None:
+        return '<p class="production-status production-status-empty" aria-hidden="true">&nbsp;</p>'
+    return f'<p class="production-status">{text}</p>'
 
 
 def _style_group(type_name: Any) -> Optional[str]:
@@ -173,21 +150,13 @@ def _meta_parts(parts: Iterable[Any]) -> str:
 def _render_result_cards(results: Sequence[MatchResult]) -> str:
     """Render ordered beer/review cards using occurrence-aware input IDs."""
     result_cards: List[str] = []
-    identifiers = menu_item_ids(results)
-    ordered_rows = sorted(enumerate(results), key=lambda row: (
-        _result_sort_rating(row[1]) is not None, _result_sort_rating(row[1]) or 0.0), reverse=True)
-    for row_index, result in ordered_rows:
-        if result.get("status") == "ok" and not result.get("manually_confirmed") and not any(
-                c.get("url") != result.get("url") for c in _review_candidates(result)):
-            image = _label_image(result.get("image_url"), result.get("image_hd_url"), result.get("beer"))
-            production_status = _production_status(result.get("in_production"))
-            linked_name = _linked_name(result.get("beer"), result.get("url"))
-            metadata = _meta_parts(
-                [
-                    _format_abv(result.get("abv")),
-                    result.get("type_name"),
-                ]
-            )
+    for row in prepare_report_rows(results):
+        if row.confirmed is not None:
+            beer = row.confirmed
+            image = _label_image(beer.image_url, beer.image_hd_url, beer.name)
+            production_status = _production_html(beer.production)
+            linked_name = _linked_name(beer.name, beer.url)
+            metadata = _meta_parts([beer.abv, beer.type_name])
             result_cards.append(
             """
             <article class="beer-card{image_class}" data-status="ok"{style_attr}>
@@ -202,42 +171,30 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
               </div>
             </article>
             """.format(
-                rating=_format_rating(result.get("rating")),
+                rating=beer.rating,
                 image=image,
                 image_class=" has-label" if image else "",
                 production_status=production_status,
                 name=linked_name,
-                brewery=escape(str(result.get("brewery") or "Unknown brewery")),
+                brewery=escape(beer.brewery),
                 metadata=metadata,
-                ratings=_format_count(result.get("ratings")),
-                style_attr=_style_data_attribute(result.get("type_name")),
+                ratings=escape(beer.ratings),
+                style_attr=_style_data_attribute(beer.type_name),
             )
             )
             continue
 
-        status = str(result.get("status") or "unknown").replace("_", " ").title()
-        query = escape(str(result.get("query") or result.get("input_beer") or "Untap result"))
-        fallback_reason = "Match is ambiguous" if result.get("status") == "ambiguous" else "Match unresolved"
-        reason = escape(str(result.get("reason") or fallback_reason))
+        query = escape(row.query)
+        reason = escape(row.reason)
         candidate_cards: List[str] = []
 
-        for candidate in _review_candidates(result):
-            image = _label_image(candidate.get("image_url"), candidate.get("image_hd_url"), candidate.get("name"))
-            production_status = _production_status(candidate.get("in_production"))
-            if candidate.get("user_added"):
-                production_status += '<p class="manual-note">User-added candidate — verify against the menu.</p>'
-                production_status += '<p class="manual-note">' + escape(
-                    f"Check against menu: {result.get('input_brewery') or 'Unknown brewery'} · "
-                    f"{result.get('input_abv') or 'Unknown'}% ABV") + '</p>'
-                try:
-                    menu_abv = float(str(result.get("input_abv")).rstrip("%").replace(",", "."))
-                    candidate_abv = float(str(candidate.get("abv")).rstrip("%").replace(",", "."))
-                    if abs(menu_abv - candidate_abv) > .05:
-                        production_status += '<p class="manual-note"><strong>ABV differs from the menu — verify before confirming.</strong></p>'
-                except (TypeError, ValueError):
-                    production_status += '<p class="manual-note">ABV comparison unavailable — verify before confirming.</p>'
-            score = candidate.get("score")
-            score_text = f"{float(score):.3f}" if score is not None else "N/A"
+        for candidate in row.candidates:
+            image = _label_image(candidate.image_url, candidate.image_hd_url, candidate.name)
+            production_status = _production_html(candidate.production)
+            for note in candidate.notes:
+                production_status += '<p class="manual-note">' + escape(note) + '</p>'
+            if candidate.abv_mismatch:
+                production_status += '<p class="manual-note"><strong>ABV differs from the menu — verify before confirming.</strong></p>'
             candidate_cards.append(
                 """
                 <li class="candidate-card{image_class}"{style_attr}>
@@ -253,47 +210,47 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
                   </div>
                 </li>
                 """.format(
-                    score="User-added" if candidate.get("user_added") else "Match " + score_text,
+                    score=candidate.score,
                     image=image,
                     image_class=" has-label" if image else "",
                     production_status=production_status,
-                    name=_linked_name(candidate.get("name"), candidate.get("url")),
-                    brewery=escape(str(candidate.get("brewery") or "Unknown brewery")),
+                    name=_linked_name(candidate.name, candidate.url),
+                    brewery=escape(candidate.brewery),
                     metadata=_meta_parts(
                         [
-                            _format_abv(candidate.get("abv")),
-                            candidate.get("type_name"),
+                            candidate.abv,
+                            candidate.type_name,
                         ]
                     ),
-                    rating=_format_rating(candidate.get("rating")),
-                    ratings=_format_count(candidate.get("ratings")),
-                    style_attr=_style_data_attribute(candidate.get("type_name")),
+                    rating=candidate.rating,
+                    ratings=escape(candidate.ratings),
+                    style_attr=_style_data_attribute(candidate.type_name),
                 )
             )
 
-        if not candidate_cards and result.get("match"):
+        if row.best_guess is not None:
             candidate_cards.append(
                 """
                 <li class="candidate-card">
                   <div class="candidate-score">Best guess</div>
                   <div><h4>{name}</h4></div>
                 </li>
-                """.format(name=_linked_name(result.get("match"), result.get("url")))
+                """.format(name=_linked_name(row.best_guess.name, row.best_guess.url))
             )
 
         excluded_links = []
-        for excluded in result.get("excluded_candidates") or []:
+        for excluded in row.excluded:
             excluded_links.append('<li class="excluded-candidate"><h4>' +
-                _linked_name(excluded.get("name"), excluded.get("url")) + '</h4><p class="meta">' +
-                _meta_parts([excluded.get("brewery"), _format_abv(excluded.get("abv"))]) +
-                '</p><p class="review-reason">' + escape(str(excluded.get("exclusion_reason") or "Identity conflict")) + '</p></li>')
+                _linked_name(excluded.link.name, excluded.link.url) + '</h4><p class="meta">' +
+                _meta_parts([excluded.brewery, excluded.abv]) +
+                '</p><p class="review-reason">' + escape(excluded.reason) + '</p></li>')
         excluded_html = ('<div class="excluded-candidates"><p class="review-reason">Excluded from matching — links for inspection only.</p>'
                          '<ul>' + "".join(excluded_links) + '</ul></div>') if excluded_links else ""
         candidates_html = "".join(candidate_cards) or ("" if excluded_links else '<p class="empty">No linked candidate was available.</p>')
-        menu_abv_text = escape(_format_abv(result.get("input_abv")))
+        menu_abv_text = escape(row.menu_abv)
         search_warning = (
-            '<p class="review-reason">' + escape(str(result["search_warning"])) + '</p>'
-            if result.get("search_warning") else ""
+            '<p class="review-reason">' + escape(row.search_warning) + '</p>'
+            if row.search_warning else ""
         )
         result_cards.append(
             """
@@ -307,7 +264,7 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
               {search_warning}
               <ol class="candidate-list">{candidates}</ol>{excluded}
             </article>
-            """.format(automatic_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" and not result.get("manually_confirmed") else "", menu_abv=menu_abv_text, item_id=identifiers[row_index], status="Ambiguous" if result.get("manually_confirmed") else escape(status), status_key="ambiguous" if result.get("manually_confirmed") else escape(str(result.get("status") or "unknown"), quote=True), initial_selection=escape(str(result.get("url") or ""), quote=True) if result.get("status") == "ok" else "", query=query, reason=reason, search_warning=search_warning, candidates=candidates_html, excluded=excluded_html)
+            """.format(automatic_selection=escape(row.automatic_selection, quote=True), menu_abv=menu_abv_text, item_id=row.item_id, status=escape(row.status), status_key=escape(row.status_key, quote=True), initial_selection=escape(row.initial_selection, quote=True), query=query, reason=reason, search_warning=search_warning, candidates=candidates_html, excluded=excluded_html)
         )
 
     return "".join(result_cards) or '<p class="empty">No beers.</p>'

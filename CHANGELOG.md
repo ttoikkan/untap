@@ -1,3 +1,9 @@
+# Unreleased — Typed report card presentation
+
+- Prepare ordered report cards in a pure, typed presentation model; keep HTML templates, escaping, safe links/assets and page/filter rendering in the renderer.
+- Preserve saved schemas, matching, review policy, labels, warnings and report bytes. Add a 40-case pre-extraction HTML baseline and direct presentation-model regressions.
+- Validation: all 349 tests pass, including fresh installed-wheel checks; all 25 source files type-check. All 40 fixed-date reports match the pre-extraction HTML bytes, and existing frozen output contracts remain unchanged.
+
 # Unreleased — Shared output and review policy
 
 - Extract pure review identity, row ordering and candidate eligibility from the renderer; refresh and local review use the shared policy directly. Preserve fingerprints and compatibility helper exports.

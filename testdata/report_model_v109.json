@@ -1,0 +1,1420 @@
+[
+  {
+    "name": "Banishing 3",
+    "results": [
+      {
+        "beer": "Banishing 3",
+        "brewery": "Third Moon Brewing Company",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "7%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/6801235",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Third Moon Banishing 3",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Banishing 3\nThird Moon Brewing Company\n7.0% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Banishing 3",
+            "score": 1.0,
+            "abv": 7.0,
+            "brewery": "Third Moon Brewing Company",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/6801235",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Banishing 2",
+            "score": 0.972,
+            "abv": 7.0,
+            "brewery": "Third Moon Brewing Company",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Banishing 1",
+            "score": 0.972,
+            "abv": 7.0,
+            "brewery": "Third Moon Brewing Company",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Banishing 4",
+            "score": 0.972,
+            "abv": 7.0,
+            "brewery": "Third Moon Brewing Company",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/4",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Banishing 5",
+            "score": 0.972,
+            "abv": 7.0,
+            "brewery": "Third Moon Brewing Company",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/5",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "283c0db2b102e4cf0d8fca585b958c2d8446df03415897b06bcf0b58dcd5d590"
+  },
+  {
+    "name": "Tripla Broccoli World",
+    "results": [
+      {
+        "beer": "Broccoli World",
+        "brewery": "Other Half Brewing Co.",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "8.2%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/3908668",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Other Half Brewing Co. Broccoli World",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Broccoli World\nOther Half Brewing Co.\n8.2% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Broccoli World",
+            "score": 1.0,
+            "abv": 8.2,
+            "brewery": "Other Half Brewing Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/3908668",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Broccoli World: NYC Rampage",
+            "score": 0.75,
+            "abv": 9.0,
+            "brewery": "Other Half Brewing Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/3919882",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Broccoli World Special Reserve (8th Anniversary Edition)",
+            "score": 0.722,
+            "abv": 8.6,
+            "brewery": "Other Half Brewing Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/4685166",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "647046f922a9f17f4ad9a0685a5dbf1a34f064a5afbcf6e563808db9c8a0c093"
+  },
+  {
+    "name": "Tripla Ghost",
+    "results": [
+      {
+        "beer": "Ghost In The Machine",
+        "brewery": "Parish Brewing Co.",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "8%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/593083",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Parish Brewing Co. Ghost In The Machine",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Ghost In The Machine\nParish Brewing Co.\n8.0% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Ghost In The Machine",
+            "score": 1.0,
+            "abv": 8.0,
+            "brewery": "Parish Brewing Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/593083",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "DDH Ghost In the Machine",
+            "score": 0.903,
+            "abv": 8.0,
+            "brewery": "Parish Brewing Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2422658",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "DDH Ghost In the Machine(Beijing Limited Edition)",
+            "score": 0.746,
+            "abv": 8.5,
+            "brewery": "Parish Brewing Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/4",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "93c0b6bf8f959b0279b2986b20ee88a42f155ceb76edc4bafe3c016c6c41c27b"
+  },
+  {
+    "name": "Boston Lager",
+    "results": [
+      {
+        "beer": "Boston Lager",
+        "brewery": "Samuel Adams",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "5%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/1",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Samuel Adams Boston Lager",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Boston Lager\nSamuel Adams\n5.0% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Boston Lager",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Samuel Adams",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Boston Lager (1985–2022)",
+            "score": 0.965,
+            "abv": 5.0,
+            "brewery": "Samuel Adams",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "362a0ee843516ca27123126a90ed27b969cf798b6223384be8bcb7cade4e9bbe"
+  },
+  {
+    "name": "Schmoojee Peach Pear Dragonfruit",
+    "results": [
+      {
+        "beer": "Schmoojee Peach Pear Dragonfruit",
+        "brewery": "Imprint Beer Co.",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "6.5%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/1",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Imprint Beer Co. Schmoojee Peach Pear Dragonfruit",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Schmoojee Peach Pear Dragonfruit\nImprint Beer Co.\n6.5% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Schmoojee Peach Pear Dragonfruit",
+            "score": 1.0,
+            "abv": 6.5,
+            "brewery": "Imprint Beer Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Schmoojee Peach Pear Apricot Dragonfruit",
+            "score": 0.965,
+            "abv": 6.5,
+            "brewery": "Imprint Beer Co.",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "440204262135a892b682b073c575a2502aa23f80e5e94a879e1ee58bca776059"
+  },
+  {
+    "name": "Humble Sea ABV conflict",
+    "results": [
+      {
+        "query": "Messorem A7Y7 X Humble Sea",
+        "status": "failed",
+        "reason": "ABV conflict: all retrieved candidates conflict with menu 6.5%",
+        "search_warning": null,
+        "search_fallback": null,
+        "excluded_candidates": [
+          {
+            "name": "A7Y7 X Humble Sea",
+            "score": 1.0,
+            "abv": 7.5,
+            "brewery": "Messorem",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null,
+            "exclusion_reason": "ABV conflicts with menu 6.5%"
+          }
+        ]
+      }
+    ],
+    "html_sha256": "9ed74fe050ebd992232f64f5a74c807d17a57753c25992379a5d16342969628d"
+  },
+  {
+    "name": "Production conflict False",
+    "results": [
+      {
+        "query": "Samuel Adams Boston Lager",
+        "status": "ambiguous",
+        "match": "Boston Lager",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually.",
+        "search_warning": null,
+        "alternatives": [
+          {
+            "name": "Boston Lager",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Samuel Adams",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": false
+          },
+          {
+            "name": "Boston Lager (2025)",
+            "score": 0.9,
+            "abv": 5.0,
+            "brewery": "Samuel Adams",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": true
+          }
+        ],
+        "same_abv_variants": [],
+        "search_fallback": null,
+        "search_expanded": false
+      }
+    ],
+    "html_sha256": "7f20e5273edbb6786c8340727f9b60836c029d4293360c97fbb2dd9b08f6e4e8"
+  },
+  {
+    "name": "Production conflict True",
+    "results": [
+      {
+        "query": "Samuel Adams Boston Lager",
+        "status": "ambiguous",
+        "match": "Boston Lager",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Exact-name match is out of production; an in-production vintage from the same brewery has the menu ABV. Confirm the release manually.",
+        "search_warning": "Search incomplete: an expansion error prevented checking all candidates.",
+        "alternatives": [
+          {
+            "name": "Boston Lager",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Samuel Adams",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": false
+          },
+          {
+            "name": "Boston Lager (2025)",
+            "score": 0.9,
+            "abv": 5.0,
+            "brewery": "Samuel Adams",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": true
+          }
+        ],
+        "same_abv_variants": [],
+        "search_fallback": null,
+        "search_expanded": false
+      }
+    ],
+    "html_sha256": "fa701bb1cb0f2641bf5a5c0a7f14c604ced91c26f653267aab5030402c66d3ad"
+  },
+  {
+    "name": "Exact base",
+    "results": [
+      {
+        "beer": "PB&J Mixtape",
+        "brewery": "Xül",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "6.5%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/1",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Xül PB&J Mixtape",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "PB&J Mixtape\nXül\n6.5% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "PB&J Mixtape",
+            "score": 1.0,
+            "abv": 6.5,
+            "brewery": "Xül",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "PB&J Mixtape Peach",
+            "score": 0.9,
+            "abv": 6.5,
+            "brewery": "Xül",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "ec2c6eba2266dd133ceecf009a2bf529afdd7c54012d27f557920a2fd3aaedb6"
+  },
+  {
+    "name": "DDH",
+    "results": [
+      {
+        "beer": "Double Dry Hopped Fort Point",
+        "brewery": "Trillium",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "6.6%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/1",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA - Sour",
+        "query": "Trillium DDH Fort Point",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Double Dry Hopped Fort Point\nTrillium\n6.6% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Double Dry Hopped Fort Point",
+            "score": 1.0,
+            "abv": 6.6,
+            "brewery": "Trillium",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Mosaic Dry Hopped Fort Point",
+            "score": 0.8,
+            "abv": 6.6,
+            "brewery": "Trillium",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "5120d0faf89a0296878a135b82c71002dc35f51800289757ade5f510e4f396dc"
+  },
+  {
+    "name": "Incomplete capped",
+    "results": [
+      {
+        "query": "Badlands Green Fields",
+        "status": "ambiguous",
+        "match": "Green Fields 2025",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Search incomplete: the page limit was reached; additional candidates may exist.",
+        "search_warning": "Search incomplete: the page limit was reached; additional candidates may exist.",
+        "alternatives": [
+          {
+            "name": "Green Fields 2025",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [],
+        "search_expanded": true,
+        "search_fallback": null,
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "0f036736ea126f96f10e76db258bb1dfbc46be360092b0926a9e8d38dbb0f871"
+  },
+  {
+    "name": "Incomplete errors",
+    "results": [
+      {
+        "query": "Badlands Green Fields",
+        "status": "ambiguous",
+        "match": "Green Fields 2025",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Search incomplete: an expansion error prevented checking all candidates.",
+        "search_warning": "Search incomplete: an expansion error prevented checking all candidates.",
+        "alternatives": [
+          {
+            "name": "Green Fields 2025",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [],
+        "search_expanded": true,
+        "search_fallback": null,
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "d14564f63d101c3c14f361b4472542cb1e0936f3ac4f17957dc26234791223b3"
+  },
+  {
+    "name": "Incomplete ambiguity_early_stopped",
+    "results": [
+      {
+        "query": "Badlands Green Fields",
+        "status": "ambiguous",
+        "match": "Green Fields 2025",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Search stopped after establishing ambiguity; additional candidates may exist.",
+        "search_warning": "Search stopped after establishing ambiguity; additional candidates may exist.",
+        "alternatives": [
+          {
+            "name": "Green Fields 2025",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [],
+        "search_expanded": true,
+        "search_fallback": null,
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "366c5a840d8939c2ace9d68b649eacefc664a4bb8164e083cf04c96297d07ecd"
+  },
+  {
+    "name": "Incomplete ambiguity_established",
+    "results": [
+      {
+        "query": "Badlands Green Fields",
+        "status": "ambiguous",
+        "match": "Green Fields 2025",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Search stopped after establishing ambiguity; additional candidates may exist.",
+        "search_warning": "Search stopped after establishing ambiguity; additional candidates may exist.",
+        "alternatives": [
+          {
+            "name": "Green Fields 2025",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [],
+        "search_expanded": true,
+        "search_fallback": null,
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "366c5a840d8939c2ace9d68b649eacefc664a4bb8164e083cf04c96297d07ecd"
+  },
+  {
+    "name": "Review-only fallback",
+    "results": [
+      {
+        "query": "Messorem A7Y7 X Fidens - XTRM Turbo",
+        "status": "ambiguous",
+        "match": "A7Y7 X Fidens X Freestyle Hops",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Recovered candidate name differs from the menu; manual confirmation required",
+        "search_warning": null,
+        "alternatives": [
+          {
+            "name": "A7Y7 X Fidens X Freestyle Hops",
+            "score": 1.0,
+            "abv": 7.5,
+            "brewery": "Messorem",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [],
+        "search_expanded": false,
+        "search_fallback": "Messorem A7Y7 X Fidens",
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "392c1b8f7b02732058e8b64a7a78fef32dcdd9349e9f81e5e81eb98953212221"
+  },
+  {
+    "name": "No candidates",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "failed",
+        "reason": "No matching beer found",
+        "search_warning": null
+      }
+    ],
+    "html_sha256": "27a0f15f44696f2513fddb05bbb92ff9f5f95b1c1a53b1aeb2fe987e60b2e2d5"
+  },
+  {
+    "name": "Brewery conflict",
+    "results": [
+      {
+        "query": "Badlands Beer",
+        "status": "failed",
+        "reason": "Brewery conflict: retrieved candidates do not match menu brewery Badlands",
+        "search_warning": null,
+        "search_fallback": null,
+        "excluded_candidates": [
+          {
+            "name": "Beer",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Unrelated",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null,
+            "exclusion_reason": "Brewery does not match menu brewery Badlands"
+          }
+        ]
+      }
+    ],
+    "html_sha256": "898922268a899991df4bafefa1c0acbee3c1abadae49a8114eb8b4897e2943dc"
+  },
+  {
+    "name": "Low confidence",
+    "results": [
+      {
+        "query": "Badlands Beer",
+        "status": "low_confidence",
+        "match": "Weak Beer",
+        "score": 0.1,
+        "url": "https://untappd.com/b/fixture/1"
+      }
+    ],
+    "html_sha256": "7eddb13c62224013760712e4266536b9276bdbc5ce1aa80f0bc70da4de3d6c41"
+  },
+  {
+    "name": "Same ABV family",
+    "results": [
+      {
+        "query": "Trillium Daily Serving",
+        "status": "ambiguous",
+        "match": "Daily Serving Peach",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Multiple 5% variants found",
+        "search_warning": null,
+        "alternatives": [
+          {
+            "name": "Daily Serving Peach",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Trillium",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Daily Serving Cherry",
+            "score": 0.9,
+            "abv": 5.0,
+            "brewery": "Trillium",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [
+          {
+            "name": "Daily Serving Peach",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Trillium",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Daily Serving Cherry",
+            "score": 0.9,
+            "abv": 5.0,
+            "brewery": "Trillium",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "search_expanded": false,
+        "search_fallback": null,
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "0043b17d5b6c44b3be759d3d71cb9c86d5159e030ac25cbeb5ebac4bf0b46ac6"
+  },
+  {
+    "name": "Near tie",
+    "results": [
+      {
+        "query": "Badlands Beer",
+        "status": "ambiguous",
+        "match": "Beer Alpha",
+        "score": 1.0,
+        "url": "https://untappd.com/b/fixture/1",
+        "reason": "Top candidates are too close",
+        "search_warning": null,
+        "alternatives": [
+          {
+            "name": "Beer Alpha",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          },
+          {
+            "name": "Beer Beta",
+            "score": 0.99,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/2",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "same_abv_variants": [],
+        "search_expanded": false,
+        "search_fallback": null,
+        "expanded_total_hits": null
+      }
+    ],
+    "html_sha256": "a1294691def3afa2157c6eeb22a0fc3bc1fc6fe328d35b467f01e7665e4aca07"
+  },
+  {
+    "name": "Detail ok",
+    "results": [
+      {
+        "beer": "Beer",
+        "brewery": "Badlands",
+        "abv": "5%",
+        "ibu": null,
+        "rating": null,
+        "ratings": null,
+        "url": "https://untappd.com/b/fixture/1",
+        "type_name": "IPA - Sour",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "query": "Badlands Beer",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Beer\nBadlands\n5.0% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Beer",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": null,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "86f6d7d7e5bb7103b8f34c15425f10030bbc65cb5903ca1a6bba1b33e7149223"
+  },
+  {
+    "name": "Detail failed",
+    "results": [
+      {
+        "query": "Badlands Beer",
+        "status": "failed",
+        "reason": "Controlled detail failure",
+        "url": "https://untappd.com/b/fixture/1",
+        "alternatives": [
+          {
+            "name": "Beer",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": null,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "search_fallback": null
+      }
+    ],
+    "html_sha256": "5a85f0705eb22493b678aef56183cc3f3e852c3766406a55bb8f2b98b27c53d8"
+  },
+  {
+    "name": "Detail rate_limited",
+    "results": [
+      {
+        "query": "Badlands Beer",
+        "status": "rate_limited",
+        "reason": "Controlled detail failure",
+        "url": "https://untappd.com/b/fixture/1",
+        "alternatives": [
+          {
+            "name": "Beer",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Badlands",
+            "rating": null,
+            "ratings": 100,
+            "type_name": "IPA - Sour",
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ],
+        "search_fallback": null
+      }
+    ],
+    "html_sha256": "4736e5e3ebbe3022c67a4543d0c180d98aa66436a2d26ae663dfbfb26f2af799"
+  },
+  {
+    "name": "Captured metadata recovery",
+    "results": [
+      {
+        "beer": "Beer",
+        "brewery": "Badlands",
+        "rating": 4.0,
+        "ratings": 100,
+        "abv": "5%",
+        "ibu": null,
+        "url": "https://untappd.com/b/fixture/1",
+        "image_url": null,
+        "image_hd_url": null,
+        "in_production": null,
+        "type_name": "IPA",
+        "query": "Beer",
+        "status": "ok",
+        "score": 1.0,
+        "search_text": "Beer\nUnknown\n5.0% ABV",
+        "search_fallback": null,
+        "alternatives": [
+          {
+            "name": "Beer",
+            "score": 1.0,
+            "abv": 5.0,
+            "brewery": "Unknown",
+            "rating": 4.0,
+            "ratings": 100,
+            "type_name": null,
+            "url": "https://untappd.com/b/fixture/1",
+            "image_url": null,
+            "image_hd_url": null,
+            "in_production": null
+          }
+        ]
+      }
+    ],
+    "html_sha256": "91e0383bf401126e4f144827ad961fed0bf86e12890229e7eb6aaea923b771bc"
+  },
+  {
+    "name": "Production True",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": true
+      }
+    ],
+    "html_sha256": "f7a08025a939e015c2f76ca16f979154a184e205d3752428054524add6eecde6"
+  },
+  {
+    "name": "Production False",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": false
+      }
+    ],
+    "html_sha256": "e7a50957628fb6e8f6c05f2205230b0bdb8b9fb4733aaf2490b49e0ba56bf1a3"
+  },
+  {
+    "name": "Production None",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": null
+      }
+    ],
+    "html_sha256": "c7d6a59c644a16767111fc6fbbf702f1a2c03e39628d49696241d1f472ebec56"
+  },
+  {
+    "name": "Production 'false'",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": "false"
+      }
+    ],
+    "html_sha256": "590b951f4ddca20d7b39940c5172f36ac8bb1e91b50a84134abf67aa25ab2044"
+  },
+  {
+    "name": "Production 'true'",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": "true"
+      }
+    ],
+    "html_sha256": "a91376ec7d46756a654d7342b4a43fe944d7f46ae66db3e60abb28295abf0efc"
+  },
+  {
+    "name": "Production 0",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": 0
+      }
+    ],
+    "html_sha256": "c5618c60ef54651f002febf0eb423760d66622ac52abad1d742f00b34e3440a8"
+  },
+  {
+    "name": "Production 1",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "in_production": 1
+      }
+    ],
+    "html_sha256": "96eab00ecdb95e233856f81e486eb39b841e39944cb98cd27c9950ab3dc4fb6d"
+  },
+  {
+    "name": "User-added '6%'",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ambiguous",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "input_abv": "5",
+        "input_brewery": "Brewery",
+        "alternatives": [
+          {
+            "name": "<Sibling>",
+            "brewery": "Brewery",
+            "abv": "6%",
+            "score": 0.5,
+            "url": "https://untappd.com/b/beer/2",
+            "user_added": true,
+            "rating": 4.1,
+            "ratings": "<script>bad</script>"
+          }
+        ],
+        "search_warning": "<Warning>"
+      }
+    ],
+    "html_sha256": "423f7fbdb7fa84e8e929d52c0394590a502dd18d07df35940fbc3c6d3aa4b3dc"
+  },
+  {
+    "name": "User-added None",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ambiguous",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "input_abv": "5",
+        "input_brewery": "Brewery",
+        "alternatives": [
+          {
+            "name": "<Sibling>",
+            "brewery": "Brewery",
+            "abv": null,
+            "score": 0.5,
+            "url": "https://untappd.com/b/beer/2",
+            "user_added": true,
+            "rating": 4.1,
+            "ratings": "<script>bad</script>"
+          }
+        ],
+        "search_warning": "<Warning>"
+      }
+    ],
+    "html_sha256": "25caa3a5764cb00dc9f59a78d952d680f3e3ac40485e2cead8f23c632da8e4db"
+  },
+  {
+    "name": "User-added '5,01%'",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ambiguous",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "input_abv": "5",
+        "input_brewery": "Brewery",
+        "alternatives": [
+          {
+            "name": "<Sibling>",
+            "brewery": "Brewery",
+            "abv": "5,01%",
+            "score": 0.5,
+            "url": "https://untappd.com/b/beer/2",
+            "user_added": true,
+            "rating": 4.1,
+            "ratings": "<script>bad</script>"
+          }
+        ],
+        "search_warning": "<Warning>"
+      }
+    ],
+    "html_sha256": "8849e9f8800febf3b2f4202b075c3702096b7ad4b3e0a101185a88e560eea4e2"
+  },
+  {
+    "name": "Change selection False",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "alternatives": [
+          {
+            "name": "Sibling",
+            "brewery": "Brewery",
+            "abv": 5.0,
+            "score": 0.9,
+            "url": "https://untappd.com/b/beer/2",
+            "rating": 4.5
+          }
+        ],
+        "manually_confirmed": false
+      }
+    ],
+    "html_sha256": "085d729638c3261a3c9cc0bc6387fc23c729a0b4a821e201c6f94b19cd68f280"
+  },
+  {
+    "name": "Change selection True",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png",
+        "alternatives": [
+          {
+            "name": "Sibling",
+            "brewery": "Brewery",
+            "abv": 5.0,
+            "score": 0.9,
+            "url": "https://untappd.com/b/beer/2",
+            "rating": 4.5
+          }
+        ],
+        "manually_confirmed": true
+      }
+    ],
+    "html_sha256": "d7975b7716acb238698decb68ca2e00f90dde5c227f48105830d637d3f7bea38"
+  },
+  {
+    "name": "Empty",
+    "results": [],
+    "html_sha256": "8e34b2e29e58460cb4b5b5dc849e29d5a49306cc33e515545a2e5de4814f39bf"
+  },
+  {
+    "name": "Best guess",
+    "results": [
+      {
+        "query": "Guess",
+        "status": "low_confidence",
+        "match": "<Guess>",
+        "url": "javascript:alert(1)",
+        "input_abv": null
+      }
+    ],
+    "html_sha256": "f1781c6c311df2115b9dccf115ad76304934e71a57dafecd55ba149c5ab9b329"
+  },
+  {
+    "name": "Mixed ordering",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png"
+      },
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "Tied",
+        "brewery": "Brewery",
+        "abv": "5%",
+        "rating": 4.25,
+        "ratings": 1200,
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "https://assets.untappd.com/label.png",
+        "image_hd_url": "https://assets.untappd.com/hd.png"
+      },
+      {
+        "query": "Unknown",
+        "status": "failed"
+      },
+      {
+        "query": "Review",
+        "status": "ambiguous",
+        "alternatives": [
+          {
+            "name": "Sibling",
+            "brewery": "Brewery",
+            "abv": 5.0,
+            "score": 0.9,
+            "url": "https://untappd.com/b/beer/2",
+            "rating": 4.5
+          }
+        ]
+      }
+    ],
+    "html_sha256": "d265d366b8e91d122c46a315572c77499b3a04f89c15515ded3df08c2ed78c6f"
+  },
+  {
+    "name": "Invalid metadata",
+    "results": [
+      {
+        "query": "Brewery Beer",
+        "status": "ok",
+        "beer": "<Beer & label>",
+        "brewery": "Brewery",
+        "abv": null,
+        "rating": null,
+        "ratings": "<invalid>",
+        "type_name": "IPA - Hazy",
+        "url": "https://untappd.com/b/beer/1",
+        "image_url": "javascript:alert(1)",
+        "image_hd_url": "https://assets.untappd.com/hd.png"
+      }
+    ],
+    "html_sha256": "a7bd06e5f8d5742330fa926949e50ad27b0f9cbb1aaab233dd3f5488aaef3d42"
+  }
+]

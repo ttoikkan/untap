@@ -150,7 +150,7 @@ class ArchitectureContractTests(unittest.TestCase):
             self.assertNotIn('untap_publish', reachable(module), module)
         for module in ('untap_types', 'untap_identity', 'untap_refresh_config'):
             self.assertFalse({name for name in reachable(module) if name.startswith('untap')}, module)
-        for module in ('untap_report', 'untap_snapshot', 'untap_publish', 'untap_run_output', 'untap_review_policy'):
+        for module in ('untap_report', 'untap_snapshot', 'untap_publish', 'untap_run_output', 'untap_review_policy', 'untap_report_model'):
             self.assertTrue(reachable(module).isdisjoint({'untap_batch', 'untap_matcher', 'untap_untappd', 'playwright'}), module)
         for module in graph:
             if module != 'untap_cli':

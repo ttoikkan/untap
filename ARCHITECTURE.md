@@ -267,3 +267,7 @@ When all retrieved candidates are rejected for ABV or brewery conflicts, the dec
 ### Shared review policy
 
 `untap_review_policy.py` owns the selection report fingerprint, review-candidate precedence/order/limits, selectable-candidate lookup, and report row rating order. It is pure and depends only on shared types. The renderer consumes this policy, while refresh and local review import it directly rather than importing private renderer helpers. Excluded inspection links remain ineligible; user-added candidates, stable ties, URL validation and existing report fingerprints are unchanged. Renderer helper names remain compatibility exports for older source callers. Selection mutation and history still belong to refresh; network retrieval and HTML remain outside policy.
+
+### Report card presentation model
+
+`untap_report_model.py` prepares frozen, typed card rows from saved results, including occurrence-aware IDs, display metadata, production labels, review candidates, user-added verification notes, best guesses and excluded inspection links. It depends on types, review policy and snapshot IDs, and contains no HTML or filesystem/browser operations. The renderer retains HTML templates, escaping, URL/asset safety and page/filter markup. A 40-case fixture captured from the pre-extraction renderer checks exact fixed-date HTML hashes, including existing decision cases and production, manual-selection, user-added, escaping and ordering cases. The model is presentation-only and is never persisted in snapshots.
