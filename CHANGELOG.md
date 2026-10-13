@@ -1,11 +1,13 @@
-# Unreleased — Capture safeguards and explicit compatibility exports
+# v112 — Capture safeguards, compatibility exports and live replay (2026-10-13)
 
 - Declare intentional compatibility exports in report, batch and run, and test their declaration and implementation identity. The unused-import guard is explicitly a lightweight check of top-level imports, not a scope-aware general linter.
 - Add offline corpus recording/sanitization and strict finalization tools. Preserve paging and identity fields, mask ratings without changing None/zero/positive distinctions, and check the allowlist against runtime consumers.
 - Share fail-closed validation between recording and edited-draft promotion. Reject every non-200/429 response and shape failure, retain malformed response statuses, prevent further traffic after refusal, and clean up listeners/state on failed flows.
 - Replay complete captured UI batches while preserving queryless entries and detecting typed-query mismatches. Require explicit recognized status expectations and reject unknown expectation fields and unsanitized edited payloads.
-- Add the trailing-relaxation identity corpus fixture and regression tests for the reviewed capture gaps. No live traffic was sent.
-- Validation: all 409 tests pass including fresh installed-wheel checks; 35 source/tooling files type-check. Six deliberate safeguard regressions are caught, and existing frozen report/output checks pass.
+- Add the trailing-relaxation identity corpus fixture and regression tests for the reviewed capture gaps.
+- Add three sanitized live captures and navigation-time empty-query bootstrap replay. Guard bootstrap order, typed-query mismatches and exact-match expansion suppression.
+- A live expansion capture was refused for invalid `beer_slug` data; real expansion and retired-base examples remain pending.
+- Validation: 412 tests pass (6 installed-wheel checks skipped); 35 source/tooling files type-check. The safeguards previously passed fresh installed-wheel checks and six deliberate regression mutations; frozen report/output checks pass.
 
 # v111 — Search corpus, brewery policy and package migration (2026-10-13)
 
@@ -486,8 +488,3 @@ Musta Kynnys, Nailo, CM Pirkkala, Konttori, and Mallaskellari runs.
   beer cards and ambiguous candidate cards.
 - Reserve the same silent row for missing or unfamiliar values to align card heights.
 - Keep production metadata independent of matching, scores, ordering, and CSV.
-
-
-### Follow-up live corpus validation
-
-Added three sanitized live captures dated 2026-10-13 and navigation-time empty-query bootstrap replay. Regression tests pin bootstrap order, wrong-query rejection and exact-match expansion suppression. A live expansion recording failed the `beer_slug` shape canary and was not retained; retired-base and actual expansion captures remain pending.
