@@ -1,4 +1,4 @@
-# Unreleased — Search corpus, brewery policy and package migration
+# v111 — Search corpus, brewery policy and package migration (2026-10-13)
 
 - Add strict replay at the Playwright I/O boundary, with sanitized hand-authored response-shaped fixtures and a passive smoke response-shape canary. Run request building, decoding, candidates, expansion and decisions for real; reject unexpected and unused exchanges.
 - Centralize brewery compatibility and rejection reasons in a pure policy. Retain recovery adoption gates and decision eligibility consequences, including S1 inspection links and S7 primary-evidence retention.
@@ -7,14 +7,14 @@
 - Live validation: maintainer reports no unusual behavior after testing the changes.
 - Validation: all 374 tests pass including fresh installed-wheel checks; 34 package/wrapper source files type-check. All 40 frozen HTML reports retain their bytes, installed CSV/JSON/HTML match source output, and 10,000 seeded invariant cases pass. Corpus replay kills removal of the brewery gate, zero-hit gate and conditional expansion. No live service traffic was sent.
 
-# Unreleased — Fallback inspection evidence and CSV safety
+## Fallback inspection evidence and CSV safety
 
 - Carry rejected beer-only fallback brewery candidates as inspection evidence while retaining the existing eligibility filter and fallback adoption rules. Report brewery conflicts when none survive; links remain non-selectable.
 - Guard winning-fallback metadata pairing and zero-hit expansion behavior. Add a regression where a conflicting fallback must not replace a weak correct-brewery primary result.
 - Prefix formula-leading CSV text cells with an apostrophe, preserving numeric values and JSON/HTML data. Cover all protected prefixes and derived candidate-list cells.
 - Validation: all 367 tests pass, including fresh installed-wheel checks; all 25 source files type-check. Brewery-filter debug output is preserved, and existing frozen request/output contracts pass. No live Untappd traffic was sent.
 
-# Unreleased — Test directory organization
+## Test directory organization
 
 - Move test modules and their unchanged fixtures into `tests/`, with package-qualified cross-test imports.
 - Clarify batch-only output folders and registration requirements; use a fresh wheel-validation directory and unified menu-format examples.

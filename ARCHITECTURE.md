@@ -1,6 +1,6 @@
 # Untap architecture contract
 
-Current through the v110 follow-up: strict search replay, shared brewery policy, fallback helpers and package migration. Untap validates TSV input locally, searches through serial browser-context transport, resolves beer identity, and saves lossless JSON plus self-contained HTML. CSV is optional. Continuation, local review, refresh, inspection and local publication have separate orchestration boundaries.
+Current through v111: strict search replay, shared brewery policy, fallback helpers and package migration. Untap validates TSV input locally, searches through serial browser-context transport, resolves beer identity, and saves lossless JSON plus self-contained HTML. CSV is optional. Continuation, local review, refresh, inspection and local publication have separate orchestration boundaries.
 
 The v110 extractions centralize output serialization and review policy, separate report card data from HTML, and make search discovery phases explicit. They preserve matching, request order, saved schemas and report bytes. Folder creation, journals and recovery-file cleanup remain in the batch and continuation workflows.
 
