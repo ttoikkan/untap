@@ -107,7 +107,7 @@ Rank and stable tie order remain discovery input order. Exact-numbered and uniqu
 
 `_resolve_discovered_candidates` builds the decision records, prints diagnostics in their established order, then calls `_finalize_decision`. Finalization recovers captured brewery/style metadata, constructs confirmation from complete Algolia metadata or validates a detail page, records counters/timing and builds `MatchResult`. A selected decision may finalize as `ok`, `failed` or `rate_limited`.
 
-When all candidates conflict on ABV or brewery, finalization retains up to ten ordered `excluded_candidates` with individual exclusion reasons. They are inspection evidence, separate from selectable alternatives. This additive output behavior was introduced in v109; v110 preserves it.
+When all candidates conflict on ABV or brewery, finalization retains up to ten ordered `excluded_candidates` with individual exclusion reasons. They are inspection evidence, separate from selectable alternatives. Beer-only recovery keeps its existing brewery eligibility filter to preserve fallback adoption, but carries rejected candidates as internal discovery evidence. If no candidates survive, the decision reports the brewery conflict and exposes those inspection links; rejected fallback candidates never replace a useful earlier result. This additive output behavior was introduced in v109; v110 preserves it.
 
 ## Transport, diagnostics and rate limits
 
@@ -127,7 +127,7 @@ Batch consumes normalized menu records or query strings and emits results throug
 
 `untap_snapshot` owns snapshot construction/validation and occurrence-aware IDs derived from input identity. JSON is lossless persistence; schema versioning is independent of the CLI version. Snapshot saves refuse overwriting an existing snapshot.
 
-`untap_run_output` owns `CSV_FIELDS`, CSV serialization and writing an existing snapshot's JSON, HTML and optional CSV into a caller-reserved folder. It does not create folders, change metadata or manage recovery files. `untap_batch.save_csv`/`CSV_FIELDS` and the source CLI's CSV export remain compatibility names.
+`untap_run_output` owns `CSV_FIELDS`, CSV serialization and writing an existing snapshot's JSON, HTML and optional CSV into a caller-reserved folder. It does not create folders, change metadata or manage recovery files. CSV export prefixes formula-leading text cells with an apostrophe; numeric cells and saved JSON/HTML are unchanged. `untap_batch.save_csv`/`CSV_FIELDS` and the source CLI's CSV export remain compatibility names.
 
 Save order and dates are preserved: batch writes JSON, optional CSV, then HTML using the renderer's current date; continuation writes JSON, HTML using saved snapshot metadata, then optional CSV. Refresh renders before creating its output directory and passes the prepared HTML to the shared writer. Output failures propagate to workflow callers.
 

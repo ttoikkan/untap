@@ -1,3 +1,10 @@
+# Unreleased — Fallback inspection evidence and CSV safety
+
+- Carry rejected beer-only fallback brewery candidates as inspection evidence while retaining the existing eligibility filter and fallback adoption rules. Report brewery conflicts when none survive; links remain non-selectable.
+- Guard winning-fallback metadata pairing and zero-hit expansion behavior. Add a regression where a conflicting fallback must not replace a weak correct-brewery primary result.
+- Prefix formula-leading CSV text cells with an apostrophe, preserving numeric values and JSON/HTML data. Cover all protected prefixes and derived candidate-list cells.
+- Validation: all 367 tests pass, including fresh installed-wheel checks; all 25 source files type-check. Brewery-filter debug output is preserved, and existing frozen request/output contracts pass. No live Untappd traffic was sent.
+
 # Unreleased — Test directory organization
 
 - Move test modules and their unchanged fixtures into `tests/`, with package-qualified cross-test imports.

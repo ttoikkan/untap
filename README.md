@@ -32,7 +32,7 @@ Badlands	Green Fields	6.5%	IPA
 
 See [SUPPORTED_MENU_FORMATS.md](SUPPORTED_MENU_FORMATS.md) for the exact input contract. Older free-form menu formats are no longer supported.
 
-Each batch run creates a folder under `results/` in the current directory. It contains `results.html` and `results.json`; `--csv` also writes `results.csv` in that folder. `--csv` takes no filename. Add `--debug` to retain diagnostic output.
+Each batch run creates a folder under `results/` in the current directory. It contains `results.html` and `results.json`; `--csv` also writes `results.csv` in that folder. `--csv` takes no filename. Text cells beginning with `=`, `+`, `-`, `@`, a tab or a carriage return receive a leading apostrophe to prevent spreadsheet formula interpretation. This also affects legitimate names beginning with those characters; numeric cells and JSON/HTML data are unchanged. Add `--debug` to retain diagnostic output.
 
 For a single beer, results are printed in the terminal without creating a report folder:
 

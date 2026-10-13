@@ -72,6 +72,7 @@ class DiscoveryContext(TypedDict, total=False):
     fallback_query_used: Optional[str]
     expanded: bool
     expanded_total_hits: Optional[int]
+    filtered_candidates: List[CandidateRecord]
 
 
 class ExcludedCandidate(TypedDict):

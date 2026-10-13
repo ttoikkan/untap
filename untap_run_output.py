@@ -59,6 +59,16 @@ def _format_candidate_list(items):
 
 
 
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: Any) -> Any:
+    """Prefix spreadsheet-formula triggers so Excel/Sheets show text, not a formula."""
+    if isinstance(value, str) and value.startswith(_FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
 def save_csv(results: Sequence[MatchResult], filename: str) -> None:
     fields = CSV_FIELDS
 
@@ -101,7 +111,7 @@ def save_csv(results: Sequence[MatchResult], filename: str) -> None:
                 r.get("same_abv_variants") or r.get("alternatives") or []
             )
 
-            writer.writerow(row)
+            writer.writerow({key: _csv_safe(value) for key, value in row.items()})
 
     print()
     print(

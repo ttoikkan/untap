@@ -3,7 +3,7 @@ import math
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Sequence, TypedDict
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from time import perf_counter
 
 from untap_types import (AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult,
@@ -3172,6 +3172,7 @@ class _SearchDiscovery:
     primary_algolia_page: Optional[Dict[str, Any]]
     fallback_query_used: Optional[str] = None
     fallback_review_required: bool = False
+    brewery_filtered: List[CandidateRecord] = field(default_factory=list)
 
 
 def _recover_search_discovery(
@@ -3223,6 +3224,7 @@ def _recover_search_discovery(
 
     fallback_query_used = None
     fallback_review_required = False
+    brewery_filtered: List[CandidateRecord] = []
     fallback_started = perf_counter() if debug_timing_enabled() and fallback_queries else None
 
     for fallback_attempt_number, fallback_query in enumerate(
@@ -3332,6 +3334,11 @@ def _recover_search_discovery(
                 item for item in fallback_candidates
                 if candidate_has_brewery_overlap(item, expected_brewery)
             ]
+            known = {row.get("url") for row in brewery_filtered}
+            brewery_filtered.extend(
+                item for item in fallback_candidates
+                if item not in compatible_candidates and item.get("url") not in known
+            )
             if debug and len(compatible_candidates) != len(fallback_candidates):
                 print(
                     f"  brewery contradiction filter: "
@@ -3455,7 +3462,7 @@ def _recover_search_discovery(
     return _SearchDiscovery(candidates, ambiguity_reason, expanded_candidates,
                             expansion_diagnostics, abv_sorted_diagnostics,
                             primary_algolia_page, fallback_query_used,
-                            fallback_review_required), None
+                            fallback_review_required, brewery_filtered), None
 
 
 @dataclass
@@ -3763,6 +3770,7 @@ def _search_one_impl(
     return _resolve_discovered_candidates(
         page, query, min_score, debug, expected_beer, expected_brewery, expected_abv, expected_style,
         candidates, ambiguity_reason, expanded_candidates, expansion_diagnostics, abv_sorted_diagnostics, fallback_query_used, fallback_review_required, primary_algolia_page,
+        brewery_filtered=discovery.brewery_filtered,
     )
 
 
@@ -3802,6 +3810,10 @@ def decide_candidates(
 
     # 1. Empty retrieval, then 2–3. ABV and explicit brewery conflicts.
     if not candidates:
+        filtered = deepcopy(discovery.get("filtered_candidates") or [])
+        if filtered and brewery:
+            excluded = [{"candidate": row, "reason": f"Brewery does not match menu brewery {brewery}"} for row in filtered]
+            return outcome("failed", "brewery_conflict", f"Brewery conflict: retrieved candidates do not match menu brewery {brewery}")
         return outcome("failed", "no_candidates", "No matching beer found")
     eligible = _exclude_abv_conflicts(candidates, abv, debug=collect_diagnostics, diagnostics=diagnostics)
     abv_exclusions = len(eligible) != len(candidates)
@@ -3880,6 +3892,7 @@ def decide_candidates(
 def _resolve_discovered_candidates(
     page, query, min_score, debug, expected_beer, expected_brewery, expected_abv, expected_style,
     candidates, ambiguity_reason, expanded_candidates, expansion_diagnostics, abv_sorted_diagnostics, fallback_query_used, fallback_review_required, primary_algolia_page,
+    brewery_filtered=None,
 ) -> MatchResult:
     """Compatibility boundary: pure decision, diagnostics, then finalization."""
     expected: ExpectedEvidence = {"beer": expected_beer, "brewery": expected_brewery,
@@ -3889,6 +3902,7 @@ def _resolve_discovered_candidates(
         "abv_sorted_diagnostics": abv_sorted_diagnostics, "fallback_review_required": fallback_review_required,
         "fallback_query_used": fallback_query_used, "expanded": bool(expanded_candidates),
         "expanded_total_hits": expansion_diagnostics.get("nbHits") if expansion_diagnostics else None,
+        "filtered_candidates": list(brewery_filtered or []),
     }
     decision = decide_candidates(candidates, expected, min_score, discovery, collect_diagnostics=debug)
     for message in decision["diagnostics"]:
