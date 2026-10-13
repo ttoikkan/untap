@@ -7,11 +7,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import untap
-from untap_refresh import refresh, main as refresh_main
-from untap_local_review import ReviewSession
-from untap_snapshot import build_snapshot, save_snapshot
-from untap_report import selection_report_id
+import untap.run as untap
+from untap.refresh import refresh, main as refresh_main
+from untap.local_review import ReviewSession
+from untap.snapshot import build_snapshot, save_snapshot
+from untap.report import selection_report_id
 
 
 class OutputTests(unittest.TestCase):
@@ -57,6 +57,6 @@ class OutputTests(unittest.TestCase):
             browser.assert_not_called()
 
     def test_refresh_cli_csv_option(self):
-        with patch('untap_refresh.refresh', return_value=Path('/tmp/reviewed')) as run, contextlib.redirect_stdout(io.StringIO()):
+        with patch('untap.refresh.refresh', return_value=Path('/tmp/reviewed')) as run, contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(refresh_main(['/tmp/source', '--csv']), 0)
             self.assertTrue(run.call_args.args[-1])

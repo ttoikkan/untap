@@ -7,9 +7,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import untap_run_output as output
-from untap_report import render_html_report
-from untap_snapshot import build_snapshot, save_snapshot
+import untap.run_output as output
+from untap.report import render_html_report
+from untap.snapshot import build_snapshot, save_snapshot
 from tests.test_untap_decision_characterization import FIXTURE, characterization_cases, observe
 import json
 import hashlib

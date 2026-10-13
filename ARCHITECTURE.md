@@ -1,6 +1,6 @@
 # Untap architecture contract
 
-Current through v110, including the test-directory organization following that release. Untap validates TSV input locally, searches through serial browser-context transport, resolves beer identity, and saves lossless JSON plus self-contained HTML. CSV is optional. Continuation, local review, refresh, inspection and local publication have separate orchestration boundaries.
+Current through the v110 follow-up: strict search replay, shared brewery policy, fallback helpers and package migration. Untap validates TSV input locally, searches through serial browser-context transport, resolves beer identity, and saves lossless JSON plus self-contained HTML. CSV is optional. Continuation, local review, refresh, inspection and local publication have separate orchestration boundaries.
 
 The v110 extractions centralize output serialization and review policy, separate report card data from HTML, and make search discovery phases explicit. They preserve matching, request order, saved schemas and report bytes. Folder creation, journals and recovery-file cleanup remain in the batch and continuation workflows.
 
@@ -8,45 +8,46 @@ The v110 extractions centralize output serialization and review policy, separate
 
 | Module | Responsibility |
 | --- | --- |
-| `untap_cli` | Installed command dispatcher and shared subcommand composition |
-| `untap` | Search arguments, local preflight, browser-session orchestration and terminal presentation |
-| `untap_parser` | TSV validation, normalization and normalized menu records |
-| `untap_batch` | Serial iteration, result callbacks, batch timing and fail-fast handling |
-| `untap_matcher` | Candidate scoring, discovery orchestration, identity decisions and finalization |
-| `untap_untappd` | Browser lifecycle, transport, HTTP/page validation, detail extraction and diagnostics |
-| `untap_run_output` | CSV schema/export and existing-snapshot JSON/HTML/optional CSV writing |
-| `untap_snapshot` | Snapshot construction, validation, persistence and occurrence-aware menu IDs |
-| `untap_review_policy` | Selection fingerprints, review row/candidate ordering and candidate eligibility |
-| `untap_report_model` | Pure typed report card presentation data |
-| `untap_report` | HTML templates, escaping, safe links/assets and page/filter rendering |
-| `untap_continue` | Saved-run preflight, journal recovery and continuation into fresh folders |
-| `untap_refresh` | Selection application/history, reviewed-run creation and optional local publication |
-| `untap_local_review` | Local HTTP review session, candidate retrieval actions and saving |
-| `untap_manual_candidates` | Explicit candidate retrieval and strict beer-URL validation |
-| `untap_refresh_config` / `untap_registry` | Configuration defaults/validation and opt-in registration |
-| `untap_identity` | Dependency-free logical archive title identity |
-| `untap_publish` | Local archive validation, publication/replacement and index regeneration |
-| `untap_inspect` | Explicit raw Algolia inspection without matching decisions |
-| `untap_smoke` | Explicit live integration probe |
-| `untap_setup` / `untap_version` | Explicit browser installation and the distribution/CLI version |
-| `untap_types` | Shared static contracts, with no runtime-layer imports |
-| `untap_assets` | Bundled review JavaScript embedded in reports |
+| `untap.cli` | Installed command dispatcher and shared subcommand composition |
+| `untap.run` | Search arguments, local preflight, browser-session orchestration and terminal presentation |
+| `untap.parser` | TSV validation, normalization and normalized menu records |
+| `untap.batch` | Serial iteration, result callbacks, batch timing and fail-fast handling |
+| `untap.brewery_policy` | Pure compatible/conflicting/unknown brewery verdicts and rejection reasons |
+| `untap.matcher` | Candidate scoring, discovery orchestration, identity decisions and finalization |
+| `untap.transport` | Browser lifecycle, transport, HTTP/page validation, detail extraction and diagnostics |
+| `untap.run_output` | CSV schema/export and existing-snapshot JSON/HTML/optional CSV writing |
+| `untap.snapshot` | Snapshot construction, validation, persistence and occurrence-aware menu IDs |
+| `untap.review_policy` | Selection fingerprints, review row/candidate ordering and candidate eligibility |
+| `untap.report_model` | Pure typed report card presentation data |
+| `untap.report` | HTML templates, escaping, safe links/assets and page/filter rendering |
+| `untap.continue_run` | Saved-run preflight, journal recovery and continuation into fresh folders |
+| `untap.refresh` | Selection application/history, reviewed-run creation and optional local publication |
+| `untap.local_review` | Local HTTP review session, candidate retrieval actions and saving |
+| `untap.manual_candidates` | Explicit candidate retrieval and strict beer-URL validation |
+| `untap.refresh_config` / `untap.registry` | Configuration defaults/validation and opt-in registration |
+| `untap.identity` | Dependency-free logical archive title identity |
+| `untap.publish` | Local archive validation, publication/replacement and index regeneration |
+| `untap.inspect` | Explicit raw Algolia inspection without matching decisions |
+| `untap.smoke` | Explicit live integration probe |
+| `untap.setup` / `untap.version` | Explicit browser installation and the distribution/CLI version |
+| `untap.types` | Shared static contracts, with no runtime-layer imports |
+| `untap.assets` | Bundled review JavaScript embedded in reports |
 
 The command dispatcher sits above the runtime modules; those modules never import it. Search orchestration calls batch/matcher/transport boundaries. Batch also exposes compatibility CSV names from the output module. Output depends on snapshots, the renderer and shared types, and has no search or publication dependency.
 
 The presentation dependency direction is:
 
 ```text
-untap_run_output -> untap_report -> untap_report_model -> untap_review_policy
+untap.run_output -> untap.report -> untap.report_model -> untap.review_policy
        |                 |                |                      |
-       v                 +----------------+----------------> untap_types
-untap_snapshot <--------------------------+
+       v                 +----------------+----------------> untap.types
+untap.snapshot <--------------------------+
        |
        v
-untap_types
+untap.types
 
-untap_refresh / untap_local_review -> untap_review_policy
-untap_refresh --------------------> untap_run_output / untap_report
+untap.refresh / untap.local_review -> untap.review_policy
+untap.refresh --------------------> untap.run_output / untap.report
 ```
 
 The lines show principal dependencies, rather than every import. Review policy depends only on shared types. The renderer, model, snapshots, output and publisher cannot transitively depend on batch, matcher, transport or Playwright. Refresh uses the output module directly for serialization; it no longer imports batch for CSV. Local review calls refresh's existing selection/output workflow. Refresh may explicitly publish, but search, registry and rendering do not transitively import the publisher.
@@ -63,7 +64,7 @@ brewery, beer, style, menu_abv, query, original
 
 `NormalizedMenuRecord` describes the same fields. Raw-menu recognition, fail-closed validation and normalization belong in the parser; browser, HTTP and output lifecycle behavior do not.
 
-`untap_cli` composes `run`, `review`, `refresh`, `publish`, `inspect` and `smoke` from each tool's argument definitions and execution function. Legacy option-led and query forms delegate to `untap.main`; separate installed commands and source scripts remain supported. A leading exact subcommand name is reserved; `run` or `--` explicitly disambiguates such queries.
+`untap.cli` composes `run`, `review`, `refresh`, `publish`, `inspect` and `smoke` from each tool's argument definitions and execution function. Legacy option-led and query forms delegate to `untap.run.main`; separate installed commands and source scripts remain supported. A leading exact subcommand name is reserved; `run` or `--` explicitly disambiguates such queries.
 
 Help, version reporting, menu validation and offline report operations remain browser-free. Playwright is imported lazily inside `untappd_browser_page`. CLI boundaries translate browser-availability errors into clean exits with installation guidance. Matching and transport errors retain their established behavior.
 
@@ -80,7 +81,9 @@ These helpers stay within the matcher. `_PrimaryDiscovery` and `_SearchDiscovery
 
 Conditional expansion uses the existing ambiguity, weak-match, release-qualifier and same-ABV-family triggers, with ordinary or eligible ABV-sorted strategies. `evaluate_and_expand_candidates` is shared by primary and fallback attempts; it retains paging limits, response validation and early stopping.
 
-Recovery runs only for missing, low-score or ABV-conflicting top candidates. Generic trailing-token relaxation is enabled only after a true zero-hit primary search. Leading-name, trailing-identity and brewery filters retain their original scope. Recovery stops at the first plausible or meaningfully ambiguous set; otherwise it retains the strongest weak set while trying broader queries. A winning fallback replaces its candidate and initial-page metadata together. HTTP 429 terminates before another request or finalization.
+Recovery runs only for missing, low-score or ABV-conflicting top candidates. Generic trailing-token relaxation is enabled only after a true zero-hit primary search. Leading-name, trailing-identity and brewery filters retain their original scope. `_run_filtered_fallback` runs one retrieval and applies named recovered-identity, trailing-identity and beer-only brewery filters in order. `_adopt_fallback` moves candidates, metadata page and diagnostics together. Recovery stops at the first plausible or meaningfully ambiguous set; otherwise it retains the strongest weak set while trying broader queries. A winning fallback replaces its candidate and initial-page metadata together. HTTP 429 terminates before another request or finalization.
+
+The brewery predicate and rejection reason have one owner: `untap.brewery_policy`. Its immutable verdict is compatible, conflicting or unknown. Recovery keeps its adoption gate, while the decision stage uses the same verdict for eligibility. Unknown evidence stays eligible. Rejected beer-only candidates become inspection evidence when no candidates survive; they cannot displace useful weak primary evidence.
 
 ## Pure identity decision and finalization
 
@@ -125,50 +128,50 @@ Timing is opt-in observation. Transport owns browser/request timings, matcher ow
 
 Batch consumes normalized menu records or query strings and emits results through checkpoint callbacks. It owns serial iteration and stops after a rate-limited result, emitting identity-preserving placeholders for remaining rows. CLI batch orchestration owns the run directory, input manifest, flushed journal, shutdown save and cleanup.
 
-`untap_snapshot` owns snapshot construction/validation and occurrence-aware IDs derived from input identity. JSON is lossless persistence; schema versioning is independent of the CLI version. Snapshot saves refuse overwriting an existing snapshot.
+`untap.snapshot` owns snapshot construction/validation and occurrence-aware IDs derived from input identity. JSON is lossless persistence; schema versioning is independent of the CLI version. Snapshot saves refuse overwriting an existing snapshot.
 
-`untap_run_output` owns `CSV_FIELDS`, CSV serialization and writing an existing snapshot's JSON, HTML and optional CSV into a caller-reserved folder. It does not create folders, change metadata or manage recovery files. CSV export prefixes formula-leading text cells with an apostrophe; numeric cells and saved JSON/HTML are unchanged. `untap_batch.save_csv`/`CSV_FIELDS` and the source CLI's CSV export remain compatibility names.
+`untap.run_output` owns `CSV_FIELDS`, CSV serialization and writing an existing snapshot's JSON, HTML and optional CSV into a caller-reserved folder. It does not create folders, change metadata or manage recovery files. CSV export prefixes formula-leading text cells with an apostrophe; numeric cells and saved JSON/HTML are unchanged. `untap.batch.save_csv`/`CSV_FIELDS` and the source CLI's CSV export remain compatibility names.
 
 Save order and dates are preserved: batch writes JSON, optional CSV, then HTML using the renderer's current date; continuation writes JSON, HTML using saved snapshot metadata, then optional CSV. Refresh renders before creating its output directory and passes the prepared HTML to the shared writer. Output failures propagate to workflow callers.
 
 Normal batches reserve unique timestamp/title directories under cwd-relative `results/`. `--debug` shares terminal output with a saved `debug.txt` transcript. During execution, `results.input.json` records the complete menu and each completed result is flushed to `results.partial.jsonl`. Shutdown saves unfinished rows as not attempted. Recovery files are removed only after complete final output succeeds. Journal/checkpoint implementation remains separate in batch and continuation; CSV resume machinery is removed.
 
-`untap_continue` validates saved runs and recovers interrupted journals. It searches only rate-limited or not-attempted rows in a fresh sibling folder, preserving completed failed/ambiguous results, item IDs, decisions and candidate additions. Torn final journal records are tolerated with warnings; damaged complete records and identity mismatches fail closed. Legacy journal recovery requires the original menu when the manifest is unavailable.
+`untap.continue_run` validates saved runs and recovers interrupted journals. It searches only rate-limited or not-attempted rows in a fresh sibling folder, preserving completed failed/ambiguous results, item IDs, decisions and candidate additions. Torn final journal records are tolerated with warnings; damaged complete records and identity mismatches fail closed. Legacy journal recovery requires the original menu when the manifest is unavailable.
 
 Incomplete runs cannot be published or registered. No workflow silently overwrites its source run.
 
 ## Review policy, presentation and local review
 
-`untap_review_policy` owns the full-content selection fingerprint, row rating order, candidate precedence/order/limits and selectable-candidate lookup. It depends only on shared types and performs no rendering, persistence, retrieval or mutation. Selection fingerprints are distinct from logical archive title identity: an export must match the exact report data, title and date.
+`untap.review_policy` owns the full-content selection fingerprint, row rating order, candidate precedence/order/limits and selectable-candidate lookup. It depends only on shared types and performs no rendering, persistence, retrieval or mutation. Selection fingerprints are distinct from logical archive title identity: an export must match the exact report data, title and date.
 
 Same-ABV variants take precedence over general alternatives. Candidate order follows score and name; the ordinary candidate list is limited to ten while explicit user additions remain available. Excluded inspection links are never selectable. Refresh and local review import policy directly; renderer helper names remain compatibility exports.
 
-`untap_report_model` prepares frozen typed row/card data: occurrence-aware IDs, labels, metadata, production state, candidates, user-added verification notes, best guesses and excluded links. It depends on types, policy and snapshot IDs, and contains no HTML or I/O. The model is never saved into snapshots.
+`untap.report_model` prepares frozen typed row/card data: occurrence-aware IDs, labels, metadata, production state, candidates, user-added verification notes, best guesses and excluded links. It depends on types, policy and snapshot IDs, and contains no HTML or I/O. The model is never saved into snapshots.
 
-`untap_report` owns templates, escaping, safe beer/asset URLs, page metadata and filter markup. Top-level rows use shared rating order; review candidates remain grouped by input. Style groups derive from canonical `type_name` values rather than a fixed vocabulary. JSON preserves data; HTML presents and supports review; CSV is an optional export.
+`untap.report` owns templates, escaping, safe beer/asset URLs, page metadata and filter markup. Top-level rows use shared rating order; review candidates remain grouped by input. Style groups derive from canonical `type_name` values rather than a fixed vocabulary. JSON preserves data; HTML presents and supports review; CSV is an optional export.
 
 Reports embed their scripts and require no external script/style files. They issue no automatic search requests; displayed label images may load from Untappd assets. Static review stores browser choices and exports them for explicit application. Local-review mode can explicitly retrieve candidates through its localhost endpoint.
 
-`untap_refresh` validates selection payloads before network/filesystem mutation, applies selections with decision history, clears stale selected-beer data, and writes new reviewed runs. `untap_manual_candidates` owns strict beer-URL parsing and explicit retrieval; adding a URL is not confirmation. Pending URLs require an explicit fetch action or `--fetch-candidates`.
+`untap.refresh` validates selection payloads before network/filesystem mutation, applies selections with decision history, clears stale selected-beer data, and writes new reviewed runs. `untap.manual_candidates` owns strict beer-URL parsing and explicit retrieval; adding a URL is not confirmation. Pending URLs require an explicit fetch action or `--fetch-candidates`.
 
-`untap_local_review` owns the localhost HTTP session, per-session token and fetch/save actions. Candidate additions remain pending until saved into a new run. Reopening a manual selection restores original alternatives while retaining added candidates. Renderer injection checks its marker, and unexpected server errors return JSON rather than dropping the connection.
+`untap.local_review` owns the localhost HTTP session, per-session token and fetch/save actions. Candidate additions remain pending until saved into a new run. Reopening a manual selection restores original alternatives while retaining added candidates. Renderer injection checks its marker, and unexpected server errors return JSON rather than dropping the connection.
 
 ## Registry, refresh configuration and publication
 
-`untap_refresh_config` provides configuration validation/defaults. `untap_registry` registers completed snapshots by logical title, skips missing sources with warnings, and leaves existing registrations unchanged. Configuration paths are relative to the configuration file. Batch refresh processes independently validated entries and reports failures without rolling back successful entries.
+`untap.refresh_config` provides configuration validation/defaults. `untap.registry` registers completed snapshots by logical title, skips missing sources with warnings, and leaves existing registrations unchanged. Configuration paths are relative to the configuration file. Batch refresh processes independently validated entries and reports failures without rolling back successful entries.
 
-`untap_identity` owns dependency-free logical title normalization shared by registry and publisher. `untap_publish` consumes validated HTML metadata and operates only on the local archive. It validates existing reports, derives dated filenames, copies completed reports and rebuilds the newest-first index. It owns no Git, credentials, remote deployment, browser or network work.
+`untap.identity` owns dependency-free logical title normalization shared by registry and publisher. `untap.publish` consumes validated HTML metadata and operates only on the local archive. It validates existing reports, derives dated filenames, copies completed reports and rebuilds the newest-first index. It owns no Git, credentials, remote deployment, browser or network work.
 
 Publication refuses an existing logical title unless `--replace` is explicit. Replacement requires exactly one match and preserves the archive filename/public URL. Malformed metadata, duplicate logical identities and unrelated filename collisions fail closed. If index update fails, the prior report is restored. Git commit and push remain external actions.
 
 ## Installation, tests and maintenance rules
 
-Packaging keeps flat runtime modules, explicitly declares them in `pyproject.toml`, and bundles review JavaScript in `untap_assets`. `untap_version` is the single distribution/CLI version source. `untap-install-browser` explicitly invokes Playwright using the installed interpreter; searches never download Chromium implicitly.
+Runtime modules live inside the `untap/` package, whose packages and compatibility scripts are explicitly declared in `pyproject.toml`. Review JavaScript lives in `untap.assets` and is read with `importlib.resources`. `python3 -m untap` uses the unified dispatcher. The seven historical source scripts remain thin entry-point wrappers; six uniquely named wrappers are also installed for legacy module invocations. The old internal flat module import paths are replaced by package imports. `untap.version` is the single distribution/CLI version source. `untap-install-browser` explicitly invokes Playwright using the installed interpreter; searches never download Chromium implicitly.
 
 Python 3.9 is the declared minimum. Runtime Playwright and development mypy versions are pinned in `requirements.txt`/`requirements-dev.txt`. Type checking covers the runtime modules and asset package, while runtime validators remain authoritative:
 
 ```bash
-python3 -m mypy untap*.py untap_assets
+python3 -m mypy untap untap_*.py
 ```
 
 Tests are a package under `tests/`; fixtures live in `tests/testdata/`. Cross-test imports use package-qualified names and runtime-file checks resolve the repository root. Default discovery remains supported; the explicit command is:
@@ -183,7 +186,9 @@ The suite retains these contracts:
 - The seeded invariant harness checks determinism, immutability, identity compatibility, precedence, incomplete-discovery safety, minimum-score boundaries and same-ABV family review. Defaults are 2,000 cases with seed 107; failures include reproducible reduced cases.
 - `report_model_v109.json` pins 40 pre-extraction fixed-date HTML hashes, including manual choices, production state, user additions, escaping and ordering.
 - `search_recovery_v109.json` pins nine pre-extraction search request/outcome sequences; direct tests cover HTTP 429 termination and phase metadata propagation.
-- Packaging tests check the declared module list without building a wheel. Optional installed-wheel tests exercise commands outside the checkout, bundled assets, missing-browser errors and output equivalence.
+- Strict corpus tests fake only Playwright I/O: UI request/response events and browser-context fetches. Request construction, response decoding, candidate construction, expansion and decisions run normally. Every query, page, index and parameter is replayed in order; unexpected and unused requests fail. The initial sanitized payload-shaped fixtures are hand-authored, not claimed as live recordings. They cover conflicting fallback evidence, primary retention, metadata, conditional expansion, missing page metadata and HTTP 429.
+- The explicit smoke test compares already fetched responses against the corpus required field/type shape. Additions are tolerated; missing or changed fields produce a diagnostic warning without more requests or changes to matching or exit status.
+- Packaging tests check package discovery and compatibility scripts without building a wheel. Optional installed-wheel tests exercise commands outside the checkout, bundled assets, missing-browser errors and output equivalence.
 - Legacy menu fixtures verify unsupported formats are rejected before browser startup.
 
 Increase invariant coverage explicitly:

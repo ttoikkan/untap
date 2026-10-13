@@ -2,9 +2,9 @@
 from dataclasses import dataclass
 from typing import Any, List, Mapping, Optional, Sequence, Tuple
 
-from untap_types import MatchResult
-from untap_review_policy import review_candidates, result_sort_rating
-from untap_snapshot import menu_item_ids
+from untap.types import MatchResult
+from untap.review_policy import review_candidates, result_sort_rating
+from untap.snapshot import menu_item_ids
 
 
 def format_rating(value: Any) -> str:

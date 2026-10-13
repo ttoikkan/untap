@@ -3,9 +3,9 @@ import csv
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
-from untap_types import MatchResult
-from untap_snapshot import save_snapshot
-from untap_report import render_html_report
+from untap.types import MatchResult
+from untap.snapshot import save_snapshot
+from untap.report import render_html_report
 
 
 CSV_FIELDS = (

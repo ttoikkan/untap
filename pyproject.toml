@@ -14,19 +14,19 @@ dependencies = ["playwright==1.57.0"]
 Repository = "https://github.com/ttoikkan/untap"
 
 [project.scripts]
-untap = "untap_cli:main"
-untap-review = "untap_local_review:main"
-untap-refresh = "untap_refresh:main"
-untap-publish = "untap_publish:main"
-untap-inspect = "untap_inspect:main"
-untap-install-browser = "untap_setup:main"
+untap = "untap.cli:main"
+untap-review = "untap.local_review:main"
+untap-refresh = "untap.refresh:main"
+untap-publish = "untap.publish:main"
+untap-inspect = "untap.inspect:main"
+untap-install-browser = "untap.setup:main"
 
 [tool.setuptools]
-packages = ["untap_assets"]
-py-modules = ["untap", "untap_batch", "untap_cli", "untap_continue", "untap_identity", "untap_inspect", "untap_local_review", "untap_manual_candidates", "untap_matcher", "untap_parser", "untap_publish", "untap_refresh", "untap_refresh_config", "untap_registry", "untap_report", "untap_report_model", "untap_run_output", "untap_review_policy", "untap_setup", "untap_smoke", "untap_snapshot", "untap_types", "untap_untappd", "untap_version"]
+packages = ["untap", "untap.assets"]
+py-modules = ["untap_cli", "untap_local_review", "untap_refresh", "untap_publish", "untap_inspect", "untap_setup"]
 
 [tool.setuptools.dynamic]
-version = {attr = "untap_version.__version__"}
+version = {attr = "untap.version.__version__"}
 
 [tool.setuptools.package-data]
-untap_assets = ["untap_review.js"]
+"untap.assets" = ["untap_review.js"]

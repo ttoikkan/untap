@@ -5,7 +5,7 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
-from untap_run_output import save_csv
+from untap.run_output import save_csv
 
 
 class CsvFormulaSafetyTests(unittest.TestCase):

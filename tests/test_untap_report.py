@@ -8,10 +8,8 @@ from pathlib import Path
 from importlib.resources import files
 from unittest import mock
 
-import untap
-import untap_report
-
-
+import untap.run as untap
+import untap.report as untap_report
 class HtmlReportTests(unittest.TestCase):
     def test_review_context_uses_consistent_typography(self):
         html = untap_report.render_html_report(self._results())
@@ -36,7 +34,7 @@ class HtmlReportTests(unittest.TestCase):
 
     def test_personal_review_is_bundled_inline(self):
         html = untap_report.render_html_report(self._results())
-        script = files("untap_assets").joinpath("untap_review.js").read_text(encoding="utf-8")
+        script = files("untap.assets").joinpath("untap_review.js").read_text(encoding="utf-8")
         self.assertIn('<script id="manual-review-script">' + script + '</script>', html)
         self.assertIn('Confirm this beer', html)
         self.assertIn('They do not change the shared report or CSV', html)
@@ -290,13 +288,13 @@ class HtmlReportTests(unittest.TestCase):
                     return False
 
             output = io.StringIO()
-            with mock.patch.object(sys, "argv", ["untap.py", "--menu", menu.name, "--html"]), \
-                 mock.patch.object(untap, "untappd_browser_page", return_value=FakeBrowserContext()), \
-                 mock.patch.object(untap, "run_batch", return_value=fake_result), \
-                 mock.patch.object(untap, "print_batch_results"), \
-                 mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()), \
-                 mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")), \
-                 mock.patch.object(untap, "write_run_outputs") as save_report, \
+            with mock.patch.object(sys, "argv", ["untap.py", "--menu", menu.name, "--html"]),\
+                 mock.patch.object(untap, "untappd_browser_page", return_value=FakeBrowserContext()),\
+                 mock.patch.object(untap, "run_batch", return_value=fake_result),\
+                 mock.patch.object(untap, "print_batch_results"),\
+                 mock.patch.object(untap, "save_snapshot"), mock.patch.object(Path, "open", mock.mock_open()),\
+                 mock.patch.object(untap, "create_run_directory", return_value=Path("test-run")),\
+                 mock.patch.object(untap, "write_run_outputs") as save_report,\
                  contextlib.redirect_stdout(output):
                 untap.main()
 

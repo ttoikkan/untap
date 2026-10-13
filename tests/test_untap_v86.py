@@ -7,11 +7,9 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import untap_matcher as matcher
-import untap_publish as publish
-import untap_report as report
-
-
+import untap.matcher as matcher
+import untap.publish as publish
+import untap.report as report
 def candidate(name, brewery, abv, score=1.0, bid=1):
     return dict(name=name, brewery=brewery, abv=abv, score=score,
                 url=f"https://untappd.com/b/fixture/{bid}", bid=bid,

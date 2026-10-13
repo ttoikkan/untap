@@ -4,9 +4,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from untap_identity import report_identity
-from untap_snapshot import load_snapshot
-from untap_refresh_config import config_defaults
+from untap.identity import report_identity
+from untap.snapshot import load_snapshot
+from untap.refresh_config import config_defaults
 
 
 def register_run(config: Path, run: Path) -> bool:

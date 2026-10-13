@@ -4,8 +4,8 @@ from time import perf_counter
 from urllib.parse import parse_qsl, urlencode, urlsplit
 from typing import Any, Dict, List, Optional, Tuple
 
-from untap_parser import normalize
-from untap_types import AlgoliaRequestRecord, AlgoliaTransportEvent
+from untap.parser import normalize
+from untap.types import AlgoliaRequestRecord, AlgoliaTransportEvent
 
 # ============================================================
 # Untappd transport / browser layer
@@ -678,7 +678,56 @@ def _parse_algolia_request_body(body: Optional[str]) -> List[AlgoliaRequestRecor
 
     return parsed
 
+# Required shape shared with the sanitized replay corpus. Optional fields and
+# additional service fields are deliberately tolerated; this is diagnostic only.
+_ALGOLIA_REQUIRED_RESULT_FIELDS = {"hits": list, "nbHits": int, "page": int, "nbPages": int}
+_ALGOLIA_REQUIRED_HIT_FIELDS: Dict[str, Any] = {"beer_name": str, "brewery_name": str, "beer_abv": (int, float),
+                                "bid": int, "beer_slug": str, "rating_score": (int, float),
+                                "rating_count": int, "type_name": str}
+_RESPONSE_SHAPE_ISSUES: set[str] = set()
+_RESPONSE_SHAPE_OBSERVATIONS = 0
+
+
+def reset_response_shape_observations() -> None:
+    global _RESPONSE_SHAPE_OBSERVATIONS
+    _RESPONSE_SHAPE_ISSUES.clear()
+    _RESPONSE_SHAPE_OBSERVATIONS = 0
+
+
+def response_shape_observations() -> tuple[int, List[str]]:
+    return _RESPONSE_SHAPE_OBSERVATIONS, sorted(_RESPONSE_SHAPE_ISSUES)
+
+
+def algolia_response_shape_issues(payload: Any) -> List[str]:
+    """Compare required fields/types with the replay shape, without reading values."""
+    issues = set()
+    if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+        return ["results must be a list"]
+    for result in payload["results"]:
+        if not isinstance(result, dict):
+            issues.add("result must be an object")
+            continue
+        for key, kind in _ALGOLIA_REQUIRED_RESULT_FIELDS.items():
+            if not isinstance(result.get(key), kind) or isinstance(result.get(key), bool):
+                issues.add(f"result.{key}: missing or unexpected type")
+        hits = result.get("hits")
+        if not isinstance(hits, list):
+            continue
+        for hit in hits:
+            if not isinstance(hit, dict):
+                issues.add("hit must be an object")
+                continue
+            for key, kinds in _ALGOLIA_REQUIRED_HIT_FIELDS.items():
+                value = hit.get(key)
+                if not isinstance(value, kinds) or isinstance(value, bool):
+                    issues.add(f"hit.{key}: missing or unexpected type")
+    return sorted(issues)
+
+
 def _summarize_algolia_response(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    global _RESPONSE_SHAPE_OBSERVATIONS
+    _RESPONSE_SHAPE_OBSERVATIONS += 1
+    _RESPONSE_SHAPE_ISSUES.update(algolia_response_shape_issues(payload))
     summaries = []
 
     for result in payload.get("results") or []:

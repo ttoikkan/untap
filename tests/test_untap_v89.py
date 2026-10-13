@@ -1,10 +1,8 @@
 """Offline regressions for v89 production hints and HD label previews."""
 import unittest
 
-import untap_matcher
-import untap_report
-
-
+import untap.matcher as untap_matcher
+import untap.report as untap_report
 THUMB = "https://assets.untappd.com/site/beer_logos/beer-1_sm.jpeg"
 HD = "https://assets.untappd.com/site/beer_logos_hd/beer-1.jpeg"
 

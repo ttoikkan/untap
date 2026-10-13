@@ -11,11 +11,11 @@ from importlib.resources import files
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urlparse
 
-from untap_types import MatchResult
-from untap_report_model import (prepare_report_rows, format_rating as _format_rating,
+from untap.types import MatchResult
+from untap.report_model import (prepare_report_rows, format_rating as _format_rating,
                                 format_count, format_abv as _format_abv, production_label)
 # Compatibility names remain available to callers of older source versions.
-from untap_review_policy import (
+from untap.review_policy import (
     DEFAULT_REPORT_TITLE as DEFAULT_REPORT_TITLE,
     selection_report_id as selection_report_id,
     review_candidates as _review_candidates,
@@ -531,7 +531,7 @@ def render_html_report(
         status_filters=status_filters_html,
         results_html=results_html,
         selection_id=selection_report_id(results, clean_title, generated_date),
-        review_script=files("untap_assets").joinpath("untap_review.js").read_text(encoding="utf-8"),
+        review_script=files("untap.assets").joinpath("untap_review.js").read_text(encoding="utf-8"),
     )
 
 

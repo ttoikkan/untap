@@ -8,10 +8,10 @@ from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 
-import untap
-from untap_batch import unattempted_result
-from untap_continue import continue_run, load_continuation
-from untap_snapshot import build_snapshot, save_snapshot, load_snapshot
+import untap.run as untap
+from untap.batch import unattempted_result
+from untap.continue_run import continue_run, load_continuation
+from untap.snapshot import build_snapshot, save_snapshot, load_snapshot
 
 
 class ContinuationTests(unittest.TestCase):
@@ -39,7 +39,7 @@ class ContinuationTests(unittest.TestCase):
             def search(page, query, **kwargs):
                 searched.append(query)
                 return {'query': query, 'status': 'ok', 'beer': query, 'rating': 4., 'ratings': 1, 'abv': '5%'}
-            with patch('untap_continue.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap_batch.search_one', side_effect=search):
+            with patch('untap.continue_run.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap.batch.search_one', side_effect=search):
                 output = continue_run(source, csv_requested=True)
             saved = load_snapshot(output / 'results.json')
             self.assertEqual(searched, [inputs[2]['query'], inputs[3]['query']])
@@ -56,7 +56,7 @@ class ContinuationTests(unittest.TestCase):
     def test_repeated_rate_limit_retains_journal_and_can_continue_again(self):
         with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
             source, inputs, original = self.source(Path(tmp))
-            with patch('untap_continue.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap_batch.search_one', return_value={'query': inputs[2]['query'], 'status': 'rate_limited'}) as search:
+            with patch('untap.continue_run.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap.batch.search_one', return_value={'query': inputs[2]['query'], 'status': 'rate_limited'}) as search:
                 output = continue_run(source)
             self.assertEqual(search.call_count, 1)
             self.assertTrue((output / 'results.partial.jsonl').exists())
@@ -75,7 +75,7 @@ class ContinuationTests(unittest.TestCase):
                 if query == inputs[3]['query']:
                     raise KeyboardInterrupt()
                 return {'query': query, 'status': 'failed', 'reason': 'no match'}
-            with patch('untap_continue.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap_batch.search_one', side_effect=search):
+            with patch('untap.continue_run.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap.batch.search_one', side_effect=search):
                 with self.assertRaises(KeyboardInterrupt):
                     continue_run(source)
             output = next(root.glob('source_continue_*'))
@@ -91,7 +91,7 @@ class ContinuationTests(unittest.TestCase):
         for fail in (False, True):
             with self.subTest(fail=fail), tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
                 root = Path(tmp)
-                with patch.object(untap, 'run_batch', return_value=[]), patch('untap_run_output.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
+                with patch.object(untap, 'run_batch', return_value=[]), patch('untap.run_output.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
                     if fail:
                         with self.assertRaises(OSError):
                             untap._run_and_save_batch(object(), [], root, min_score=.425, debug=False, report_title='Menu')
@@ -126,7 +126,7 @@ class ContinuationTests(unittest.TestCase):
             menu.write_text('Brewery\tBeer 0\t5%\tIPA\nBrewery\tBeer 1\t5%\tIPA\n')
             source = root / 'legacy'
             source.mkdir()
-            from untap_parser import read_validated_menu
+            from untap.parser import read_validated_menu
             _, items = read_validated_menu(str(menu))
             result = unattempted_result(items[0], 'no match')
             result['status'] = 'failed'
@@ -145,7 +145,7 @@ class ContinuationTests(unittest.TestCase):
                 item['result'].pop('batch_remaining', None)
             (source / 'results.json').unlink()
             save_snapshot(snapshot, source / 'results.json')
-            with patch('untap_continue.untappd_browser_page') as browser:
+            with patch('untap.continue_run.untappd_browser_page') as browser:
                 with self.assertRaisesRegex(ValueError, 'no rate-limited'):
                     continue_run(source)
                 browser.assert_not_called()
@@ -156,7 +156,7 @@ class ContinuationTests(unittest.TestCase):
         for args in [['--continue', 'run', '--menu', 'menu.tsv'], ['--continue', 'run', 'Beer'], ['--recovery-menu', 'menu.tsv']]:
             with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
                 untap._parse_cli_args(args)
-        with patch.object(sys, 'argv', ['untap.py', '--continue', '/tmp/run', '--csv']), patch('untap_continue.continue_run', return_value=Path('/tmp/new-run')) as run, contextlib.redirect_stdout(io.StringIO()):
+        with patch.object(sys, 'argv', ['untap.py', '--continue', '/tmp/run', '--csv']), patch('untap.continue_run.continue_run', return_value=Path('/tmp/new-run')) as run, contextlib.redirect_stdout(io.StringIO()):
             untap.main()
         self.assertEqual(run.call_args.args, (Path('/tmp/run'),))
         self.assertTrue(run.call_args.kwargs['csv_requested'])
@@ -184,7 +184,7 @@ class RecoveryEdgeTests(unittest.TestCase):
                 def search(page, query, **kwargs):
                     print('continued row diagnostic')
                     return {'query': query, 'status': 'failed', 'reason': 'no match'}
-                with patch('untap_continue.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap_batch.search_one', side_effect=search), patch('untap_run_output.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
+                with patch('untap.continue_run.untappd_browser_page', return_value=contextlib.nullcontext(object())), patch('untap.batch.search_one', side_effect=search), patch('untap.run_output.render_html_report', side_effect=OSError('save failed') if fail else None, return_value='<html>report</html>'):
                     if fail:
                         with self.assertRaises(OSError):
                             continue_run(source, debug=True)

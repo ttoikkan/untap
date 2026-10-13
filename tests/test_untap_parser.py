@@ -1,7 +1,6 @@
 import unittest
 from pathlib import Path
-import untap_parser
-
+import untap.parser as untap_parser
 MENU9 = """All My Friends\tBetrayal\t6,8%\tIPA
 Brasserie du Bas-Canada x Herman\tÉlixir-IPA\t7,0%\tIPA
 Brujos\tPopulus w/ Citra\t7,5%\tIPA

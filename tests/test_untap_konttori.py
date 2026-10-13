@@ -4,8 +4,8 @@ import io
 import unittest
 from contextlib import redirect_stdout
 
-import untap_matcher as matcher
-import untap_report as report
+import untap.matcher as matcher
+import untap.report as report
 from tests import test_untap_v86 as fixtures
 
 

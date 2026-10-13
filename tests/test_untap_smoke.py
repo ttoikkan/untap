@@ -4,10 +4,8 @@ import sys
 import unittest
 from unittest import mock
 
-import untap
-import untap_smoke
-
-
+import untap.run as untap
+import untap.smoke as untap_smoke
 class LiveSmokeContractTests(unittest.TestCase):
     @staticmethod
     def _ok(beer, brewery):
@@ -28,10 +26,10 @@ class LiveSmokeContractTests(unittest.TestCase):
             self._ok("Lament", "Brujos Brewing"),
         ]
         output = io.StringIO()
-        with mock.patch.object(untap_smoke, "search_one", side_effect=results), \
-             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True), \
-             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1, "direct_rate_limited": 0}), \
-             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 2, "detail_page_fallbacks": 0}), \
+        with mock.patch.object(untap_smoke, "search_one", side_effect=results),\
+             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True),\
+             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1, "direct_rate_limited": 0}),\
+             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 2, "detail_page_fallbacks": 0}),\
              contextlib.redirect_stdout(output):
             code = untap_smoke.run_live_smoke_test(object())
         self.assertEqual(code, untap_smoke.SMOKE_EXIT_HEALTHY)
@@ -42,9 +40,25 @@ class LiveSmokeContractTests(unittest.TestCase):
         self.assertIn("GitHub automation", text)
         self.assertIn("NOT USED", text)
 
+    def test_shape_warning_is_passive_and_does_not_add_searches(self):
+        results = [self._ok("Pivo Hull", "Brasserie du Bas-Canada"),
+                   self._ok("Lament", "Brujos Brewing")]
+        with mock.patch.object(untap_smoke, "search_one", side_effect=results) as search, \
+             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True), \
+             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1}), \
+             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 2}), \
+             mock.patch.object(untap_smoke, "response_shape_observations", return_value=(2, ["hit.bid: missing or unexpected type"])), \
+             contextlib.redirect_stdout(io.StringIO()) as output:
+            code = untap_smoke.run_live_smoke_test(object())
+        self.assertEqual(code, untap_smoke.SMOKE_EXIT_HEALTHY)
+        self.assertEqual(search.call_count, 2)
+        self.assertIn("Recorded response shape", output.getvalue())
+        self.assertIn("WARN", output.getvalue())
+        self.assertIn("hit.bid", output.getvalue())
+
     def test_smoke_rate_limit_is_distinct_exit(self):
         output = io.StringIO()
-        with mock.patch.object(untap_smoke, "search_one", return_value={"status": "rate_limited"}), \
+        with mock.patch.object(untap_smoke, "search_one", return_value={"status": "rate_limited"}),\
              contextlib.redirect_stdout(output):
             code = untap_smoke.run_live_smoke_test(object())
         self.assertEqual(code, untap_smoke.SMOKE_EXIT_RATE_LIMITED)
@@ -55,10 +69,10 @@ class LiveSmokeContractTests(unittest.TestCase):
             self._ok("Pivo Hull", "Brasserie du Bas-Canada"),
             self._ok("Lament", "Brujos Brewing"),
         ]
-        with mock.patch.object(untap_smoke, "search_one", side_effect=results), \
-             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True), \
-             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1, "direct_rate_limited": 0}), \
-             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 1, "detail_page_fallbacks": 1}), \
+        with mock.patch.object(untap_smoke, "search_one", side_effect=results),\
+             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True),\
+             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1, "direct_rate_limited": 0}),\
+             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 1, "detail_page_fallbacks": 1}),\
              contextlib.redirect_stdout(io.StringIO()):
             code = untap_smoke.run_live_smoke_test(object())
         self.assertEqual(code, untap_smoke.SMOKE_EXIT_RESPONSE_CONTRACT)
@@ -68,10 +82,10 @@ class LiveSmokeContractTests(unittest.TestCase):
             self._ok("Pivo Hull", "Brasserie du Bas-Canada"),
             self._ok("Different Beer", "Brujos Brewing"),
         ]
-        with mock.patch.object(untap_smoke, "search_one", side_effect=results), \
-             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True), \
-             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1, "direct_rate_limited": 0}), \
-             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 2, "detail_page_fallbacks": 0}), \
+        with mock.patch.object(untap_smoke, "search_one", side_effect=results),\
+             mock.patch.object(untap_smoke, "search_transport_template_available", return_value=True),\
+             mock.patch.object(untap_smoke, "get_search_transport_authority_stats", return_value={"direct_searches": 1, "direct_rate_limited": 0}),\
+             mock.patch.object(untap_smoke, "get_algolia_confirmation_stats", return_value={"confirmed_from_algolia": 2, "detail_page_fallbacks": 0}),\
              contextlib.redirect_stdout(io.StringIO()):
             code = untap_smoke.run_live_smoke_test(object())
         self.assertEqual(code, untap_smoke.SMOKE_EXIT_IDENTITY)
@@ -83,13 +97,13 @@ class LiveSmokeContractTests(unittest.TestCase):
             def __exit__(self, exc_type, exc, tb):
                 return False
 
-        with mock.patch.object(sys, "argv", ["untap.py", "--smoke-test"]), \
-             mock.patch.object(untap, "untappd_browser_page", return_value=FakeContext()), \
+        with mock.patch.object(sys, "argv", ["untap.py", "--smoke-test"]),\
+             mock.patch.object(untap, "untappd_browser_page", return_value=FakeContext()),\
              mock.patch.object(untap_smoke, "run_live_smoke_test", return_value=0):
             untap.main()
 
         output = io.StringIO()
-        with mock.patch.object(sys, "argv", ["untap.py", "--smoke-test", "Brujos Lament"]), \
+        with mock.patch.object(sys, "argv", ["untap.py", "--smoke-test", "Brujos Lament"]),\
              contextlib.redirect_stdout(output):
             with self.assertRaises(SystemExit) as exc:
                 untap.main()

@@ -9,9 +9,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-import untap
-
-
+import untap.run as untap
 class RunDirectoryTests(unittest.TestCase):
     def test_same_second_runs_preserve_existing_output_and_sanitize_title(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -34,9 +32,9 @@ class RunDirectoryTests(unittest.TestCase):
 
     def test_removed_options_fail_before_browser_or_output(self):
         for flag in ("--csv=old.csv", "--resume", "--resume-from"):
-            with self.subTest(flag=flag), mock.patch.object(sys, "argv", ["untap.py", flag]), \
-                 mock.patch.object(untap, "untappd_browser_page") as browser, \
-                 mock.patch.object(untap, "create_run_directory") as directory, \
+            with self.subTest(flag=flag), mock.patch.object(sys, "argv", ["untap.py", flag]),\
+                 mock.patch.object(untap, "untappd_browser_page") as browser,\
+                 mock.patch.object(untap, "create_run_directory") as directory,\
                  contextlib.redirect_stderr(io.StringIO()) as output:
                 with self.assertRaises(SystemExit) as error:
                     untap.main()
@@ -56,9 +54,9 @@ class RunDirectoryTests(unittest.TestCase):
                                             ("--file", "beers.txt", True),
                                             ("--file", "beers.txt", False)):
                     argv = ["untap.py", mode, source] + (["--html"] if html else [])
-                    with mock.patch.object(sys, "argv", argv), \
-                         mock.patch.object(untap, "untappd_browser_page", return_value=contextlib.nullcontext(object())), \
-                         mock.patch.object(untap, "run_batch", return_value=[]) as batch, \
+                    with mock.patch.object(sys, "argv", argv),\
+                         mock.patch.object(untap, "untappd_browser_page", return_value=contextlib.nullcontext(object())),\
+                         mock.patch.object(untap, "run_batch", return_value=[]) as batch,\
                          contextlib.redirect_stdout(io.StringIO()) as output:
                         untap.main()
                     self.assertNotIn("resume_rows", batch.call_args.kwargs)

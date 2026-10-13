@@ -8,9 +8,7 @@ import tempfile
 import unittest
 from unittest import mock
 
-import untap_inspect
-
-
+import untap.inspect as untap_inspect
 class InspectionFormattingTests(unittest.TestCase):
     def test_inventory_preserves_presence_types_and_raw_samples(self):
         inspections = [{"hits": [
@@ -64,7 +62,7 @@ class InspectionTransportTests(unittest.TestCase):
         transport = {"events": [object()], "transport": "browser-fetch", "error": None}
         page_zero = {"nbHits": 7, "nbPages": 2, "hitsPerPage": 5, "hits": [hit]}
         with mock.patch.object(untap_inspect, "_run_page0_search_transport",
-                               return_value=transport), \
+                               return_value=transport),\
              mock.patch.object(untap_inspect, "_matching_algolia_initial_page",
                                return_value=page_zero):
             result = untap_inspect.inspect_query(object(), "Brewery Beer")
@@ -87,9 +85,9 @@ class InspectionTransportTests(unittest.TestCase):
                             "hits": [{"objectID": "2"}]}]}, None),
         ]
         with mock.patch.object(untap_inspect, "_run_page0_search_transport",
-                               return_value=transport), \
+                               return_value=transport),\
              mock.patch.object(untap_inspect, "_matching_algolia_initial_page",
-                               return_value=page_zero), \
+                               return_value=page_zero),\
              mock.patch.object(untap_inspect, "_fetch_algolia_page",
                                side_effect=pages) as fetch:
             result = untap_inspect.inspect_query(object(), "Beer", all_pages=True)
@@ -103,9 +101,9 @@ class InspectionTransportTests(unittest.TestCase):
                      "transport": "ui-bootstrap", "error": None}
         page_zero = {"nbHits": 35, "nbPages": 7, "hitsPerPage": 5, "hits": [{}]}
         with mock.patch.object(untap_inspect, "_run_page0_search_transport",
-                               return_value=transport), \
+                               return_value=transport),\
              mock.patch.object(untap_inspect, "_matching_algolia_initial_page",
-                               return_value=page_zero), \
+                               return_value=page_zero),\
              mock.patch.object(untap_inspect, "_fetch_algolia_page") as fetch:
             result = untap_inspect.inspect_query(object(), "Beer")
         fetch.assert_not_called()
@@ -115,7 +113,7 @@ class InspectionTransportTests(unittest.TestCase):
         transport = {"events": [{"kind": "response", "status": 429}],
                      "transport": "browser-fetch", "error": None}
         with mock.patch.object(untap_inspect, "_run_page0_search_transport",
-                               return_value=transport), \
+                               return_value=transport),\
              mock.patch.object(untap_inspect, "_matching_algolia_initial_page",
                                return_value=None):
             result = untap_inspect.inspect_query(object(), "Beer")
@@ -132,8 +130,8 @@ class InspectionCliTests(unittest.TestCase):
             try:
                 os.chdir(tmp)
                 with mock.patch.object(untap_inspect, "untappd_browser_page",
-                                       return_value=contextlib.nullcontext(object())), \
-                     mock.patch.object(untap_inspect, "inspect_query", return_value=item), \
+                                       return_value=contextlib.nullcontext(object())),\
+                     mock.patch.object(untap_inspect, "inspect_query", return_value=item),\
                      contextlib.redirect_stdout(io.StringIO()):
                     code = untap_inspect.main(["--query", "Brewery Beer"])
                 self.assertEqual(code, 0)
@@ -150,7 +148,7 @@ class InspectionCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "empty.txt"
             source.write_text("\n", encoding="utf-8")
-            with mock.patch.object(untap_inspect, "untappd_browser_page") as browser, \
+            with mock.patch.object(untap_inspect, "untappd_browser_page") as browser,\
                  contextlib.redirect_stderr(io.StringIO()):
                 code = untap_inspect.main(["--file", str(source)])
             self.assertEqual(code, 2)
@@ -164,7 +162,7 @@ class InspectionCliTests(unittest.TestCase):
             try:
                 os.chdir(tmp)
                 stderr = io.StringIO()
-                with mock.patch.object(untap_inspect, "untappd_browser_page") as browser, \
+                with mock.patch.object(untap_inspect, "untappd_browser_page") as browser,\
                      contextlib.redirect_stderr(stderr):
                     code = untap_inspect.main(["--file", str(source)])
                 self.assertEqual(code, 2)

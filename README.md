@@ -144,21 +144,21 @@ Inspection saves raw search hits under `inspections/` in the current directory, 
 Unified commands also work without installation:
 
 ```bash
-python3 -m untap_cli --help
-python3 -m untap_cli run --menu menu.tsv
+python3 -m untap.cli --help
+python3 -m untap.cli run --menu menu.tsv
 ```
 
-Legacy query forms, `python3 untap.py`, and the separate `untap-review`, `untap-refresh`, `untap-publish` and `untap-inspect` commands remain supported. Leading subcommand names are reserved: for a query beginning with one, use `untap run "review Brewery Beer"` or `untap -- "review Brewery Beer"`.
+`python3 -m untap` runs the same unified CLI from a checkout or installation. Runtime code lives in the `untap/` package. Legacy query forms, `python3 untap.py`, and the separate `untap-review`, `untap-refresh`, `untap-publish` and `untap-inspect` commands remain supported. Leading subcommand names are reserved: for a query beginning with one, use `untap run "review Brewery Beer"` or `untap -- "review Brewery Beer"`.
 
 ## Develop and validate
 
 ```bash
 python3 -m pip install -r requirements-dev.txt
 python3 -B -m unittest discover -s tests -t .
-python3 -m mypy untap*.py untap_assets
+python3 -m mypy untap untap_*.py
 ```
 
-The ordinary suite includes a packaging module-list check, frozen decision/output cases, and 2,000 seeded invariant cases. Run a larger invariant sample with:
+The ordinary suite includes strict Playwright-level search replay, package/compatibility checks, frozen decision/output cases, and 2,000 seeded invariant cases. Run a larger invariant sample with:
 
 ```bash
 UNTAP_INVARIANT_SEED=108 UNTAP_INVARIANT_CASES=10000 python3 -B -m unittest tests.test_untap_decision_invariants
@@ -177,4 +177,4 @@ UNTAP_TEST_ENV="$untap_check_dir/venv" python3 -B -m unittest discover -s tests 
 
 Run `untap smoke` only when you want the explicit live integration check. It contacts Untappd.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for dependencies and decision rules, and [CHANGELOG.md](CHANGELOG.md) for release history. The six per-module changelogs are retained as historical references. Distribution and CLI versions come from `untap_version.py`.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for dependencies and decision rules, and [CHANGELOG.md](CHANGELOG.md) for release history. The six per-module changelogs are retained as historical references. Distribution and CLI versions come from `untap/version.py`. Replay fixtures and their contribution rules are documented in [the corpus guide](tests/testdata/search_corpus/README.md).

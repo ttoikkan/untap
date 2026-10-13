@@ -7,14 +7,14 @@ from pathlib import Path
 import unittest
 from unittest import mock
 
-import untap
-import untap_cli
-import untap_inspect
-import untap_local_review
-import untap_refresh
-import untap_smoke
-from untap_snapshot import build_snapshot, save_snapshot
-from untap_version import __version__
+import untap.run as untap
+import untap.cli as untap_cli
+import untap.inspect as untap_inspect
+import untap.local_review as untap_local_review
+import untap.refresh as untap_refresh
+import untap.smoke as untap_smoke
+from untap.snapshot import build_snapshot, save_snapshot
+from untap.version import __version__
 
 
 def invoke(main, args):
@@ -95,7 +95,7 @@ class UnifiedCommandTests(unittest.TestCase):
                 self.assertEqual(batch.call_args, expected)
 
     def test_continuation_preserves_arguments_and_exit_status(self):
-        import untap_continue
+        import untap.continue_run as untap_continue
         with mock.patch.object(untap_continue, 'continue_run', return_value=Path('/tmp/continued')) as resume:
             args = ['--continue', '/tmp/source', '--csv', '--debug', '--min-score', '0.6']
             expected = invoke(untap.main, args)
@@ -146,7 +146,7 @@ class UnifiedCommandTests(unittest.TestCase):
             self.assertEqual(invoke(untap_cli.main, ['review', source, '--no-open']), invoke(untap_local_review.main, [source, '--no-open']))
 
     def test_offline_command_errors_preserve_status_and_detail(self):
-        import untap_publish
+        import untap.publish as untap_publish
         for command, standalone, args in [('refresh', untap_refresh.main, ['--fetch-candidates', 'missing.json']),
                                            ('publish', untap_publish.main, ['missing.html', '/tmp/archive']),
                                            ('inspect', untap_inspect.main, ['--file', 'missing.txt'])]:

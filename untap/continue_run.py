@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-from untap_matcher import DEFAULT_MIN_SCORE, MATCH_RESULT_STATUSES
-from untap_batch import run_batch, unattempted_result, debug_transcript
-from untap_parser import read_validated_menu, validate_normalized_menu
-from untap_snapshot import load_snapshot, save_snapshot, build_snapshot, menu_item_ids
-from untap_run_output import write_run_outputs
-from untap_untappd import untappd_browser_page
+from untap.matcher import DEFAULT_MIN_SCORE, MATCH_RESULT_STATUSES
+from untap.batch import run_batch, unattempted_result, debug_transcript
+from untap.parser import read_validated_menu, validate_normalized_menu
+from untap.snapshot import load_snapshot, save_snapshot, build_snapshot, menu_item_ids
+from untap.run_output import write_run_outputs
+from untap.transport import untappd_browser_page
 
 UNFINISHED = {"rate_limited", "not_attempted"}
 

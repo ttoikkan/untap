@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-import untap_matcher as matcher
+import untap.matcher as matcher
 from tests.test_untap_v86 import candidate
 
 CASES = ('strong_primary', 'zero_hit_recovery', 'nonzero_weak_recovery',
@@ -101,10 +101,10 @@ class SearchPhaseTests(unittest.TestCase):
         events = [{'kind': 'response', 'status': 200}]
         page0 = {'hits': [], 'nbHits': 2}
         rows = [candidate('Beer A', 'Brewery', 5., .9, 1), candidate('Beer B', 'Brewery', 5., .8, 2)]
-        with patch.object(matcher, '_run_page0_search_transport', return_value={'request_event': request, 'events': events}) as transport, \
-             patch.object(matcher, '_matching_algolia_response_status', return_value=200), \
-             patch.object(matcher, '_matching_algolia_nb_hits', return_value=2), \
-             patch.object(matcher, '_matching_algolia_initial_page', return_value=page0), \
+        with patch.object(matcher, '_run_page0_search_transport', return_value={'request_event': request, 'events': events}) as transport,\
+             patch.object(matcher, '_matching_algolia_response_status', return_value=200),\
+             patch.object(matcher, '_matching_algolia_nb_hits', return_value=2),\
+             patch.object(matcher, '_matching_algolia_initial_page', return_value=page0),\
              patch.object(matcher, '_algolia_page0_candidates', return_value=rows) as construct:
             primary, terminal = matcher._retrieve_primary_discovery(object(), 'Brewery Beer', False, 'Beer', 'Brewery', 5.)
         self.assertIsNone(terminal)

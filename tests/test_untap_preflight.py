@@ -8,9 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import untap
-
-
+import untap.run as untap
 class MenuPreflightBoundaryTests(unittest.TestCase):
     def _forbid_playwright_import(self):
         real_import = builtins.__import__

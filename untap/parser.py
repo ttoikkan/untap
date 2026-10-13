@@ -6,7 +6,7 @@ no menu-layout guessing or style stripping is performed.
 import re
 import unicodedata
 from typing import Iterable, List, Tuple
-from untap_types import NormalizedMenuRecord
+from untap.types import NormalizedMenuRecord
 
 FORMAT_TABULAR = "tab-separated"
 NORMALIZED_RECORD_FIELDS = ("brewery", "beer", "style", "menu_abv", "query", "original")

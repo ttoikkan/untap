@@ -1,0 +1,44 @@
+{
+  "provenance": "Hand-authored sanitized Algolia response shape; not a live capture.",
+  "search": {
+    "query": "Badlands Fazy",
+    "expected_beer": "Fazy",
+    "expected_brewery": "Badlands",
+    "expected_abv": 6.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Badlands Fazy",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 429,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "rate_limited",
+    "http_status": 429
+  },
+  "excluded_urls": []
+}

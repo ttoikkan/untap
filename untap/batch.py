@@ -4,17 +4,17 @@ from pathlib import Path
 from time import perf_counter
 from typing import Callable, Any, Iterator, TextIO, List, Optional, Sequence, TypedDict, Union
 
-from untap_types import MatchResult, NormalizedMenuRecord
+from untap.types import MatchResult, NormalizedMenuRecord
 # Compatibility exports for source callers; implementation belongs to output.
-from untap_run_output import CSV_FIELDS as CSV_FIELDS, save_csv as save_csv
+from untap.run_output import CSV_FIELDS as CSV_FIELDS, save_csv as save_csv
 
-from untap_matcher import (
+from untap.matcher import (
     DEFAULT_MIN_SCORE,
     search_one,
     get_last_matcher_timing_seconds,
     reset_matcher_timing_stats,
 )
-from untap_untappd import _reset_run_algolia_debug_stats, debug_timing_enabled
+from untap.transport import _reset_run_algolia_debug_stats, debug_timing_enabled
 
 
 class _BatchTimingStats(TypedDict):

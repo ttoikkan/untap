@@ -165,7 +165,7 @@ CsvScalar = Union[str, float, int, None]
 
 
 class CsvRow(TypedDict):
-    """Stable persisted CSV schema from ``untap_batch.CSV_FIELDS``."""
+    """Stable persisted CSV schema from ``untap.batch.CSV_FIELDS``."""
 
     original_menu_text: CsvScalar
     input_brewery: CsvScalar

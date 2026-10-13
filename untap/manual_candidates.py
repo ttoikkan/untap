@@ -32,8 +32,8 @@ def candidate_from_hit(hit, url):
 
 def fetch_candidates(urls):
     # Reuse the inspector transport, not arbitrary URL requests or a new API.
-    from untap_inspect import inspect_query
-    from untap_untappd import untappd_browser_page
+    from untap.inspect import inspect_query
+    from untap.transport import untappd_browser_page
     found = {}
     try:
         with untappd_browser_page() as page:

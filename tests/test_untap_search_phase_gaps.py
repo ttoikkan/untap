@@ -4,9 +4,7 @@ import io
 import unittest
 from unittest.mock import patch
 
-import untap_matcher as matcher
-
-
+import untap.matcher as matcher
 def row(name, score, bid):
     return {"name": name, "brewery": "Brewery", "abv": 5.0, "score": score, "bid": bid,
             "url": f"https://untappd.com/b/x/{bid}", "text": f"Brewery {name} 5% ABV"}
@@ -55,7 +53,7 @@ class ZeroHitExpansionGateTests(unittest.TestCase):
         request = {"url": "https://example.algolia.net/1/indexes/*/queries",
                    "algolia_requests": [{"indexName": "beer", "query": "Brewery Beer", "params": {"query": "Brewery Beer"}}]}
         with patch.object(matcher, "_fetch_algolia_page",
-                          side_effect=AssertionError("expansion requested for a zero-hit search")) as fetch, \
+                          side_effect=AssertionError("expansion requested for a zero-hit search")) as fetch,\
              redirect_stdout(io.StringIO()):
             result = matcher.evaluate_and_expand_candidates(
                 object(), "Brewery Beer", [], request, matcher.DEFAULT_MIN_SCORE,

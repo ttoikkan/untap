@@ -6,20 +6,20 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 
-from untap_refresh import refresh, main, apply_selections
-from untap_report import selection_report_id
-from untap_snapshot import build_snapshot, save_snapshot, load_snapshot
-from untap_publish import publish_report
+from untap.refresh import refresh, main, apply_selections
+from untap.report import selection_report_id
+from untap.snapshot import build_snapshot, save_snapshot, load_snapshot
+from untap.publish import publish_report
 
 
 class RefreshTests(unittest.TestCase):
     def test_batch_defaults_and_explicit_false_override(self):
-        from untap_refresh import refresh_batch
+        from untap.refresh import refresh_batch
         with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
             config = Path(tmp) / "batch.json"
             config.write_text(json.dumps({"defaults": {"archive": "../archive", "replace": True},
                 "reports": [{"source": "one"}, {"source": "two", "replace": False}]}))
-            with patch("untap_refresh.main", return_value=0) as run:
+            with patch("untap.refresh.main", return_value=0) as run:
                 self.assertEqual(refresh_batch(config), 0)
             first, second = [call.args[0] for call in run.call_args_list]
             self.assertIn("--archive", first)

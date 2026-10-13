@@ -5,9 +5,8 @@ from contextlib import redirect_stdout
 from unittest import mock
 from unittest.mock import patch
 
-import untap_matcher
-
-from untap_matcher import (
+import untap.matcher as untap_matcher
+from untap.matcher import (
     candidate_has_brewery_overlap,
     candidate_matches_trailing_relaxed_identity,
     strip_redundant_terminal_style_for_search,
@@ -98,9 +97,9 @@ class MatcherContractTests(unittest.TestCase):
         fake_result = {"query": "Test Beer", "status": "failed", "reason": "test"}
         output = io.StringIO()
         with (
-            patch("untap_matcher.debug_timing_enabled", return_value=True),
-            patch("untap_matcher._search_one_impl", return_value=fake_result),
-            patch("untap_matcher.perf_counter", side_effect=[10.0, 10.5]),
+            patch("untap.matcher.debug_timing_enabled", return_value=True),
+            patch("untap.matcher._search_one_impl", return_value=fake_result),
+            patch("untap.matcher.perf_counter", side_effect=[10.0, 10.5]),
             redirect_stdout(output),
         ):
             result = search_one(None, "Test Beer")
@@ -116,11 +115,11 @@ class MatcherContractTests(unittest.TestCase):
     def test_matcher_phase_timer_does_not_change_return_value(self):
         output = io.StringIO()
         with (
-            patch("untap_matcher.debug_timing_enabled", return_value=True),
-            patch("untap_matcher.perf_counter", side_effect=[20.0, 20.25]),
+            patch("untap.matcher.debug_timing_enabled", return_value=True),
+            patch("untap.matcher.perf_counter", side_effect=[20.0, 20.25]),
             redirect_stdout(output),
         ):
-            from untap_matcher import _timed_matcher_call
+            from untap.matcher import _timed_matcher_call
             value = _timed_matcher_call("candidate phase", "Test Beer", lambda: 42)
 
         self.assertEqual(value, 42)
@@ -130,9 +129,9 @@ class MatcherContractTests(unittest.TestCase):
     def test_fallback_timing_uses_fallback_query_without_name_error(self):
         output = io.StringIO()
         with (
-            patch("untap_matcher.debug_timing_enabled", return_value=True),
-            patch("untap_matcher.open_search_box", return_value=None),
-            patch("untap_matcher.perf_counter", side_effect=[1.0, 1.25]),
+            patch("untap.matcher.debug_timing_enabled", return_value=True),
+            patch("untap.matcher.open_search_box", return_value=None),
+            patch("untap.matcher.perf_counter", side_effect=[1.0, 1.25]),
             redirect_stdout(output),
         ):
             result = run_search_fallback_attempt(None, "Fallback Beer", 0.5)
@@ -170,7 +169,7 @@ if __name__ == "__main__":
 
 class AlgoliaCandidateAuthorityTests(unittest.TestCase):
     def test_algolia_candidate_preserves_alias_metadata(self):
-        from untap_matcher import _algolia_hit_to_candidate
+        from untap.matcher import _algolia_hit_to_candidate
         candidate = _algolia_hit_to_candidate({
             "beer_name": "PB&J Mixtape", "brewery_name": "Xül Beer Company",
             "beer_abv": 6.5, "alias_alt": ["xul pb and j mixtape sour"],
@@ -178,7 +177,7 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
         self.assertEqual(candidate["alias_alt"], ["xul pb and j mixtape sour"])
 
     def test_algolia_page0_candidates_preserve_native_abv_precision(self):
-        from untap_matcher import _algolia_page0_candidates
+        from untap.matcher import _algolia_page0_candidates
 
         page0 = {
             "hits": [{
@@ -201,7 +200,7 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
         self.assertEqual(candidates[0]["brewery"], "Brujos Brewing")
 
     def test_algolia_page0_candidates_retain_brewery_when_dom_historically_omitted_it(self):
-        from untap_matcher import _algolia_page0_candidates
+        from untap.matcher import _algolia_page0_candidates
 
         page0 = {
             "hits": [{
@@ -230,7 +229,7 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
         self.assertEqual(result['url'], page0_rows[0]['url'])
 
     def test_algolia_candidate_filter_keeps_v67_query_word_rule(self):
-        from untap_matcher import _algolia_page0_candidates
+        from untap.matcher import _algolia_page0_candidates
 
         page0 = {
             "hits": [
@@ -262,7 +261,7 @@ class AlgoliaCandidateAuthorityTests(unittest.TestCase):
 
 class ShadowAliasSupportTests(unittest.TestCase):
     def test_beer_plus_style_alias_supports_one_candidate(self):
-        from untap_matcher import shadow_alias_support
+        from untap.matcher import shadow_alias_support
         candidates = [
             {"name": "M-43 N.E. India Pale Ale", "brewery": "Old Nation Brewing Co.",
              "abv": 6.8, "alias_alt": ["m43 ipa"]},
@@ -276,7 +275,7 @@ class ShadowAliasSupportTests(unittest.TestCase):
                          ["M-43 N.E. India Pale Ale"])
 
     def test_alias_support_rejects_brewery_and_abv_contradictions(self):
-        from untap_matcher import shadow_alias_support
+        from untap.matcher import shadow_alias_support
         candidates = [
             {"name": "Wrong brewery", "brewery": "Elsewhere", "abv": 6.8,
              "alias_alt": ["m43 ipa"]},
@@ -288,7 +287,7 @@ class ShadowAliasSupportTests(unittest.TestCase):
         ), [])
 
     def test_multiple_alias_matches_remain_inconclusive(self):
-        from untap_matcher import shadow_alias_support
+        from untap.matcher import shadow_alias_support
         candidates = [
             {"name": "One", "brewery": "Brewery", "abv": 5.0,
              "alias_alt": ["menu beer"]},
@@ -300,7 +299,7 @@ class ShadowAliasSupportTests(unittest.TestCase):
         )), 2)
 
     def test_debug_output_names_candidate_alias_and_non_authoritative_scope(self):
-        from untap_matcher import print_shadow_alias_support
+        from untap.matcher import print_shadow_alias_support
         output = io.StringIO()
         with redirect_stdout(output):
             print_shadow_alias_support(
@@ -324,10 +323,10 @@ class SearchTransportSelfHealingTests(unittest.TestCase):
             "error": None,
             "transport": "ui-recovery",
         }
-        with mock.patch.object(untap_matcher, "search_transport_template_available", return_value=True), \
-             mock.patch.object(untap_matcher, "fetch_authoritative_algolia_search", return_value=(direct_request, direct_response, "HTTP 500")), \
-             mock.patch.object(untap_matcher, "invalidate_search_transport_template") as invalidate, \
-             mock.patch.object(untap_matcher, "_run_ui_page0_search_transport", return_value=recovered) as ui_recovery, \
+        with mock.patch.object(untap_matcher, "search_transport_template_available", return_value=True),\
+             mock.patch.object(untap_matcher, "fetch_authoritative_algolia_search", return_value=(direct_request, direct_response, "HTTP 500")),\
+             mock.patch.object(untap_matcher, "invalidate_search_transport_template") as invalidate,\
+             mock.patch.object(untap_matcher, "_run_ui_page0_search_transport", return_value=recovered) as ui_recovery,\
              mock.patch.object(untap_matcher, "note_search_transport_recovery") as note:
             result = untap_matcher._run_page0_search_transport(object(), "Beer")
         invalidate.assert_called_once_with()
@@ -340,9 +339,9 @@ class SearchTransportSelfHealingTests(unittest.TestCase):
     def test_http_429_never_invalidates_or_recovers_through_ui(self):
         direct_request = {"kind": "request", "url": "https://example", "algolia_requests": []}
         direct_response = {"kind": "response", "status": 429, "url": "https://example", "algolia_requests": [], "algolia_response": []}
-        with mock.patch.object(untap_matcher, "search_transport_template_available", return_value=True), \
-             mock.patch.object(untap_matcher, "fetch_authoritative_algolia_search", return_value=(direct_request, direct_response, "HTTP 429")), \
-             mock.patch.object(untap_matcher, "invalidate_search_transport_template") as invalidate, \
+        with mock.patch.object(untap_matcher, "search_transport_template_available", return_value=True),\
+             mock.patch.object(untap_matcher, "fetch_authoritative_algolia_search", return_value=(direct_request, direct_response, "HTTP 429")),\
+             mock.patch.object(untap_matcher, "invalidate_search_transport_template") as invalidate,\
              mock.patch.object(untap_matcher, "_run_ui_page0_search_transport") as ui_recovery:
             result = untap_matcher._run_page0_search_transport(object(), "Beer")
         invalidate.assert_not_called()
@@ -358,10 +357,10 @@ class SearchTransportSelfHealingTests(unittest.TestCase):
             "error": "Search box not found",
             "transport": "ui-recovery",
         }
-        with mock.patch.object(untap_matcher, "search_transport_template_available", return_value=True), \
-             mock.patch.object(untap_matcher, "fetch_authoritative_algolia_search", return_value=(None, direct_response, "HTTP 500")), \
-             mock.patch.object(untap_matcher, "invalidate_search_transport_template"), \
-             mock.patch.object(untap_matcher, "_run_ui_page0_search_transport", return_value=failed) as ui_recovery, \
+        with mock.patch.object(untap_matcher, "search_transport_template_available", return_value=True),\
+             mock.patch.object(untap_matcher, "fetch_authoritative_algolia_search", return_value=(None, direct_response, "HTTP 500")),\
+             mock.patch.object(untap_matcher, "invalidate_search_transport_template"),\
+             mock.patch.object(untap_matcher, "_run_ui_page0_search_transport", return_value=failed) as ui_recovery,\
              mock.patch.object(untap_matcher, "note_search_transport_recovery") as note:
             result = untap_matcher._run_page0_search_transport(object(), "Beer")
         self.assertEqual(ui_recovery.call_count, 1)
@@ -374,7 +373,7 @@ if __name__ == "__main__":
 
 class DetailAlgoliaParityTests(unittest.TestCase):
     def test_detail_algolia_comparison_matches_independent_fields(self):
-        from untap_matcher import _detail_algolia_field_comparison
+        from untap.matcher import _detail_algolia_field_comparison
 
         comparison = _detail_algolia_field_comparison(
             {"beer": "Sacrilegio", "rating": 4.17, "ratings": 409, "abv": "6.66%"},
@@ -383,7 +382,7 @@ class DetailAlgoliaParityTests(unittest.TestCase):
         self.assertTrue(all(item["equal"] for item in comparison.values()))
 
     def test_detail_algolia_comparison_reports_rating_and_count_differences(self):
-        from untap_matcher import _detail_algolia_field_comparison
+        from untap.matcher import _detail_algolia_field_comparison
 
         comparison = _detail_algolia_field_comparison(
             {"beer": "Beer", "rating": 4.2, "ratings": 101, "abv": "6.5%"},
@@ -394,7 +393,7 @@ class DetailAlgoliaParityTests(unittest.TestCase):
         self.assertEqual(comparison["abv"]["state"], "equal")
 
     def test_v70_complete_algolia_candidate_builds_confirmed_result(self):
-        from untap_matcher import _confirmed_info_from_algolia
+        from untap.matcher import _confirmed_info_from_algolia
         info = _confirmed_info_from_algolia({
             "name": "Sacrilegio", "rating_score": 4.17, "rating_count": 409,
             "abv": 6.66, "url": "https://untappd.com/b/x/1", "ibu": 45,
@@ -406,7 +405,7 @@ class DetailAlgoliaParityTests(unittest.TestCase):
         self.assertEqual(info["ibu"], "45")
 
     def test_v70_incomplete_algolia_candidate_requires_detail_fallback(self):
-        from untap_matcher import _confirmed_info_from_algolia
+        from untap.matcher import _confirmed_info_from_algolia
         candidate = {"name": "Beer", "rating_score": None, "rating_count": 10, "abv": 5.0, "url": "https://untappd.com/b/x/1"}
         self.assertIsNone(_confirmed_info_from_algolia(candidate, "Brewery"))
 

@@ -10,10 +10,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import untap_matcher as matcher
-from untap_batch import save_csv
-from untap_report import render_html_report
-from untap_snapshot import build_snapshot
+import untap.matcher as matcher
+from untap.batch import save_csv
+from untap.report import render_html_report
+from untap.snapshot import build_snapshot
 from tests.test_untap_v86 import candidate
 from tests import test_untap_v100
 from tests import test_untap_v101
@@ -79,7 +79,7 @@ def observe(case):
     mode = context.get('detail_mode', 'ok')
     error = matcher.BeerDetailError('Controlled detail failure', 429 if mode == 'rate_limited' else 403)
     stats_before = matcher.get_algolia_confirmation_stats()
-    with patch.object(matcher, 'extract_beer_info', return_value=detail, side_effect=None if mode == 'ok' else error), \
+    with patch.object(matcher, 'extract_beer_info', return_value=detail, side_effect=None if mode == 'ok' else error),\
          contextlib.redirect_stdout(io.StringIO()) as debug:
         result = matcher._resolve_discovered_candidates(
             object(), ' '.join(x for x in (case['brewery'], case['beer']) if x), .425, True,
@@ -91,7 +91,7 @@ def observe(case):
     assert rows == before, case['name']
     stats = matcher.get_algolia_confirmation_stats()
     delta = {key: stats[key] - stats_before[key] for key in stats}
-    with patch('untap_snapshot.datetime', FixedDatetime):
+    with patch('untap.snapshot.datetime', FixedDatetime):
         snapshot = build_snapshot([result], 'Decision characterization')
     html = render_html_report([result], 'Decision characterization', report_date='2026-10-11')
     snapshot_bytes = (json.dumps(snapshot, ensure_ascii=False, indent=2, allow_nan=False) + '\n').encode()

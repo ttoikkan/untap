@@ -1,0 +1,115 @@
+{
+  "provenance": "Hand-authored sanitized Algolia response shape; not a live capture.",
+  "search": {
+    "query": "Badlands Fazy",
+    "expected_beer": "Fazy",
+    "expected_brewery": "Badlands",
+    "expected_abv": 6.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Badlands Fazy",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Fazy Badlands",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Fazy",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Fazy",
+                "brewery_name": "Badlands Brewing Company",
+                "beer_abv": 6.5,
+                "bid": 10,
+                "beer_slug": "badlands-fazy",
+                "rating_score": 4.2,
+                "rating_count": 50,
+                "type_name": "IPA",
+                "in_production": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ok",
+    "url": "https://untappd.com/b/badlands-fazy/10",
+    "brewery": "Badlands Brewing Company",
+    "type_name": "IPA",
+    "search_fallback": "Fazy"
+  },
+  "excluded_urls": []
+}

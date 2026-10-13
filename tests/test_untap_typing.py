@@ -3,10 +3,10 @@ from typing import get_args, get_type_hints
 import inspect
 import unittest
 
-import untap_batch
-import untap_matcher
-import untap_parser
-from untap_types import AlternativeRecord, CsvRow, MatchResult, MatchStatus, NormalizedMenuRecord
+import untap.batch as untap_batch
+import untap.matcher as untap_matcher
+import untap.parser as untap_parser
+from untap.types import AlternativeRecord, CsvRow, MatchResult, MatchStatus, NormalizedMenuRecord
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,10 +46,10 @@ class StaticContractTests(unittest.TestCase):
 
     def test_type_contract_module_has_no_runtime_layer_dependencies(self):
         import ast
-        tree = ast.parse((ROOT / 'untap_types.py').read_text())
+        tree = ast.parse((ROOT / 'untap/types.py').read_text())
         imports = {node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
         imports.update(alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names)
-        self.assertTrue(imports.isdisjoint({'untap_parser', 'untap_matcher', 'untap_batch', 'untap_untappd', 'playwright'}))
+        self.assertTrue(imports.isdisjoint({'untap.parser', 'untap.matcher', 'untap.batch', 'untap.transport', 'playwright'}))
 
     def test_static_checker_is_pinned_for_local_use(self):
         requirements = (ROOT / "requirements-dev.txt").read_text(encoding="utf-8")
@@ -61,7 +61,7 @@ class StaticContractTests(unittest.TestCase):
         self.assertEqual(active, ["mypy==1.14.1"])
 
     def test_v74_transport_contract_types_are_present(self):
-        from untap_types import AlgoliaRequestRecord, AlgoliaTransportEvent, SearchTransportResult
+        from untap.types import AlgoliaRequestRecord, AlgoliaTransportEvent, SearchTransportResult
         self.assertIn('indexName', AlgoliaRequestRecord.__annotations__)
         self.assertIn('algolia_requests', AlgoliaTransportEvent.__annotations__)
         self.assertIn('request_event', SearchTransportResult.__annotations__)

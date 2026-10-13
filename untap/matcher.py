@@ -3,21 +3,26 @@ import math
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Sequence, TypedDict
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from time import perf_counter
 
-from untap_types import (AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult,
+# Compatibility name for identity helpers; the policy owns normalization.
+from untap.brewery_policy import meaningful_brewery_words as _meaningful_brewery_words
+from untap.brewery_policy import BreweryVerdict, brewery_verdict
+
+
+from untap.types import (AlternativeRecord, CandidateRecord, MatchResult, SearchTransportResult,
                          Decision, DecisionKind, DecisionRule, ExpectedEvidence, DiscoveryContext,
                          ExcludedCandidate, ExcludedAlternative, AlgoliaTransportEvent)
 
-from untap_parser import (
+from untap.parser import (
     normalize,
     clean_block_text,
     final_query_cleanup,
     collaboration_brewery_for_search,
     COLLABORATION_SEPARATOR_RE,
 )
-from untap_untappd import (
+from untap.transport import (
     RATE_LIMIT_HTTP_STATUS,
     BeerDetailError,
     _matching_replay_result,
@@ -1431,47 +1436,15 @@ def strip_redundant_terminal_style_for_search(expected_beer, expected_style):
     return stripped if stripped and normalize(stripped) != beer_norm else None
 
 
-def _meaningful_brewery_words(text):
-    return {
-        word
-        for word in normalize(text or "").split()
-        if len(word) >= 3
-        and word not in {
-            "brew", "brewing", "brewery", "company",
-            "co", "inc", "llc", "ltd", "limited",
-            "corp", "corporation", "plc",
-        }
-    }
+def candidate_brewery_verdict(candidate, expected_brewery) -> BreweryVerdict:
+    brewery = candidate.get("brewery") or extract_brewery_from_result(
+        candidate.get("text", ""), candidate.get("name", ""))
+    return brewery_verdict(brewery, expected_brewery)
 
 
 def candidate_has_brewery_overlap(candidate, expected_brewery):
-    """Return True when a candidate brewery shares meaningful menu brewery evidence."""
-    if not expected_brewery:
-        return True
-
-    candidate_brewery = candidate.get("brewery") or extract_brewery_from_result(
-        candidate.get("text", ""),
-        candidate.get("name", ""),
-    )
-    if not candidate_brewery or normalize(candidate_brewery) == "unknown":
-        # Unknown is not treated as an explicit contradiction.
-        return True
-
-    expected_words = _meaningful_brewery_words(expected_brewery)
-    candidate_words = _meaningful_brewery_words(candidate_brewery)
-    if not expected_words or not candidate_words:
-        # An explicit short name (e.g. To Øl) is not missing identity.
-        # Compare complete token sets to avoid a shared short word authorizing
-        # an unrelated brewery. Generic-only labels remain unknown.
-        generic = {"brew", "brewing", "brewery", "company", "co", "inc",
-                   "llc", "ltd", "limited", "corp", "corporation", "plc", "x"}
-        expected_short = set(normalize(expected_brewery).split()) - generic
-        candidate_short = set(normalize(candidate_brewery).split()) - generic
-        if not expected_short or not candidate_short:
-            return True
-        return candidate_short <= expected_short or expected_short <= candidate_short
-
-    return bool(expected_words & candidate_words)
+    """Compatibility predicate; adoption and eligibility share the policy verdict."""
+    return candidate_brewery_verdict(candidate, expected_brewery).permits_candidate
 
 
 MAX_TRAILING_BEER_RELAX_TOKENS = 2
@@ -3175,6 +3148,153 @@ class _SearchDiscovery:
     brewery_filtered: List[CandidateRecord] = field(default_factory=list)
 
 
+
+
+def _filter_recovered_identity(fallback, fallback_candidates, fallback_query, query, min_score, debug,
+                              expected_beer, expected_brewery, expected_abv, brewery_filtered):
+    recovered = leading_word_recovery(expected_beer, expected_brewery)
+    separator_recovered = separator_i_recovery(expected_beer, expected_brewery)
+    annotated_recovered = leading_the_annotation_recovery(expected_beer, expected_brewery)
+    if annotated_recovered and normalize(fallback_query) == normalize(final_query_cleanup(
+            f"{normalize_brewery_for_search(expected_brewery)} {annotated_recovered}")):
+        recovered = annotated_recovered
+    if separator_recovered and normalize(fallback_query) == normalize(final_query_cleanup(
+            f"{normalize_brewery_for_search(expected_brewery)} {separator_recovered}")):
+        recovered = separator_recovered
+    recovery_query = final_query_cleanup(
+        f"{normalize_brewery_for_search(expected_brewery)} {recovered}"
+    ) if recovered else None
+    if recovery_query and normalize(fallback_query) == normalize(recovery_query):
+        fallback_candidates = [
+            item for item in fallback_candidates
+            if normalize(item.get("name") or "") == normalize(recovered)
+            and _meaningful_brewery_words(item.get("brewery")) == _meaningful_brewery_words(expected_brewery)
+            and expected_abv is not None and item.get("abv") is not None
+            and abs(float(item["abv"]) - expected_abv) <= EXACT_ABV_EPSILON
+        ]
+        for item in fallback_candidates:
+            item["score"] = score_candidate(
+                query, item["name"], item["text"],
+                expected_beer=expected_beer, expected_brewery=expected_brewery,
+                expected_abv=expected_abv,
+            )
+        fallback_candidates.sort(key=lambda item: -item["score"])
+        fallback["ambiguity_reason"] = detect_candidate_ambiguity(
+            fallback_candidates, expected_beer=expected_beer, expected_abv=expected_abv
+        )
+        fallback["weak_match"] = (
+            not fallback_candidates or fallback_candidates[0].get("score", 0) < min_score
+        )
+
+    return fallback_candidates
+
+
+def _filter_trailing_recovery_identity(fallback, fallback_candidates, fallback_query, query, min_score, debug,
+                              expected_beer, expected_brewery, expected_abv, brewery_filtered):
+    # v47: relaxed trailing-token searches are discovery-only. Require
+    # brewery agreement and a returned beer name that is the leading/base
+    # identity of the original menu beer before accepting the result set.
+    trailing_relaxation_queries = {
+        normalize(item)
+        for item in trailing_relaxation_search_queries(
+            expected_beer, expected_brewery
+        )
+    }
+    if normalize(fallback_query) in trailing_relaxation_queries:
+        compatible_candidates = [
+            item for item in fallback_candidates
+            if candidate_has_brewery_overlap(item, expected_brewery)
+            and (candidate_matches_trailing_relaxed_identity(item, expected_beer)
+                 or candidate_needs_trailing_review(item, expected_beer, expected_brewery, expected_abv))
+        ]
+        if debug and len(compatible_candidates) != len(fallback_candidates):
+            print(
+                f"  trailing-relaxation identity filter: "
+                f"{len(fallback_candidates) - len(compatible_candidates)} "
+                f"candidate(s) rejected"
+            )
+        fallback_candidates = compatible_candidates
+        fallback["candidates"] = compatible_candidates
+        fallback["ambiguity_reason"] = detect_candidate_ambiguity(
+            compatible_candidates,
+            expected_beer=expected_beer,
+            expected_abv=expected_abv,
+        ) if compatible_candidates else None
+        fallback["weak_match"] = (
+            not compatible_candidates
+            or compatible_candidates[0].get("score", 0) < min_score
+        )
+        fallback["review_required"] = any(
+            not candidate_matches_trailing_relaxed_identity(item, expected_beer)
+            for item in compatible_candidates
+        )
+        if fallback["review_required"]:
+            fallback["ambiguity_reason"] = "Recovered candidate name differs from the menu; manual confirmation required"
+
+    return fallback_candidates
+
+
+def _filter_beer_only_brewery(fallback, fallback_candidates, fallback_query, query, min_score, debug,
+                              expected_beer, expected_brewery, expected_abv, brewery_filtered):
+    # A beer-name-only fallback deliberately discards brewery search tokens.
+    # If the menu supplied brewery identity, do not let an explicitly
+    # unrelated brewery become a confident match merely through name/ABV.
+    is_beer_only_fallback = (
+        normalize(fallback_query) == normalize(final_query_cleanup(expected_beer or ""))
+    )
+    if is_beer_only_fallback and expected_brewery:
+        compatible_candidates = [
+            item for item in fallback_candidates
+            if candidate_has_brewery_overlap(item, expected_brewery)
+        ]
+        known = {row.get("url") for row in brewery_filtered}
+        brewery_filtered.extend(
+            item for item in fallback_candidates
+            if item not in compatible_candidates and item.get("url") not in known
+        )
+        if debug and len(compatible_candidates) != len(fallback_candidates):
+            print(
+                f"  brewery contradiction filter: "
+                f"{len(fallback_candidates) - len(compatible_candidates)} "
+                f"unrelated candidate(s) rejected"
+            )
+        fallback_candidates = compatible_candidates
+        fallback["candidates"] = compatible_candidates
+        fallback["ambiguity_reason"] = detect_candidate_ambiguity(
+            compatible_candidates,
+            expected_beer=expected_beer,
+            expected_abv=expected_abv,
+        ) if compatible_candidates else None
+        fallback["weak_match"] = (
+            not compatible_candidates
+            or compatible_candidates[0].get("score", 0) < min_score
+        )
+
+    return fallback_candidates
+
+
+def _run_filtered_fallback(page, fallback_query, query, min_score, debug,
+                           expected_beer, expected_brewery, expected_abv, brewery_filtered):
+    """One real retrieval followed by query-specific discovery filters, in order."""
+    fallback = run_search_fallback_attempt(
+        page, fallback_query, min_score=min_score, expected_beer=expected_beer,
+        expected_brewery=expected_brewery, expected_abv=expected_abv)
+    candidates = fallback.get("candidates") or []
+    for apply_filter in (_filter_recovered_identity, _filter_trailing_recovery_identity,
+                         _filter_beer_only_brewery):
+        candidates = apply_filter(fallback, candidates, fallback_query, query, min_score, debug,
+                                  expected_beer, expected_brewery, expected_abv, brewery_filtered)
+    return fallback, candidates
+
+
+def _adopt_fallback(fallback, candidates, query) -> _SearchDiscovery:
+    """Adopt candidates and their own page/diagnostics as one coherent state."""
+    return _SearchDiscovery(
+        candidates, fallback.get("ambiguity_reason"), fallback.get("expanded_candidates") or [],
+        fallback.get("expansion_diagnostics"), fallback.get("abv_sorted_diagnostics"),
+        fallback.get("initial_algolia_page"), query, bool(fallback.get("review_required")))
+
+
 def _recover_search_discovery(
     page: Any, query: str, discovery: _SearchDiscovery,
     primary_nb_hits: Optional[int], min_score: float, debug: bool,
@@ -3187,12 +3307,8 @@ def _recover_search_discovery(
     filters, first plausible/ambiguous stop and strongest weak fallback rule.
     Candidate retrieval/scoring and debug timing remain in their existing helpers.
     """
+    initial_discovery = discovery
     candidates = discovery.candidates
-    ambiguity_reason = discovery.ambiguity_reason
-    expanded_candidates = discovery.expanded_candidates
-    expansion_diagnostics = discovery.expansion_diagnostics
-    abv_sorted_diagnostics = discovery.abv_sorted_diagnostics
-    primary_algolia_page = discovery.primary_algolia_page
     # v23: if the full structured query still has poor recall after the
     # normal DOM/Algolia path, retry with progressively less brittle search
     # strings. The original brewery and ABV remain verification signals.
@@ -3222,8 +3338,6 @@ def _recover_search_discovery(
         else []
     )
 
-    fallback_query_used = None
-    fallback_review_required = False
     brewery_filtered: List[CandidateRecord] = []
     fallback_started = perf_counter() if debug_timing_enabled() and fallback_queries else None
 
@@ -3238,124 +3352,9 @@ def _recover_search_discovery(
                 f"{len(fallback_queries)}: {fallback_query}"
             )
 
-        fallback = run_search_fallback_attempt(
-            page,
-            fallback_query,
-            min_score=min_score,
-            expected_beer=expected_beer,
-            expected_brewery=expected_brewery,
-            expected_abv=expected_abv,
-        )
-
-        fallback_candidates = fallback.get("candidates") or []
-
-        recovered = leading_word_recovery(expected_beer, expected_brewery)
-        separator_recovered = separator_i_recovery(expected_beer, expected_brewery)
-        annotated_recovered = leading_the_annotation_recovery(expected_beer, expected_brewery)
-        if annotated_recovered and normalize(fallback_query) == normalize(final_query_cleanup(
-                f"{normalize_brewery_for_search(expected_brewery)} {annotated_recovered}")):
-            recovered = annotated_recovered
-        if separator_recovered and normalize(fallback_query) == normalize(final_query_cleanup(
-                f"{normalize_brewery_for_search(expected_brewery)} {separator_recovered}")):
-            recovered = separator_recovered
-        recovery_query = final_query_cleanup(
-            f"{normalize_brewery_for_search(expected_brewery)} {recovered}"
-        ) if recovered else None
-        if recovery_query and normalize(fallback_query) == normalize(recovery_query):
-            fallback_candidates = [
-                item for item in fallback_candidates
-                if normalize(item.get("name") or "") == normalize(recovered)
-                and _meaningful_brewery_words(item.get("brewery")) == _meaningful_brewery_words(expected_brewery)
-                and expected_abv is not None and item.get("abv") is not None
-                and abs(float(item["abv"]) - expected_abv) <= EXACT_ABV_EPSILON
-            ]
-            for item in fallback_candidates:
-                item["score"] = score_candidate(
-                    query, item["name"], item["text"],
-                    expected_beer=expected_beer, expected_brewery=expected_brewery,
-                    expected_abv=expected_abv,
-                )
-            fallback_candidates.sort(key=lambda item: -item["score"])
-            fallback["ambiguity_reason"] = detect_candidate_ambiguity(
-                fallback_candidates, expected_beer=expected_beer, expected_abv=expected_abv
-            )
-            fallback["weak_match"] = (
-                not fallback_candidates or fallback_candidates[0].get("score", 0) < min_score
-            )
-
-        # v47: relaxed trailing-token searches are discovery-only. Require
-        # brewery agreement and a returned beer name that is the leading/base
-        # identity of the original menu beer before accepting the result set.
-        trailing_relaxation_queries = {
-            normalize(item)
-            for item in trailing_relaxation_search_queries(
-                expected_beer, expected_brewery
-            )
-        }
-        if normalize(fallback_query) in trailing_relaxation_queries:
-            compatible_candidates = [
-                item for item in fallback_candidates
-                if candidate_has_brewery_overlap(item, expected_brewery)
-                and (candidate_matches_trailing_relaxed_identity(item, expected_beer)
-                     or candidate_needs_trailing_review(item, expected_beer, expected_brewery, expected_abv))
-            ]
-            if debug and len(compatible_candidates) != len(fallback_candidates):
-                print(
-                    f"  trailing-relaxation identity filter: "
-                    f"{len(fallback_candidates) - len(compatible_candidates)} "
-                    f"candidate(s) rejected"
-                )
-            fallback_candidates = compatible_candidates
-            fallback["candidates"] = compatible_candidates
-            fallback["ambiguity_reason"] = detect_candidate_ambiguity(
-                compatible_candidates,
-                expected_beer=expected_beer,
-                expected_abv=expected_abv,
-            ) if compatible_candidates else None
-            fallback["weak_match"] = (
-                not compatible_candidates
-                or compatible_candidates[0].get("score", 0) < min_score
-            )
-            fallback["review_required"] = any(
-                not candidate_matches_trailing_relaxed_identity(item, expected_beer)
-                for item in compatible_candidates
-            )
-            if fallback["review_required"]:
-                fallback["ambiguity_reason"] = "Recovered candidate name differs from the menu; manual confirmation required"
-
-        # A beer-name-only fallback deliberately discards brewery search tokens.
-        # If the menu supplied brewery identity, do not let an explicitly
-        # unrelated brewery become a confident match merely through name/ABV.
-        is_beer_only_fallback = (
-            normalize(fallback_query) == normalize(final_query_cleanup(expected_beer or ""))
-        )
-        if is_beer_only_fallback and expected_brewery:
-            compatible_candidates = [
-                item for item in fallback_candidates
-                if candidate_has_brewery_overlap(item, expected_brewery)
-            ]
-            known = {row.get("url") for row in brewery_filtered}
-            brewery_filtered.extend(
-                item for item in fallback_candidates
-                if item not in compatible_candidates and item.get("url") not in known
-            )
-            if debug and len(compatible_candidates) != len(fallback_candidates):
-                print(
-                    f"  brewery contradiction filter: "
-                    f"{len(fallback_candidates) - len(compatible_candidates)} "
-                    f"unrelated candidate(s) rejected"
-                )
-            fallback_candidates = compatible_candidates
-            fallback["candidates"] = compatible_candidates
-            fallback["ambiguity_reason"] = detect_candidate_ambiguity(
-                compatible_candidates,
-                expected_beer=expected_beer,
-                expected_abv=expected_abv,
-            ) if compatible_candidates else None
-            fallback["weak_match"] = (
-                not compatible_candidates
-                or compatible_candidates[0].get("score", 0) < min_score
-            )
+        fallback, fallback_candidates = _run_filtered_fallback(
+            page, fallback_query, query, min_score, debug, expected_beer,
+            expected_brewery, expected_abv, brewery_filtered)
 
         if fallback.get("rate_limited"):
             if debug:
@@ -3366,7 +3365,7 @@ def _recover_search_discovery(
                 _print_algolia_network_summary(
                     rate_limited_query=fallback_query
                 )
-            return discovery, {
+            return initial_discovery, {
                 "query": query,
                 "status": "rate_limited",
                 "reason": "Untappd/Algolia rate limited the search (HTTP 429)",
@@ -3419,17 +3418,8 @@ def _recover_search_discovery(
             fallback.get("ambiguity_reason")
             or not fallback.get("weak_match")
         ):
-            candidates = fallback_candidates
-            ambiguity_reason = fallback.get("ambiguity_reason")
-            expanded_candidates = fallback.get("expanded_candidates") or []
-            expansion_diagnostics = fallback.get("expansion_diagnostics")
-            abv_sorted_diagnostics = fallback.get("abv_sorted_diagnostics")
-            fallback_query_used = fallback_query
-            fallback_review_required = bool(fallback.get("review_required"))
-            # The winning candidate now comes from this fallback query, not
-            # the original one -- use its initial Algolia page (if any) for
-            # later brewery-metadata recovery instead of the stale original.
-            primary_algolia_page = fallback.get("initial_algolia_page")
+            discovery = _adopt_fallback(fallback, fallback_candidates, fallback_query)
+            candidates = discovery.candidates
             break
 
         # Keep the strongest weak fallback as a last-resort diagnostic/result
@@ -3439,30 +3429,21 @@ def _recover_search_discovery(
             or fallback_candidates[0].get("score", 0)
             > candidates[0].get("score", 0)
         ):
-            candidates = fallback_candidates
-            ambiguity_reason = fallback.get("ambiguity_reason")
-            expanded_candidates = fallback.get("expanded_candidates") or []
-            expansion_diagnostics = fallback.get("expansion_diagnostics")
-            abv_sorted_diagnostics = fallback.get("abv_sorted_diagnostics")
-            fallback_query_used = fallback_query
-            fallback_review_required = bool(fallback.get("review_required"))
-            primary_algolia_page = fallback.get("initial_algolia_page")
+            discovery = _adopt_fallback(fallback, fallback_candidates, fallback_query)
+            candidates = discovery.candidates
 
     if fallback_started is not None:
         _record_matcher_phase(
             "fallback orchestration", query, perf_counter() - fallback_started
         )
 
-    if debug and fallback_query_used:
+    if debug and discovery.fallback_query_used:
         print(
             f"  using fallback result set from: "
-            f"{fallback_query_used}"
+            f"{discovery.fallback_query_used}"
         )
 
-    return _SearchDiscovery(candidates, ambiguity_reason, expanded_candidates,
-                            expansion_diagnostics, abv_sorted_diagnostics,
-                            primary_algolia_page, fallback_query_used,
-                            fallback_review_required, brewery_filtered), None
+    return replace(discovery, brewery_filtered=brewery_filtered), None
 
 
 @dataclass
@@ -3741,13 +3722,15 @@ def _search_one_impl(
     )
     if terminal is not None:
         return terminal
-    assert primary is not None
+    if primary is None:
+        raise RuntimeError("Primary retrieval returned neither discovery nor a terminal result")
     discovery, terminal = _expand_primary_discovery(
         page, query, primary, min_score, debug, expected_beer, expected_brewery, expected_abv,
     )
     if terminal is not None:
         return terminal
-    assert discovery is not None
+    if discovery is None:
+        raise RuntimeError("Primary expansion returned neither discovery nor a terminal result")
 
     discovery, rate_limited = _recover_search_discovery(
         page, query, discovery, primary.primary_nb_hits, min_score, debug,
@@ -3812,7 +3795,7 @@ def decide_candidates(
     if not candidates:
         filtered = deepcopy(discovery.get("filtered_candidates") or [])
         if filtered and brewery:
-            excluded = [{"candidate": row, "reason": f"Brewery does not match menu brewery {brewery}"} for row in filtered]
+            excluded = [{"candidate": row, "reason": candidate_brewery_verdict(row, brewery).reason} for row in filtered]
             return outcome("failed", "brewery_conflict", f"Brewery conflict: retrieved candidates do not match menu brewery {brewery}")
         return outcome("failed", "no_candidates", "No matching beer found")
     eligible = _exclude_abv_conflicts(candidates, abv, debug=collect_diagnostics, diagnostics=diagnostics)
@@ -3824,7 +3807,7 @@ def decide_candidates(
     brewery_exclusions = len(brewery_eligible) != len(eligible)
     if not brewery_eligible:
         excluded = [{"candidate": row,
-                     "reason": f"Brewery does not match menu brewery {brewery}"
+                     "reason": candidate_brewery_verdict(row, brewery).reason
                      if any(row is survivor for survivor in eligible)
                      else f"ABV conflicts with menu {abv:g}%"} for row in candidates]
         return outcome("failed", "brewery_conflict", f"Brewery conflict: retrieved candidates do not match menu brewery {brewery}")

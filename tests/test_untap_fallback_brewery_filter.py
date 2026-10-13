@@ -9,9 +9,7 @@ import io
 import unittest
 from unittest.mock import patch
 
-import untap_matcher as matcher
-
-
+import untap.matcher as matcher
 def candidate(name, brewery, score, url):
     return {"name": name, "brewery": brewery, "abv": 6.5, "score": score, "url": url,
             "text": f"{brewery} {name} 6.5% ABV", "rating_score": 4.2, "rating_count": 50,

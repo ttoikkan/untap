@@ -6,10 +6,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from untap_manual_candidates import parse_beer_url, candidate_from_hit, fetch_candidates
-from untap_snapshot import build_snapshot, save_snapshot, load_snapshot
-from untap_report import selection_report_id, render_html_report
-from untap_refresh import apply_selections, refresh
+from untap.manual_candidates import parse_beer_url, candidate_from_hit, fetch_candidates
+from untap.snapshot import build_snapshot, save_snapshot, load_snapshot
+from untap.report import selection_report_id, render_html_report
+from untap.refresh import apply_selections, refresh
 
 
 URL = "https://untappd.com/b/emporium-microbrasserie-lager-de-riz/6684380"
@@ -41,7 +41,7 @@ class ManualCandidateTests(unittest.TestCase):
     def test_requires_permission_and_validates_before_network(self):
         snapshot, payload, _ = self.fixture()
         before = json.dumps(snapshot)
-        with tempfile.TemporaryDirectory() as tmp, patch("untap_refresh.fetch_candidates") as fetch:
+        with tempfile.TemporaryDirectory() as tmp, patch("untap.refresh.fetch_candidates") as fetch:
             path = Path(tmp) / "export.json"
             path.write_text(json.dumps(payload))
             with self.assertRaisesRegex(ValueError, "--fetch-candidates"):
@@ -62,7 +62,7 @@ class ManualCandidateTests(unittest.TestCase):
             save_snapshot(snapshot, source / "results.json")
             path = root / "export.json"
             path.write_text(json.dumps(payload))
-            with patch("untap_refresh.fetch_candidates", return_value={"6684380": candidate}):
+            with patch("untap.refresh.fetch_candidates", return_value={"6684380": candidate}):
                 output = refresh(source, root / "output", path, True)
             updated = load_snapshot(output / "results.json")
             result = updated["items"][0]["result"]
@@ -87,13 +87,13 @@ class ManualCandidateTests(unittest.TestCase):
             save_snapshot(snapshot, root / "results.json")
             path = root / "export.json"
             path.write_text(json.dumps(payload))
-            with patch("untap_refresh.fetch_candidates", side_effect=ValueError("Not found")):
+            with patch("untap.refresh.fetch_candidates", side_effect=ValueError("Not found")):
                 with self.assertRaises(ValueError):
                     refresh(root / "results.json", root / "output", path, True)
             self.assertFalse((root / "output").exists())
 
     def test_fetch_uses_exact_id_not_first_hit(self):
-        with patch("untap_untappd.untappd_browser_page") as browser, patch("untap_inspect.inspect_query") as inspect:
+        with patch("untap.transport.untappd_browser_page") as browser, patch("untap.inspect.inspect_query") as inspect:
             inspect.return_value = {"hits": [{"bid": 1, "beer_name": "Wrong"},
                 {"bid": 6684380, "beer_name": "LAGER DE RIZ", "brewery_name": "Emporium"}]}
             result = fetch_candidates([URL, URL])

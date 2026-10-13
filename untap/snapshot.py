@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Sequence
 
-from untap_types import MatchResult
+from untap.types import MatchResult
 
 
 FORMAT = "untap-results"

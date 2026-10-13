@@ -7,8 +7,8 @@ from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import urlencode
 
-import untap_untappd
-from untap_untappd import (
+import untap.transport as untap_untappd
+from untap.transport import (
     _build_algolia_replay_body,
     _matching_algolia_initial_page,
     _matching_algolia_nb_hits,
@@ -59,7 +59,7 @@ class UntappdTransportContractTests(unittest.TestCase):
     def test_transport_has_no_fixed_playwright_sleeps(self):
         import ast
         from pathlib import Path
-        tree = ast.parse((Path(__file__).parent.parent / 'untap_untappd.py').read_text())
+        tree = ast.parse((Path(__file__).parent.parent / 'untap/transport.py').read_text())
         calls = [node.func.attr for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)]
         self.assertNotIn('wait_for_timeout', calls)
 
@@ -263,7 +263,7 @@ class UntappdTransportContractTests(unittest.TestCase):
     def test_matcher_has_no_direct_playwright_page_operations(self):
         import ast
         from pathlib import Path
-        tree = ast.parse((Path(__file__).parent.parent / 'untap_matcher.py').read_text())
+        tree = ast.parse((Path(__file__).parent.parent / 'untap/matcher.py').read_text())
         calls = {node.func.attr for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name) and node.func.value.id == 'page'}
         self.assertTrue(calls.isdisjoint({'goto', 'on', 'remove_listener', 'evaluate', 'locator', 'wait_for_timeout'}))
 

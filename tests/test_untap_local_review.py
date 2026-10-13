@@ -5,9 +5,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from untap_local_review import ReviewSession
-from untap_snapshot import build_snapshot, save_snapshot, load_snapshot
-from untap_report import selection_report_id
+from untap.local_review import ReviewSession
+from untap.snapshot import build_snapshot, save_snapshot, load_snapshot
+from untap.report import selection_report_id
 
 
 URL = "https://untappd.com/b/example-beer/1234"
@@ -32,7 +32,7 @@ class LocalReviewTests(unittest.TestCase):
     def add(self, session):
         payload = self.payload(session)
         payload["pending_candidates"] = [{"item_id": session.snapshot["items"][0]["id"], "url": URL}]
-        with patch("untap_refresh.fetch_candidates", return_value={"1234": {
+        with patch("untap.refresh.fetch_candidates", return_value={"1234": {
                 "name": "Example Beer", "brewery": "Example", "abv": 5.0,
                 "rating": 4.0, "url": URL, "user_added": True}}):
             session.action({"action": "fetch", "payload": payload})
@@ -74,12 +74,12 @@ class LocalReviewTests(unittest.TestCase):
             before = session.html()
             payload = self.payload(session)
             payload["pending_candidates"] = [{"item_id": session.snapshot["items"][0]["id"], "url": URL}]
-            with patch("untap_refresh.fetch_candidates", side_effect=ValueError("offline")):
+            with patch("untap.refresh.fetch_candidates", side_effect=ValueError("offline")):
                 with self.assertRaises(ValueError):
                     session.action({"action": "fetch", "payload": payload})
             self.assertEqual(session.html(), before)
             payload["report_id"] = "wrong"
-            with patch("untap_refresh.fetch_candidates") as fetch:
+            with patch("untap.refresh.fetch_candidates") as fetch:
                 with self.assertRaises(ValueError):
                     session.action({"action": "fetch", "payload": payload})
                 fetch.assert_not_called()
@@ -90,7 +90,7 @@ class LocalReviewTests(unittest.TestCase):
             session = self.session(Path(tmp))
             payload = self.payload(session)
             payload["pending_candidates"] = [{"item_id": session.snapshot["items"][0]["id"], "url": URL}]
-            with patch("untap_refresh.fetch_candidates") as fetch:
+            with patch("untap.refresh.fetch_candidates") as fetch:
                 with self.assertRaises(ValueError):
                     session.action({"action": "save", "payload": payload})
                 fetch.assert_not_called()

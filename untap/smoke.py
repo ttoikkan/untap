@@ -9,17 +9,18 @@ current Untappd UI/bootstrap + Algolia transport contract still work end to end?
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from untap_matcher import (
+from untap.matcher import (
     get_algolia_confirmation_stats,
     reset_algolia_confirmation_stats,
     search_one,
 )
-from untap_untappd import (
+from untap.transport import reset_response_shape_observations, response_shape_observations
+from untap.transport import (
     get_search_transport_authority_stats,
     reset_search_transport_authority_state,
     search_transport_template_available,
 )
-from untap_types import MatchResult
+from untap.types import MatchResult
 
 
 SMOKE_EXIT_HEALTHY = 0
@@ -100,6 +101,9 @@ def _confirmed_contract_is_usable(result: MatchResult) -> bool:
 
 
 def _print_checks(checks: List[SmokeCheck], exit_code: int) -> None:
+    observations, issues = response_shape_observations()
+    checks.append(SmokeCheck("Recorded response shape", "WARN" if issues else "PASS" if observations else "NOT OBSERVED",
+                             "; ".join(issues)))
     print()
     print("Untap live smoke test")
     print("=" * 70)
@@ -116,6 +120,7 @@ def _print_checks(checks: List[SmokeCheck], exit_code: int) -> None:
 def run_live_smoke_test(page: Any) -> int:
     """Run a tiny live Untappd integration probe and return a machine exit code."""
     checks: List[SmokeCheck] = []
+    reset_response_shape_observations()
     reset_search_transport_authority_state()
     reset_algolia_confirmation_stats()
 

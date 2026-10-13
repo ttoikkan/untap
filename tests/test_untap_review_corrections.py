@@ -9,15 +9,15 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-import untap
-import untap_batch as batch
-import untap_continue as continuation
-import untap_inspect as inspect
-import untap_local_review as review
-import untap_matcher as matcher
-import untap_untappd as transport
-from untap_snapshot import build_snapshot, save_snapshot
-from untap_report import selection_report_id
+import untap.run as untap
+import untap.batch as batch
+import untap.continue_run as continuation
+import untap.inspect as inspect
+import untap.local_review as review
+import untap.matcher as matcher
+import untap.transport as transport
+from untap.snapshot import build_snapshot, save_snapshot
+from untap.report import selection_report_id
 
 QUERY = "Badlands Green Fields"
 URL = "https://untappd.com/b/green-fields/123"
@@ -79,7 +79,7 @@ class ConfirmationTests(unittest.TestCase):
 
     def test_single_strong_candidate_stays_reviewable_after_expansion_error(self):
         captured, _ = capture(hit(beer_name="Green Fields 2025"), pages=2)
-        with patch.object(matcher, "_run_page0_search_transport", return_value=captured), \
+        with patch.object(matcher, "_run_page0_search_transport", return_value=captured),\
              patch.object(matcher, "_fetch_algolia_page", return_value=(None, "HTTP 500")):
             result = search()
         self.assertEqual(result["status"], "ambiguous")
@@ -91,7 +91,7 @@ class ConfirmationTests(unittest.TestCase):
         expand = matcher.expand_algolia_candidates
         def limited_expand(*args, **kwargs):
             return expand(*args, max_pages=1, **kwargs)
-        with patch.object(matcher, "_run_page0_search_transport", return_value=captured), \
+        with patch.object(matcher, "_run_page0_search_transport", return_value=captured),\
              patch.object(matcher, "expand_algolia_candidates", side_effect=limited_expand):
             result = search()
         self.assertEqual(result["status"], "ambiguous")
@@ -232,16 +232,16 @@ class ServiceAndDiagnosticTests(unittest.TestCase):
             self.assertEqual(handler.reply.call_args.args[0], 200)
 
     def test_missing_browser_still_has_clean_cli_diagnostic(self):
-        with patch.object(untap, "untappd_browser_page", side_effect=transport.BrowserUnavailableError("Run untap-install-browser")), \
+        with patch.object(untap, "untappd_browser_page", side_effect=transport.BrowserUnavailableError("Run untap-install-browser")),\
              contextlib.redirect_stderr(io.StringIO()) as error, self.assertRaises(SystemExit) as exited:
             untap.main([QUERY])
         self.assertEqual(exited.exception.code, 2)
         self.assertIn("untap-install-browser", error.getvalue())
 
     def test_inspection_missing_browser_has_clean_cli_diagnostic(self):
-        with tempfile.TemporaryDirectory() as tmp, \
-             patch.object(inspect, "_reserve_output_directory", return_value=Path(tmp)), \
-             patch.object(inspect, "untappd_browser_page", side_effect=transport.BrowserUnavailableError("Run untap-install-browser")), \
+        with tempfile.TemporaryDirectory() as tmp,\
+             patch.object(inspect, "_reserve_output_directory", return_value=Path(tmp)),\
+             patch.object(inspect, "untappd_browser_page", side_effect=transport.BrowserUnavailableError("Run untap-install-browser")),\
              contextlib.redirect_stderr(io.StringIO()) as error:
             code = inspect.main(["--query", QUERY])
         self.assertEqual(code, 2)
@@ -260,11 +260,11 @@ class ServiceAndDiagnosticTests(unittest.TestCase):
         captured, _ = capture(hit())
         req, resp = captured["events"]
         events = dict(network_events=[req, resp], response_events=[resp], request_events=[req])
-        with patch.object(untap, "untappd_browser_page", return_value=contextlib.nullcontext(object())), \
-             patch.object(matcher, "open_search_box", return_value=object()), \
-             patch.object(matcher, "start_search_network_capture", return_value=events), \
-             patch.object(matcher, "submit_search"), patch.object(matcher, "stop_search_network_capture"), \
-             patch.object(transport, "_fetch_algolia_exact_request", return_value=replay_result) as replay, \
+        with patch.object(untap, "untappd_browser_page", return_value=contextlib.nullcontext(object())),\
+             patch.object(matcher, "open_search_box", return_value=object()),\
+             patch.object(matcher, "start_search_network_capture", return_value=events),\
+             patch.object(matcher, "submit_search"), patch.object(matcher, "stop_search_network_capture"),\
+             patch.object(transport, "_fetch_algolia_exact_request", return_value=replay_result) as replay,\
              contextlib.redirect_stdout(io.StringIO()):
             untap.main(["--shadow-search-transport", str(limit), QUERY])
         return replay.call_count
@@ -275,7 +275,7 @@ class ServiceAndDiagnosticTests(unittest.TestCase):
         self.assertEqual(transport.get_search_transport_shadow_stats()["exact"], 1)
 
     def test_shadow_429_stops_without_detail_or_expansion_traffic(self):
-        with patch.object(matcher, "extract_beer_info") as detail, patch.object(matcher, "_fetch_algolia_page") as expansion, \
+        with patch.object(matcher, "extract_beer_info") as detail, patch.object(matcher, "_fetch_algolia_page") as expansion,\
              patch.object(untap, "print_single_result") as printed:
             self.assertEqual(self.shadow_search((429, None, "HTTP 429")), 1)
         self.assertEqual(printed.call_args.args[0]["status"], "rate_limited")

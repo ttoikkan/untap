@@ -8,13 +8,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import untap
-import untap_batch
-import untap_matcher
-import untap_parser
-import untap_untappd
-
-
+import untap.run as untap
+import untap.batch as untap_batch
+import untap.matcher as untap_matcher
+import untap.parser as untap_parser
+import untap.transport as untap_untappd
 class ArchitectureContractTests(unittest.TestCase):
     def test_normalized_menu_record_contract_is_explicit_and_exact(self):
         self.assertEqual(
@@ -75,8 +73,8 @@ class ArchitectureContractTests(unittest.TestCase):
             "brewery": "Badlands Brewing Company",
             "rating": 4.3,
         }
-        with mock.patch.object(untap_batch, "_reset_run_algolia_debug_stats"), \
-             mock.patch.object(untap_batch, "search_one", return_value=response) as search, \
+        with mock.patch.object(untap_batch, "_reset_run_algolia_debug_stats"),\
+             mock.patch.object(untap_batch, "search_one", return_value=response) as search,\
              mock.patch("builtins.print"):
             results = untap_batch.run_batch(object(), [item], min_score=0.5, debug=True)
 
@@ -96,8 +94,8 @@ class ArchitectureContractTests(unittest.TestCase):
     def test_dependency_graph_remains_one_way(self):
         roots = Path(__file__).parent.parent
         imports = {}
-        for path in roots.glob("untap*.py"):
-            filename = path.name
+        for path in (roots / "untap").rglob("*.py"):
+            filename = str(path.relative_to(roots))
             tree = ast.parse((roots / filename).read_text(encoding="utf-8"))
             modules = set()
             for node in ast.walk(tree):
@@ -107,35 +105,35 @@ class ArchitectureContractTests(unittest.TestCase):
                     modules.add(node.module)
             imports[filename] = modules
 
-        self.assertTrue(imports["untap_parser.py"].isdisjoint(
-            {"untap_matcher", "untap_untappd", "untap_batch", "playwright"}
+        self.assertTrue(imports["untap/parser.py"].isdisjoint(
+            {"untap.matcher", "untap.transport", "untap.batch", "playwright"}
         ))
-        self.assertNotIn("untap_matcher", imports["untap_untappd.py"])
-        self.assertNotIn("untap_batch", imports["untap_untappd.py"])
-        self.assertNotIn("untap_batch", imports["untap_matcher.py"])
-        self.assertNotIn("untap_parser", imports["untap_batch.py"])
-        self.assertIn("untap_matcher", imports["untap_batch.py"])
-        self.assertIn("untap_untappd", imports["untap_batch.py"])
-        self.assertTrue(imports["untap_smoke.py"].isdisjoint(
-            {"untap_parser", "untap_batch", "playwright"}
+        self.assertNotIn("untap.matcher", imports["untap/transport.py"])
+        self.assertNotIn("untap.batch", imports["untap/transport.py"])
+        self.assertNotIn("untap.batch", imports["untap/matcher.py"])
+        self.assertNotIn("untap.parser", imports["untap/batch.py"])
+        self.assertIn("untap.matcher", imports["untap/batch.py"])
+        self.assertIn("untap.transport", imports["untap/batch.py"])
+        self.assertTrue(imports["untap/smoke.py"].isdisjoint(
+            {"untap.parser", "untap.batch", "playwright"}
         ))
-        self.assertIn("untap_matcher", imports["untap_smoke.py"])
-        self.assertIn("untap_untappd", imports["untap_smoke.py"])
-        self.assertIn("untap_types", imports["untap_smoke.py"])
-        self.assertTrue(imports["untap_report.py"].isdisjoint(
-            {"untap_parser", "untap_matcher", "untap_batch", "untap_untappd", "untap_smoke", "playwright"}
+        self.assertIn("untap.matcher", imports["untap/smoke.py"])
+        self.assertIn("untap.transport", imports["untap/smoke.py"])
+        self.assertIn("untap.types", imports["untap/smoke.py"])
+        self.assertTrue(imports["untap/report.py"].isdisjoint(
+            {"untap.parser", "untap.matcher", "untap.batch", "untap.transport", "untap.smoke", "playwright"}
         ))
-        self.assertIn("untap_types", imports["untap_report.py"])
-        self.assertTrue(imports["untap_publish.py"].isdisjoint(
+        self.assertIn("untap.types", imports["untap/report.py"])
+        self.assertTrue(imports["untap/publish.py"].isdisjoint(
             {
-                "untap_types", "untap_parser", "untap_matcher", "untap_batch",
-                "untap_untappd", "untap_smoke", "untap_report", "playwright",
+                "untap.types", "untap.parser", "untap.matcher", "untap.batch",
+                "untap.transport", "untap.smoke", "untap.report", "playwright",
             }
         ))
-        self.assertNotIn("untap_publish", imports["untap.py"])
-        self.assertNotIn("untap_publish", imports["untap_report.py"])
+        self.assertNotIn("untap.publish", imports["untap/run.py"])
+        self.assertNotIn("untap.publish", imports["untap/report.py"])
 
-        graph = {name[:-3]: {module.split('.')[0] for module in modules} for name, modules in imports.items()}
+        graph = {name[:-3].replace("/", "."): set(modules) for name, modules in imports.items()}
         def reachable(module):
             seen = set()
             pending = list(graph.get(module, ()))
@@ -146,23 +144,24 @@ class ArchitectureContractTests(unittest.TestCase):
                 seen.add(dependency)
                 pending.extend(graph.get(dependency, ()))
             return seen
-        for module in ('untap', 'untap_registry', 'untap_report'):
-            self.assertNotIn('untap_publish', reachable(module), module)
-        for module in ('untap_types', 'untap_identity', 'untap_refresh_config'):
-            self.assertFalse({name for name in reachable(module) if name.startswith('untap')}, module)
-        for module in ('untap_report', 'untap_snapshot', 'untap_publish', 'untap_run_output', 'untap_review_policy', 'untap_report_model'):
-            self.assertTrue(reachable(module).isdisjoint({'untap_batch', 'untap_matcher', 'untap_untappd', 'playwright'}), module)
+        for module in ('untap.run', 'untap.registry', 'untap.report'):
+            self.assertNotIn('untap.publish', reachable(module), module)
+        for module in ('untap.types', 'untap.identity', 'untap.refresh_config'):
+            self.assertFalse({name for name in reachable(module) if name.startswith('untap.')}, module)
+        for module in ('untap.report', 'untap.snapshot', 'untap.publish', 'untap.run_output', 'untap.review_policy', 'untap.report_model'):
+            self.assertTrue(reachable(module).isdisjoint({'untap.batch', 'untap.matcher', 'untap.transport', 'playwright'}), module)
         for module in graph:
-            if module != 'untap_cli':
-                self.assertNotIn('untap_cli', reachable(module), module)
-        expected = {'untap_cli', 'untap_inspect', 'untap_local_review', 'untap_manual_candidates', 'untap_refresh', 'untap_refresh_config', 'untap_registry', 'untap_snapshot', 'untap_identity'}
+            if module not in {'untap.cli', 'untap.__main__'}:
+                self.assertNotIn('untap.cli', reachable(module), module)
+        self.assertEqual({name for name in reachable("untap.brewery_policy") if name.startswith("untap.")}, {"untap.parser", "untap.types"})
+        expected = {'untap.cli', 'untap.inspect', 'untap.local_review', 'untap.manual_candidates', 'untap.refresh', 'untap.refresh_config', 'untap.registry', 'untap.snapshot', 'untap.identity'}
         self.assertTrue(expected.issubset(graph))
-        self.assertNotIn("untap_batch", reachable("untap_refresh"))
-        self.assertEqual({name for name in reachable("untap_review_policy") if name.startswith("untap")}, {"untap_types"})
-        for filename in ("untap_refresh.py", "untap_local_review.py"):
+        self.assertNotIn("untap.batch", reachable("untap.refresh"))
+        self.assertEqual({name for name in reachable("untap.review_policy") if name.startswith("untap.")}, {"untap.types"})
+        for filename in ("untap/refresh.py", "untap/local_review.py"):
             tree = ast.parse((roots / filename).read_text())
             renderer_imports = {alias.name for node in ast.walk(tree)
-                                if isinstance(node, ast.ImportFrom) and node.module == "untap_report"
+                                if isinstance(node, ast.ImportFrom) and node.module == "untap.report"
                                 for alias in node.names}
             self.assertEqual(renderer_imports, {"render_html_report"})
 
@@ -173,7 +172,7 @@ class ArchitectureContractTests(unittest.TestCase):
     def test_cli_uses_owned_boundary_entry_points(self):
         self.assertIs(untap.run_batch, untap_batch.run_batch)
         self.assertIs(untap.search_one, untap_matcher.search_one)
-        self.assertEqual(untap.write_run_outputs.__module__, 'untap_run_output')
+        self.assertEqual(untap.write_run_outputs.__module__, 'untap.run_output')
 
 
 if __name__ == "__main__":

@@ -1,9 +1,7 @@
 """Offline regressions for complete production-status presentation."""
 import unittest
 
-import untap_report
-
-
+import untap.report as untap_report
 class ProductionStatusTests(unittest.TestCase):
     def test_explicit_true_forms_show_in_production(self):
         for value in (True, 1, 1.0, "1", "true", " TRUE "):

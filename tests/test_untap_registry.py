@@ -4,8 +4,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from untap_registry import register_run
-from untap_snapshot import build_snapshot, save_snapshot
+from untap.registry import register_run
+from untap.snapshot import build_snapshot, save_snapshot
 
 
 class RegistryTests(unittest.TestCase):

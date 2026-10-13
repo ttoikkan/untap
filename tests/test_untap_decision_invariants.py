@@ -9,8 +9,8 @@ from typing import get_type_hints
 from unittest.mock import patch
 from contextlib import ExitStack
 
-import untap_matcher as matcher
-from untap_types import Decision
+import untap.matcher as matcher
+from untap.types import Decision
 from tests import test_untap_decision_characterization as characterization
 
 

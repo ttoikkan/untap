@@ -1,4 +1,4 @@
-from untap_identity import report_identity
+from untap.identity import report_identity
 import contextlib
 import io
 import tempfile
@@ -6,9 +6,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-import untap_publish
-
-
+import untap.publish as untap_publish
 def _report_html(
     title="Pien New Arrivals - September 2026",
     report_date="2026-09-01",

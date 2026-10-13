@@ -6,19 +6,19 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from untap_batch import run_batch, save_csv
-from untap_snapshot import build_snapshot, save_snapshot, load_snapshot
-from untap_report import render_html_report, selection_report_id
-from untap_publish import publish_report, PublishError
-from untap_registry import register_run
-from untap_refresh import apply_selection_payload
+from untap.batch import run_batch, save_csv
+from untap.snapshot import build_snapshot, save_snapshot, load_snapshot
+from untap.report import render_html_report, selection_report_id
+from untap.publish import publish_report, PublishError
+from untap.registry import register_run
+from untap.refresh import apply_selection_payload
 
 
 class CompletenessTests(unittest.TestCase):
     def test_rate_limit_preserves_full_menu_in_all_outputs_and_blocks_publication(self):
         items = [{'query': f'Brewery Beer {i}', 'original': f'Brewery\tBeer {i}\t5%\tIPA',
                   'brewery': 'Brewery', 'beer': f'Beer {i}', 'menu_abv': 5., 'style': 'IPA'} for i in range(5)]
-        with patch('untap_batch.search_one', side_effect=[{'query': items[0]['query'], 'status': 'ok', 'beer': 'Beer 0'},
+        with patch('untap.batch.search_one', side_effect=[{'query': items[0]['query'], 'status': 'ok', 'beer': 'Beer 0'},
                                                         {'query': items[1]['query'], 'status': 'rate_limited', 'reason': 'HTTP 429'}]) as search, contextlib.redirect_stdout(io.StringIO()):
             results = run_batch(object(), items)
         self.assertEqual(search.call_count, 2)
@@ -95,7 +95,7 @@ class SelectionIntegrityTests(unittest.TestCase):
 class CliArgumentTests(unittest.TestCase):
     def test_invalid_options_stop_before_browser_or_output(self):
         import sys
-        import untap
+        import untap.run as untap
         cases = [(['--menu', 'menu.txt', '--debg'], 'unrecognized arguments'),
                  (['--file', 'beers.txt', '--debg'], 'unrecognized arguments'),
                  (['--menu', 'menu.txt', '--csv', 'results.csv'], 'takes no filename'),
@@ -117,7 +117,7 @@ class CliArgumentTests(unittest.TestCase):
                 menu.assert_not_called()
 
     def test_single_beer_query_and_existing_options_are_preserved(self):
-        import untap
+        import untap.run as untap
         args = untap._parse_cli_args(['Badlands', '--debug', 'Fazy', '(2026)', '--min-score', '.8'])
         self.assertEqual(args.query, ['Badlands', 'Fazy', '(2026)'])
         self.assertTrue(args.debug)
@@ -129,7 +129,7 @@ class CliArgumentTests(unittest.TestCase):
 
 class AdditionalIntegrityTests(unittest.TestCase):
     def test_brewery_matching_requires_complete_tokens(self):
-        from untap_parser import join_brewery_and_beer
+        from untap.parser import join_brewery_and_beer
         for brewery, beer, expected in [('Kin', 'Kinetic Hazy', 'Kin Kinetic Hazy'),
                                         ('Hop', 'Hoppy Boi', 'Hop Hoppy Boi'),
                                         ('Kin', 'Kin Hazy', 'Kin Hazy'),
@@ -154,7 +154,7 @@ class AdditionalIntegrityTests(unittest.TestCase):
 
     def test_interrupted_batch_preserves_journal_and_full_snapshot(self):
         import json
-        import untap
+        import untap.run as untap
         for failure in (KeyboardInterrupt(), RuntimeError('unexpected shutdown')):
             with self.subTest(failure=type(failure)), tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
                 root = Path(tmp)
@@ -182,7 +182,7 @@ class AdditionalIntegrityTests(unittest.TestCase):
                 self.assertEqual(len(recorded), 1)
                 raise KeyboardInterrupt()
             return {'query': query, 'status': 'failed', 'reason': 'no match'}
-        with patch('untap_batch.search_one', side_effect=search), contextlib.redirect_stdout(io.StringIO()):
+        with patch('untap.batch.search_one', side_effect=search), contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaises(KeyboardInterrupt):
                 run_batch(object(), ['first', 'second'], on_result=recorded.append)
         self.assertEqual(recorded[0]['query'], 'first')
@@ -199,7 +199,7 @@ class LowPriorityIntegrityTests(unittest.TestCase):
         self.assertEqual(len(set(ids)), 2)
 
     def test_parser_retains_empty_style_tab_and_rejects_ambiguous_precision(self):
-        from untap_parser import parse_menu_lines, MenuValidationError
+        from untap.parser import parse_menu_lines, MenuValidationError
         text = 'Brewery\tBeer\t6,5%\t'
         self.assertEqual(parse_menu_lines([text])[0]['original'], text)
         with self.assertRaises(MenuValidationError):
@@ -208,22 +208,22 @@ class LowPriorityIntegrityTests(unittest.TestCase):
             parse_menu_lines(['Brewery\tBeer\t6%'])
 
     def test_review_injection_requires_exactly_one_marker(self):
-        from untap_local_review import ReviewSession
+        from untap.local_review import ReviewSession
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             save_snapshot(build_snapshot([], 'Menu'), root / 'results.json')
             session = ReviewSession(root)
             for html in ['<html></html>', '<script id="manual-review-script">' * 2]:
-                with patch('untap_local_review.render_html_report', return_value=html), self.assertRaisesRegex(ValueError, 'marker'):
+                with patch('untap.local_review.render_html_report', return_value=html), self.assertRaisesRegex(ValueError, 'marker'):
                     session.html()
 
     def test_review_server_returns_json_500_for_unexpected_exceptions(self):
         import json
         from types import SimpleNamespace
-        from untap_local_review import make_server
+        from untap.local_review import make_server
         session = SimpleNamespace(token='test-token')
         session.action = lambda request: (_ for _ in ()).throw(AttributeError('internal detail'))
-        with patch('untap_local_review.HTTPServer', side_effect=lambda address, handler: handler):
+        with patch('untap.local_review.HTTPServer', side_effect=lambda address, handler: handler):
             handler_type = make_server(session)
         handler = object.__new__(handler_type)
         handler.server = SimpleNamespace(server_port=1234)
@@ -237,7 +237,7 @@ class LowPriorityIntegrityTests(unittest.TestCase):
         self.assertEqual(json.loads(responses[0][1]), {'error': 'Unexpected local review error'})
 
     def test_reviewed_run_permissions_match_normal_directories(self):
-        from untap_refresh import refresh
+        from untap.refresh import refresh
         import stat
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -250,7 +250,7 @@ class LowPriorityIntegrityTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(output.stat().st_mode), stat.S_IMODE(normal.stat().st_mode))
 
     def test_tee_exposes_terminal_attributes(self):
-        from untap_batch import _TeeOutput
+        from untap.batch import _TeeOutput
         with tempfile.TemporaryFile(mode='w+', encoding='utf-8') as terminal:
             log = io.StringIO()
             tee = _TeeOutput(terminal, log)
@@ -263,7 +263,7 @@ class LowPriorityIntegrityTests(unittest.TestCase):
 
 class FetchRefactorTests(unittest.TestCase):
     def test_all_replay_paths_share_the_browser_json_post(self):
-        import untap_untappd as transport
+        import untap.transport as transport
         event = {'url': 'https://example.algolia.net/queries', 'algolia_requests': [{'indexName': 'beer', 'params': {'query': 'Fazy', 'page': '0'}, 'query': 'Fazy'}]}
         page = type('Page', (), {'evaluate': lambda self, script, args: calls.append((script, args)) or {'status': 200, 'ok': True, 'payload': {'results': []}}})()
         calls = []
@@ -278,7 +278,7 @@ class FetchRefactorTests(unittest.TestCase):
         self.assertTrue(all(args['url'] == event['url'] for _, args in calls))
 
     def test_browser_post_preserves_http_and_malformed_response_errors(self):
-        import untap_untappd as transport
+        import untap.transport as transport
         event = {'url': 'https://example.algolia.net/queries', 'algolia_requests': [{'indexName': 'beer', 'params': {'query': 'Fazy'}, 'query': 'Fazy'}]}
         for response, error in [({'status': 429, 'ok': False}, 'HTTP 429'), ({'status': 200, 'ok': True, 'payload': None}, 'response payload was not JSON')]:
             page = type('Page', (), {'evaluate': lambda self, script, args: response})()
@@ -288,7 +288,7 @@ class FetchRefactorTests(unittest.TestCase):
 
 class SearchDiagnosticRefactorTests(unittest.TestCase):
     def test_debug_search_still_prints_captured_candidates(self):
-        import untap_matcher as matcher
+        import untap.matcher as matcher
         from tests.test_untap_v86 import MatcherV86Tests, candidate
         original = matcher.search_one
         def debug_search(*args, **kwargs):
@@ -310,7 +310,7 @@ class ProductionVintageGuardTests(unittest.TestCase):
         return rows
 
     def test_retired_exact_and_current_same_abv_vintage_require_review(self):
-        import untap_matcher as matcher
+        import untap.matcher as matcher
         from tests.test_untap_v86 import MatcherV86Tests
         for base, sibling in [(False, True), (0, 1), ('false', 'true'), ('0', '1')]:
             rows = self.rows(base, sibling)
@@ -323,7 +323,7 @@ class ProductionVintageGuardTests(unittest.TestCase):
                 self.assertIn('Confirm the release manually', render_html_report([result]))
 
     def test_unknown_status_and_other_identity_differences_do_not_trigger(self):
-        import untap_matcher as matcher
+        import untap.matcher as matcher
         for kwargs in [dict(base=None), dict(sibling=None), dict(base=True), dict(sibling=False),
                        dict(brewery='Other Brewery'), dict(abv=6), dict(suffix=' DDH (2026)'),
                        dict(suffix=' Batch 2'), dict(suffix=' Peach (2026)')]:
@@ -333,7 +333,7 @@ class ProductionVintageGuardTests(unittest.TestCase):
                 self.assertIs(matcher.unique_exact_identity_candidate(rows, 'Boston Lager', 'Samuel Adams', 5), rows[0])
 
     def test_explicit_vintage_preserves_exact_identity_rule(self):
-        import untap_matcher as matcher
+        import untap.matcher as matcher
         rows = self.rows()
         rows[0]['name'] = 'Boston Lager (2025)'
         rows[1]['name'] = 'Boston Lager (2025) (2026)'

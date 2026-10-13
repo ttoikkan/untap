@@ -18,23 +18,37 @@ import unittest
 from unittest import mock
 
 from importlib.resources import files
-import untap
-import untap_setup
-import untap_untappd
-from untap_version import __version__
+import untap.run as untap
+import untap.setup as untap_setup
+import untap.transport as untap_untappd
+from untap.version import __version__
 
 
 class PackagingBoundaryTests(unittest.TestCase):
     def test_all_runtime_modules_are_declared_without_building_a_wheel(self):
         root = Path(__file__).parent.parent
         text = (root / 'pyproject.toml').read_text(encoding='utf-8')
-        section = re.search(r'(?ms)^\[tool\.setuptools\]\s*$(.*?)(?=^\[|\Z)', text)
-        self.assertIsNotNone(section, 'Missing setuptools configuration')
-        modules = re.search(r'(?ms)^py-modules\s*=\s*(\[.*?\])', section.group(1))
-        self.assertIsNotNone(modules, 'Missing flat module list')
-        declared = ast.literal_eval(modules.group(1))
-        self.assertEqual(len(declared), len(set(declared)), 'Duplicate packaged module')
-        self.assertEqual(set(declared), {path.stem for path in root.glob('untap*.py')})
+        section = re.search(r'(?ms)^\[tool\.setuptools\]\s*$(.*?)(?=^\[|\Z)', text).group(1)
+        declared = ast.literal_eval(re.search(r'(?ms)^packages\s*=\s*(\[.*?\])', section).group(1))
+        actual = {str(p.parent.relative_to(root)).replace('/', '.') for p in (root / 'untap').rglob('__init__.py')}
+        self.assertEqual(set(declared), actual)
+        modules = ast.literal_eval(re.search(r'(?ms)^py-modules\s*=\s*(\[.*?\])', section).group(1))
+        self.assertEqual(set(modules), {p.stem for p in root.glob('untap_*.py')})
+        self.assertEqual(len(declared), len(set(declared)))
+
+    def test_legacy_scripts_and_package_entry_point_remain_usable(self):
+        root = Path(__file__).parent.parent
+        with tempfile.TemporaryDirectory() as cwd:
+            for script in ('untap.py', 'untap_cli.py', 'untap_local_review.py', 'untap_refresh.py',
+                           'untap_publish.py', 'untap_inspect.py', 'untap_setup.py'):
+                result = subprocess.run([sys.executable, '-B', str(root / script), '--help'],
+                                        cwd=cwd, capture_output=True, text=True, timeout=15)
+                self.assertEqual(result.returncode, 0, (script, result.stderr))
+                self.assertIn('usage:', result.stdout)
+        result = subprocess.run([sys.executable, '-B', '-m', 'untap', '--version'],
+                                cwd=root, capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.stdout, f'untap {__version__}\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_version_exits_without_browser(self):
         with mock.patch.object(untap, 'untappd_browser_page', side_effect=AssertionError('browser opened')), contextlib.redirect_stdout(io.StringIO()) as output:
@@ -78,8 +92,8 @@ class PackagingBoundaryTests(unittest.TestCase):
                     self.fail('failed launch yielded a page')
 
     def test_review_asset_is_readable_as_a_resource(self):
-        from untap_report import render_html_report
-        script = files('untap_assets').joinpath('untap_review.js').read_text(encoding='utf-8')
+        from untap.report import render_html_report
+        script = files('untap.assets').joinpath('untap_review.js').read_text(encoding='utf-8')
         self.assertTrue(script.strip())
         self.assertIn('<script id="manual-review-script">' + script + '</script>', render_html_report([]))
 
@@ -106,6 +120,9 @@ class InstalledDistributionTests(unittest.TestCase):
                 result = self.run_command(name, '--help')
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn('usage:', result.stdout)
+        for module in ('untap', 'untap_cli', 'untap_local_review', 'untap_refresh', 'untap_publish', 'untap_inspect', 'untap_setup'):
+            result = self.run_command('python', '-I', '-m', module, '--help')
+            self.assertEqual(result.returncode, 0, (module, result.stderr))
         result = self.run_command('untap', '--version')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, f'untap {__version__}\n')
@@ -131,7 +148,7 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertNotIn('Traceback', smoke.stderr)
 
     def test_installed_refresh_and_publish_commands_produce_identical_files(self):
-        from untap_snapshot import build_snapshot, save_snapshot
+        from untap.snapshot import build_snapshot, save_snapshot
         source = self.cwd / 'results.json'
         save_snapshot(build_snapshot([{'query': 'Beer', 'status': 'failed', 'reason': 'No matches'}], 'My menu'), source)
         legacy, unified = self.cwd / 'legacy', self.cwd / 'unified'
@@ -159,9 +176,11 @@ class InstalledDistributionTests(unittest.TestCase):
                                   'import json; from importlib.metadata import files; print(json.dumps([str(f) for f in files("untap")]))')
         self.assertEqual(result.returncode, 0, result.stderr)
         contents = json.loads(result.stdout)
-        expected_modules = {path.name for path in Path(__file__).parent.parent.glob('untap*.py')}
+        root = Path(__file__).parent.parent
+        expected_modules = {str(path.relative_to(root)) for path in (root / 'untap').rglob('*.py')}
+        expected_modules.update(path.name for path in root.glob('untap_*.py'))
         self.assertTrue(expected_modules.issubset(contents))
-        self.assertIn('untap_assets/untap_review.js', contents)
+        self.assertIn('untap/assets/untap_review.js', contents)
         self.assertFalse(any(path.startswith('test') or 'refresh-reports.json' in path for path in contents))
 
     def test_local_validation_and_missing_browser_from_foreign_directory(self):
@@ -179,16 +198,16 @@ class InstalledDistributionTests(unittest.TestCase):
 
     def test_installed_outputs_equal_source_outputs_byte_for_byte(self):
         from tests.test_untap_report import HtmlReportTests
-        from untap_report import render_html_report
-        from untap_snapshot import build_snapshot
-        from untap_batch import save_csv
+        from untap.report import render_html_report
+        from untap.snapshot import build_snapshot
+        from untap.batch import save_csv
         from datetime import datetime, timezone
         results = HtmlReportTests()._results()
         (self.cwd / 'inputs.json').write_text(json.dumps(results), encoding='utf-8')
         expected_html = render_html_report(results, title='Packaging regression', report_date='2026-10-11').encode('utf-8')
         with contextlib.redirect_stdout(io.StringIO()):
             save_csv(results, str(self.cwd / 'source.csv'))
-        with mock.patch('untap_snapshot.datetime') as clock:
+        with mock.patch('untap.snapshot.datetime') as clock:
             clock.now.return_value = datetime(2026, 10, 11, 12, tzinfo=timezone.utc)
             expected_json = json.dumps(build_snapshot(results, 'Packaging regression'), ensure_ascii=False, indent=2).encode('utf-8')
         code = '''
@@ -196,13 +215,13 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone
 from unittest.mock import patch
-from untap_report import render_html_report
-from untap_snapshot import build_snapshot
-from untap_batch import save_csv
+from untap.report import render_html_report
+from untap.snapshot import build_snapshot
+from untap.batch import save_csv
 results = json.loads(Path('inputs.json').read_text())
 Path('installed.html').write_text(render_html_report(results, title='Packaging regression', report_date='2026-10-11'), encoding='utf-8')
 save_csv(results, 'installed.csv')
-with patch('untap_snapshot.datetime') as clock:
+with patch('untap.snapshot.datetime') as clock:
     clock.now.return_value = datetime(2026,10,11,12,tzinfo=timezone.utc)
     Path('installed.json').write_text(json.dumps(build_snapshot(results, 'Packaging regression'), ensure_ascii=False, indent=2), encoding='utf-8')
 '''

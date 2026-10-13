@@ -1,3 +1,12 @@
+# Unreleased — Search corpus, brewery policy and package migration
+
+- Add strict replay at the Playwright I/O boundary, with sanitized hand-authored response-shaped fixtures and a passive smoke response-shape canary. Run request building, decoding, candidates, expansion and decisions for real; reject unexpected and unused exchanges.
+- Centralize brewery compatibility and rejection reasons in a pure policy. Retain recovery adoption gates and decision eligibility consequences, including S1 inspection links and S7 primary-evidence retention.
+- Split fallback retrieval/filtering and candidate adoption into named helpers; preserve request order, filters, timing, debug and HTTP 429 behavior. Replace assertion-only phase checks with explicit errors.
+- Move runtime modules and assets into `untap/`, update imports and package dependency checks, add `python3 -m untap`, and preserve installed commands and historical source/module entry points with thin wrappers. Update current documentation and type-check commands.
+- Live validation: maintainer reports no unusual behavior after testing the changes.
+- Validation: all 374 tests pass including fresh installed-wheel checks; 34 package/wrapper source files type-check. All 40 frozen HTML reports retain their bytes, installed CSV/JSON/HTML match source output, and 10,000 seeded invariant cases pass. Corpus replay kills removal of the brewery gate, zero-hit gate and conditional expansion. No live service traffic was sent.
+
 # Unreleased — Fallback inspection evidence and CSV safety
 
 - Carry rejected beer-only fallback brewery candidates as inspection evidence while retaining the existing eligibility filter and fallback adoption rules. Report brewery conflicts when none survive; links remain non-selectable.

@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import Any, List, Optional, Sequence
 
-from untap_types import AlternativeRecord, MatchResult
+from untap.types import AlternativeRecord, MatchResult
 
 DEFAULT_REPORT_TITLE = "Untap Results"
 

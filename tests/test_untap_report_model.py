@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 import unittest
 
-from untap_report_model import prepare_report_rows
-from untap_report import render_html_report
-from untap_snapshot import menu_item_ids
+from untap.report_model import prepare_report_rows
+from untap.report import render_html_report
+from untap.snapshot import menu_item_ids
 
 
 class ReportModelTests(unittest.TestCase):

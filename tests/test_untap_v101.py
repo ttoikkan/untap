@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-import untap_matcher as matcher
+import untap.matcher as matcher
 from tests import test_untap_v86 as fixtures
 
 
@@ -87,9 +87,9 @@ class AutomaticSelectionReviewTests(unittest.TestCase):
     def test_manual_override_and_reopen_restore_automatic_selection(self):
         import tempfile
         from pathlib import Path
-        from untap_snapshot import build_snapshot, save_snapshot, load_snapshot
-        from untap_local_review import ReviewSession
-        from untap_report import selection_report_id
+        from untap.snapshot import build_snapshot, save_snapshot, load_snapshot
+        from untap.local_review import ReviewSession
+        from untap.report import selection_report_id
         rows = ExactIdentityTests().broccoli()
         result, _ = fixtures.MatcherV86Tests().run_search(rows, rows[0]['name'], rows[0]['brewery'], rows[0]['abv'])
         with tempfile.TemporaryDirectory() as tmp:

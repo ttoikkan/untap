@@ -2,8 +2,8 @@
 import copy
 import unittest
 
-from untap_review_policy import review_candidates, sorted_review_results, available_review_candidate, selection_report_id
-from untap_report import render_html_report
+from untap.review_policy import review_candidates, sorted_review_results, available_review_candidate, selection_report_id
+from untap.report import render_html_report
 
 
 def candidate(name, score, identifier, **metadata):

@@ -6,11 +6,9 @@ import tempfile
 import unittest
 from unittest import mock
 
-import untap
-import untap_matcher
-import untap_report
-
-
+import untap.run as untap
+import untap.matcher as untap_matcher
+import untap.report as untap_report
 class ReportImageTests(unittest.TestCase):
     def test_algolia_label_reaches_confirmed_and_alternative_records(self):
         label = "https://assets.untappd.com/site/beer_logos/beer-1.png"
@@ -65,7 +63,7 @@ class DebugTranscriptTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             run_directory = Path(tmp)
             page = object()
-            with contextlib.redirect_stdout(io.StringIO()), \
+            with contextlib.redirect_stdout(io.StringIO()),\
                  mock.patch.object(untap, "run_batch", return_value=[]) as batch:
                 untap._run_and_save_batch(
                     page, [], run_directory, min_score=.425, debug=True,
