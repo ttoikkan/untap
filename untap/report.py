@@ -24,6 +24,21 @@ from untap.review_policy import (
 )
 
 
+__all__ = [
+    # Public API.
+    "DEFAULT_HTML_REPORT",
+    "DEFAULT_REPORT_TITLE",
+    "render_html_report",
+    "save_html_report",
+    "selection_report_id",
+    # Compatibility names, kept intentionally for callers of older source versions.
+    "_format_abv",
+    "_format_rating",
+    "_result_sort_rating",
+    "_review_candidates",
+    "_sorted_report_results",
+]
+
 DEFAULT_HTML_REPORT = "results.html"
 
 

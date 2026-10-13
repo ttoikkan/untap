@@ -55,6 +55,20 @@ from untap.transport import (
     BrowserUnavailableError,
 )
 
+__all__ = [
+    "ambiguity_display_reason",
+    "ambiguity_family_candidates",
+    "configure_parser",
+    "create_run_directory",
+    "format_rating",
+    "format_ratings_count",
+    "main",
+    "print_batch_results",
+    "print_single_result",
+    "run_options",
+    # Intentional compatibility export: historical callers use run.save_csv.
+    "save_csv",
+]
 
 
 def _strip_leading_article_words(words):

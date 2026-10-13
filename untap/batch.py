@@ -16,6 +16,19 @@ from untap.matcher import (
 )
 from untap.transport import _reset_run_algolia_debug_stats, debug_timing_enabled
 
+__all__ = [
+    "debug_transcript",
+    "get_batch_timing_stats",
+    "print_batch_timing_summary",
+    "read_queries_from_file",
+    "reset_batch_timing_stats",
+    "run_batch",
+    "unattempted_result",
+    # Compatibility exports for source callers; implementation belongs to untap.run_output.
+    "CSV_FIELDS",
+    "save_csv",
+]
+
 
 class _BatchTimingStats(TypedDict):
     count: int

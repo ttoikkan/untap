@@ -41,6 +41,25 @@ class ReplayPage:
             self.errors.append(f"Unexpected navigation: {url}")
             raise AssertionError(self.errors[-1])
 
+        # Untappd bootstraps the search UI before text is entered.
+        if self.exchanges:
+            upcoming = self.exchanges[0]["request"]
+            if upcoming.get("mode") == "ui" and all(
+                not entry["params"].get("query") for entry in upcoming["requests"]
+            ):
+                body = json.dumps({"requests": [
+                    {"indexName": entry["index"], "params": urlencode(entry["params"])}
+                    for entry in upcoming["requests"]
+                ]})
+                exchange = self._exchange("ui", body)
+                request = SimpleNamespace(url=URL, method="POST", resource_type="xhr", post_data=body, headers={})
+                response = SimpleNamespace(url=URL, status=exchange.get("status", 200), request=request,
+                                           json=lambda: exchange["payload"])
+                for callback in list(self.listeners["request"]):
+                    callback(request)
+                for callback in list(self.listeners["response"]):
+                    callback(response)
+
     def locator(self, selector):
         return self
 
@@ -60,7 +79,18 @@ class ReplayPage:
         self.predicate = None
 
     def fill(self, query):
-        body = json.dumps({"requests": [{"indexName": "beer", "params": urlencode({"query": query, "page": "0", "hitsPerPage": "5"})}]})
+        requests = [{"indexName": "beer", "params": urlencode({"query": query, "page": "0", "hitsPerPage": "5"})}]
+        upcoming = self.exchanges[0]["request"] if self.exchanges else None
+        if upcoming and upcoming.get("mode") == "ui":
+            # Browser-selected indexes/parameters are captured data. Override each
+            # search query with the actual typed text so query regressions still fail.
+            requests = []
+            for recorded in upcoming["requests"]:
+                params = dict(recorded["params"])
+                if "query" in params:
+                    params["query"] = query
+                requests.append({"indexName": recorded["index"], "params": urlencode(params)})
+        body = json.dumps({"requests": requests})
         exchange = self._exchange("ui", body)
         request = SimpleNamespace(url=URL, method="POST", resource_type="xhr", post_data=body, headers={})
         response = SimpleNamespace(url=URL, status=exchange.get("status", 200), request=request, json=lambda: exchange["payload"])

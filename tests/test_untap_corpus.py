@@ -12,8 +12,8 @@ from tests.replay_page import ReplayPage
 class SearchCorpusTests(unittest.TestCase):
     def test_strict_corpus(self):
         paths = sorted((Path(__file__).parent / "testdata/search_corpus").glob("*.json"))
-        self.assertGreaterEqual(len(paths), 8, "Missing replay corpus")
-        self.assertTrue({"s1_conflict_links", "s7_preserve_primary"} <= {p.stem for p in paths})
+        self.assertGreaterEqual(len(paths), 9, "Missing replay corpus")
+        self.assertTrue({"s1_conflict_links", "s7_preserve_primary", "trailing_identity"} <= {p.stem for p in paths})
         for path in paths:
             with self.subTest(case=path.stem):
                 case = json.loads(path.read_text())

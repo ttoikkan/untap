@@ -1,0 +1,276 @@
+{
+  "provenance": "Live capture on 2026-10-13 (tests/corpus_tools.py record); sanitized to consumed fields; ratings masked (None/zero/positive kept); paging and identity evidence unchanged.",
+  "search": {
+    "query": "Badlands Fazy",
+    "expected_beer": "Fazy",
+    "expected_brewery": "Badlands",
+    "expected_abv": 6.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "false",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 200,
+            "nbHits": 5744674,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guines",
+                  "guinne",
+                  "guinness draught extra cold",
+                  "guinness draft",
+                  "draught surger",
+                  "guinness draught nitro",
+                  "guinness draught stout",
+                  "nitro guinness draught",
+                  "st jamess gate guinness",
+                  "guinness nitro surge",
+                  "guinness draught nitrosurge",
+                  "guinness microdraught",
+                  "guinness draught stout limited edition lovely day",
+                  "guinness extra cold",
+                  "guiness microdraught",
+                  "guinness surger",
+                  "guinness draught 2026"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 45,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4473_1cbe8_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4473_95398_hd.jpeg",
+                "beer_name": "Guinness Draught",
+                "beer_slug": "guinness-guinness-draught",
+                "bid": 4473,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "l1te",
+                  "roadside draft",
+                  "millers lite",
+                  "diet miller",
+                  "miller lite steinie"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 10,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3811_99a49_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3811_65102_hd.jpeg",
+                "beer_name": "Miller Lite",
+                "beer_slug": "miller-brewing-company-miller-lite",
+                "bid": 3811,
+                "brewery_name": "Miller Brewing Company",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Light"
+              },
+              {
+                "alias_alt": [
+                  "heneken",
+                  "heinneken",
+                  "heineken xtra cold",
+                  "heineken chopp",
+                  "heineken extra cold",
+                  "heineken spectre",
+                  "heineken ice cold",
+                  "heineken ultra split",
+                  "heineken beer 150 years limited edition",
+                  "heineken cities edition",
+                  "heineken pilsener premium quality",
+                  "heineken pilsner",
+                  "heineken ijskoud",
+                  "heineken festive edition",
+                  "Brasserie de Tahiti Heineken - Tahiti",
+                  "heineken kerst magnu",
+                  "La Verde",
+                  "original pure malt lager",
+                  "heineken netflix senna",
+                  "heineken f1"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 19,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5860_a68ef_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5860_b0377_hd.jpeg",
+                "beer_name": "Heineken",
+                "beer_slug": "heineken-heineken",
+                "bid": 5860,
+                "brewery_name": "Heineken",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - Pale"
+              },
+              {
+                "alias_alt": [
+                  "budlight",
+                  "bud lite",
+                  "bud light limited edition",
+                  "bud light nfl",
+                  "bud light kickoff limited edition"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 6,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3784_0e2c3_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3784_f4c3e_hd.jpeg",
+                "beer_name": "Bud Light",
+                "beer_slug": "anheuser-busch-bud-light",
+                "bid": 3784,
+                "brewery_name": "Anheuser-Busch",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Light"
+              },
+              {
+                "alias_alt": [
+                  "knockers lager",
+                  "yinlin",
+                  "american amber lager",
+                  "fancys down south lager",
+                  "yuengling lager team rwb",
+                  "bidwell amber ale",
+                  "Stars and Stripes",
+                  "moon mammoths lager"
+                ],
+                "beer_abv": 4.5,
+                "beer_ibu": 12,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-16649_c244e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-16649_4ceb9_hd.jpeg",
+                "beer_name": "Traditional Lager",
+                "beer_slug": "yuengling-brewery-traditional-lager",
+                "bid": 16649,
+                "brewery_name": "Yuengling Brewery",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Amber / Red"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0",
+              "query": "Badlands Fazy"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 4,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 6.5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5398061_174ad_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5398061_1780c_hd.jpeg",
+                "beer_name": "Fazy",
+                "beer_slug": "badlands-brewing-company-fazy",
+                "bid": 5398061,
+                "brewery_name": "Badlands Brewing Company",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "IPA - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.5,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-6252791_7e78f_sm.jpeg",
+                "beer_name": "Fazy (2025)",
+                "beer_slug": "badlands-brewing-company-fazy-2025",
+                "bid": 6252791,
+                "brewery_name": "Badlands Brewing Company",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "IPA - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-6736235_dd30e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-6736235_dd30e_hd.jpeg",
+                "beer_name": "Fazy (2026)",
+                "beer_slug": "badlands-brewing-company-fazy-2026",
+                "bid": 6736235,
+                "brewery_name": "Badlands Brewing Company",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "IPA - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5872540_1670e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5872540_1670e_hd.jpeg",
+                "beer_name": "Fazy (2024)",
+                "beer_slug": "badlands-brewing-company-fazy-2024",
+                "bid": 5872540,
+                "brewery_name": "Badlands Brewing Company",
+                "in_production": 0,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "IPA - American"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ok",
+    "beer": "Fazy",
+    "brewery": "Badlands Brewing Company",
+    "url": "https://untappd.com/b/badlands-brewing-company-fazy/5398061"
+  },
+  "excluded_urls": []
+}

@@ -1,0 +1,180 @@
+{
+  "provenance": "Hand-authored sanitized Algolia response shape; not a live capture.",
+  "search": {
+    "query": "Messorem Vue Du Bureau XTRM Turbo",
+    "expected_beer": "Vue Du Bureau XTRM Turbo",
+    "expected_brewery": "Messorem",
+    "expected_abv": 7.0
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Messorem Vue Du Bureau XTRM Turbo",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Messorem Vue Du Bureau XTRM",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Vue Du Bureau Blanc",
+                "brewery_name": "Messorem",
+                "beer_abv": 7.2,
+                "bid": 31,
+                "beer_slug": "messorem-vue-du-bureau-blanc",
+                "rating_score": 4.1,
+                "rating_count": 80,
+                "type_name": "IPA - New England / Hazy",
+                "in_production": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Messorem Vue Du Bureau",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Vue Du Bureau Blanc",
+                "brewery_name": "Messorem",
+                "beer_abv": 7.2,
+                "bid": 31,
+                "beer_slug": "messorem-vue-du-bureau-blanc",
+                "rating_score": 4.1,
+                "rating_count": 80,
+                "type_name": "IPA - New England / Hazy",
+                "in_production": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Vue Du Bureau XTRM Turbo Messorem",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Vue Du Bureau XTRM Turbo",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "failed",
+    "reason": "No matching beer found"
+  },
+  "excluded_urls": []
+}
