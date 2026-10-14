@@ -31,3 +31,12 @@ First live use: confirm that the exchange count equals the requests the run made
 All include the real empty-query search-page bootstrap before the typed query and pass strict replay after sanitization. A separate Guinness/Stout expansion attempt was refused at exchange 11 because `beer_slug` failed the shape canary; no fixture was retained. Actual expansion and retired-base live examples remain to be added. The existing synthetic cases retain that coverage.
 
 The canary requires name, brewery, ABV and bid on every hit. Missing slug, ratings or style are incomplete confirmation metadata, reported with result/hit indexes and bid by the smoke check, rather than schema failures. Present values of the wrong type still fail validation. Missing paging or identity fields still refuse live captures.
+
+### Additional real captures (2026-10-14)
+
+- `live_guinness_stout`: actual expansion across 21 exchanges; missing slug metadata is tolerated, and reaching the page cap retains an ambiguous/incomplete result.
+- `live_boston_lager`: current Boston Lager and same-ABV retired Boston Lager (1985–2022). The retired hit has an explicit date suffix; this is real family evidence, not a reproduction of the synthetic retired exact-base guard.
+- `live_messorem_collaboration`: A7Y7 X Humble Sea is listed under Messorem (with a trailing space in its brewery name).
+- `live_no_match`: intentionally nonexistent menu identity; real zero-hit primary and fallback responses.
+
+Each records the search-page bootstrap and passes sanitized strict replay. No rate-limit probing was performed. The earlier refused expansion attempt remains documented as a historical validation result.

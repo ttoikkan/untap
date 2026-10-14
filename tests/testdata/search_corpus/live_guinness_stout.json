@@ -1,0 +1,2453 @@
+{
+  "provenance": "Live capture on 2026-10-14 (tests/corpus_tools.py record); sanitized to consumed fields; ratings masked (None/zero/positive kept); paging and identity evidence unchanged.",
+  "search": {
+    "query": "Guinness Stout",
+    "expected_beer": "Stout",
+    "expected_brewery": "Guinness",
+    "expected_abv": 4.2
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "false",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 200,
+            "nbHits": 5826899,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guines",
+                  "guinne",
+                  "guinness draught extra cold",
+                  "guinness draft",
+                  "draught surger",
+                  "guinness draught nitro",
+                  "guinness draught stout",
+                  "nitro guinness draught",
+                  "st jamess gate guinness",
+                  "guinness nitro surge",
+                  "guinness draught nitrosurge",
+                  "guinness microdraught",
+                  "guinness draught stout limited edition lovely day",
+                  "guinness extra cold",
+                  "guiness microdraught",
+                  "guinness surger",
+                  "guinness draught 2026"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 45,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4473_1cbe8_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4473_95398_hd.jpeg",
+                "beer_name": "Guinness Draught",
+                "beer_slug": "guinness-guinness-draught",
+                "bid": 4473,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "l1te",
+                  "roadside draft",
+                  "millers lite",
+                  "diet miller",
+                  "miller lite steinie"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 10,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3811_99a49_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3811_65102_hd.jpeg",
+                "beer_name": "Miller Lite",
+                "beer_slug": "miller-brewing-company-miller-lite",
+                "bid": 3811,
+                "brewery_name": "Miller Brewing Company",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Light"
+              },
+              {
+                "alias_alt": [
+                  "heneken",
+                  "heinneken",
+                  "heineken xtra cold",
+                  "heineken chopp",
+                  "heineken extra cold",
+                  "heineken spectre",
+                  "heineken ice cold",
+                  "heineken ultra split",
+                  "heineken beer 150 years limited edition",
+                  "heineken cities edition",
+                  "heineken pilsener premium quality",
+                  "heineken pilsner",
+                  "heineken ijskoud",
+                  "heineken festive edition",
+                  "Brasserie de Tahiti Heineken - Tahiti",
+                  "heineken kerst magnu",
+                  "La Verde",
+                  "original pure malt lager",
+                  "heineken netflix senna",
+                  "heineken f1"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 19,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5860_a68ef_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5860_b0377_hd.jpeg",
+                "beer_name": "Heineken",
+                "beer_slug": "heineken-heineken",
+                "bid": 5860,
+                "brewery_name": "Heineken",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - Pale"
+              },
+              {
+                "alias_alt": [
+                  "budlight",
+                  "bud lite",
+                  "bud light limited edition",
+                  "bud light nfl",
+                  "bud light kickoff limited edition"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 6,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3784_0e2c3_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3784_f4c3e_hd.jpeg",
+                "beer_name": "Bud Light",
+                "beer_slug": "anheuser-busch-bud-light",
+                "bid": 3784,
+                "brewery_name": "Anheuser-Busch",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Light"
+              },
+              {
+                "alias_alt": [
+                  "knockers lager",
+                  "yinlin",
+                  "american amber lager",
+                  "fancys down south lager",
+                  "yuengling lager team rwb",
+                  "bidwell amber ale",
+                  "Stars and Stripes",
+                  "moon mammoths lager"
+                ],
+                "beer_abv": 4.5,
+                "beer_ibu": 12,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-16649_c244e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-16649_4ceb9_hd.jpeg",
+                "beer_name": "Traditional Lager",
+                "beer_slug": "yuengling-brewery-traditional-lager",
+                "bid": 16649,
+                "brewery_name": "Yuengling Brewery",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Amber / Red"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guines",
+                  "guinne",
+                  "guinness draught extra cold",
+                  "guinness draft",
+                  "draught surger",
+                  "guinness draught nitro",
+                  "guinness draught stout",
+                  "nitro guinness draught",
+                  "st jamess gate guinness",
+                  "guinness nitro surge",
+                  "guinness draught nitrosurge",
+                  "guinness microdraught",
+                  "guinness draught stout limited edition lovely day",
+                  "guinness extra cold",
+                  "guiness microdraught",
+                  "guinness surger",
+                  "guinness draught 2026"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 45,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4473_1cbe8_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4473_95398_hd.jpeg",
+                "beer_name": "Guinness Draught",
+                "beer_slug": "guinness-guinness-draught",
+                "bid": 4473,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-980458_36a3b_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-980458_cf157_hd.jpeg",
+                "beer_name": "Guinness Original Extra Stout (Canada / USA)",
+                "beer_slug": "guinness-guinness-original-extra-stout-canada-usa",
+                "bid": 11093,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "guinness extra smooth",
+                  "foreign export",
+                  "guinness foreign extra mali",
+                  "guinness foreign export stout grenada",
+                  "guinness foreign extra mauritius",
+                  "guinness foreign extra stout singapore",
+                  "foreign extra stout indonesia",
+                  "foreign extra togo",
+                  "foreign extra",
+                  "guinness foreign extra stout malaysia",
+                  "guinness foreign extra singapore",
+                  "foreign extra stout malaysiahong kongchina",
+                  "guinness foreign extra stout jamaica",
+                  "guinness foreign extra stout indonesian edition",
+                  "guiness foreign extra stout indonesian edition",
+                  "guinness foreign extra stout belize",
+                  "foreign extra stout tanzania",
+                  "guinness foreign extra barbados",
+                  "guinness africa special",
+                  "guinness fes",
+                  "fes nitro",
+                  "nitro foreign export stout",
+                  "foreign extra stout nitro",
+                  "guinness foreign extra nitro",
+                  "foreign extra belize",
+                  "guinness foreign extra stout kenya",
+                  "guinness foreign extra stout 75 year anniversary edition"
+                ],
+                "beer_abv": 7.5,
+                "beer_ibu": 47,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1199_0ae42_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1199_2ad8c_hd.jpeg",
+                "beer_name": "Guinness Foreign Extra Stout",
+                "beer_slug": "guinness-guinness-foreign-extra-stout",
+                "bid": 1199,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [
+                  "extra stout germany",
+                  "guinness original portugal",
+                  "guinness original russia",
+                  "guiness extra stout st jamess gate dublin",
+                  "guinness original europe",
+                  "guinness original extra stout dark and lively",
+                  "guinness original extra stout israel",
+                  "guinness extra stout dark and lively"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 40,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-980458_36a3b_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-980458_cf157_hd.jpeg",
+                "beer_name": "Guinness Original Extra Stout (Europe)",
+                "beer_slug": "guinness-guinness-original-extra-stout-europe",
+                "bid": 980458,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "special export st james gate dublin",
+                  "special export john martin belgium",
+                  "special export stout"
+                ],
+                "beer_abv": 8,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-12720_6a35d_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-12720_2b490_hd.jpeg",
+                "beer_name": "Guinness Special Export",
+                "beer_slug": "guinness-guinness-special-export",
+                "bid": 12720,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "1",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 1,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guinness original 43",
+                  "guinness original 41",
+                  "guinness original 48",
+                  "guinness original 5",
+                  "guinness original 6",
+                  "guinness original st james gate",
+                  "extra stout",
+                  "guiness extra stout",
+                  "guinness extra stout germany",
+                  "guinness original extra stout germany",
+                  "guinness original usa",
+                  "guiness extra stout the original",
+                  "guinness extra stout",
+                  "guinness original extra stout england",
+                  "guinness original extra stout united kingdom",
+                  "original",
+                  "extra stout  the original",
+                  "guiness original extra stout uk"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-80574_e898c_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-80574_783b6_hd.jpeg",
+                "beer_name": "Guinness Original (Europe)",
+                "beer_slug": "guinness-guinness-original-europe",
+                "bid": 80574,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_ibu": 10,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2238990_470a8_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2238990_6353b_hd.jpeg",
+                "beer_name": "Guinness 200th Anniversary Export Stout",
+                "beer_slug": "guinness-guinness-200th-anniversary-export-stout",
+                "bid": 2238990,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [
+                  "nitro cold brew coffee stout",
+                  "cold brew coffee beer",
+                  "guinness cold brew coffee beer",
+                  "nitro cold brew coffee beer"
+                ],
+                "beer_abv": 4,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4192666_c280c_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4192666_28702_hd.jpeg",
+                "beer_name": "Guinness Nitro Cold Brew Coffee",
+                "beer_slug": "guinness-guinness-nitro-cold-brew-coffee",
+                "bid": 4192666,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Coffee"
+              },
+              {
+                "alias_alt": [
+                  "guiness extra stout 56"
+                ],
+                "beer_abv": 5.6,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2242226_c1c16_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2242226_7f44b_hd.jpeg",
+                "beer_name": "Guinness Extra Stout",
+                "beer_slug": "guinness-guinness-extra-stout",
+                "bid": 2242226,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "antwerpen export stout",
+                  "open gate antwerp imperial stout",
+                  "open gate antwerpen export",
+                  "open gate antwerp export stout",
+                  "guinness limited edition antwerpen stout",
+                  "nitro antwerpen"
+                ],
+                "beer_abv": 8,
+                "beer_ibu": 52,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1737402_53b8e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1737402_8bf07_hd.jpeg",
+                "beer_name": "Antwerpen Stout",
+                "beer_slug": "guinness-antwerpen-stout",
+                "bid": 1737402,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "2",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 2,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "over the moon milk stout"
+                ],
+                "beer_abv": 5.3,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3156869_95df7_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3156869_b95ed_hd.jpeg",
+                "beer_name": "Over the Moon Milk Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-over-the-moon-milk-stout",
+                "bid": 3156869,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [
+                  "guinness brewers project milk stout",
+                  "milk stout",
+                  "milk stout nitro",
+                  "milk stout carbo",
+                  "milk stout the brewers project"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1930386_e6665_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1930386_43d69_hd.jpeg",
+                "beer_name": "Guinness Milk Stout",
+                "beer_slug": "guinness-guinness-milk-stout",
+                "bid": 1930386,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [
+                  "lambic  stout",
+                  "open gate lambic and stout",
+                  "Guinness Timmermans Lambic And Stout (2019)",
+                  "lambiek en stout"
+                ],
+                "beer_abv": 6,
+                "beer_ibu": 37,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2832165_74a6c_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2832165_187fa_hd.jpeg",
+                "beer_name": "Lambic & Stout",
+                "beer_slug": "brewery-john-martin-and-brewery-timmermans-lambic-and-stout",
+                "bid": 2832165,
+                "brewery_name": "Brewery John Martin & Brewery Timmermans",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Belgian"
+              },
+              {
+                "alias_alt": [
+                  "guiness foreign extra stout indonesian edition",
+                  "windward  and  leeward brewery",
+                  "guinness foreign extra st kitts  nevis",
+                  "guinness foreign extra stout ghana",
+                  "guinness foreign extra stout dominica",
+                  "guinness foreign extra stout bahamas",
+                  "guinness foreign extra stout barbados",
+                  "guinness foreign extra the gambia",
+                  "guinness foreign extra stout st lucia",
+                  "guinness foreign extra barbados",
+                  "guinness foreign extra stout indonesian edition",
+                  "guinness foreign extra stout jamaica",
+                  "guinness foreign extra singapore",
+                  "guinness foreign extra mauritius",
+                  "guinness foreign extra  ghana",
+                  "foreign extra belize",
+                  "foreign extra togo",
+                  "guinness foreign extra mali",
+                  "guinness foreign export stout grenada",
+                  "guinness foreign extra stout kenya",
+                  "foreign extra stout indonesian edition",
+                  "foreign extra singapore edition",
+                  "Belize Brewing Company Guinness Foreign Extra (Belize)",
+                  "Société Béninoise de Brasseries (SOBEBRA)  Guinness Foreign Extra (Benin)",
+                  "Brakina Guinness Foreign Extra Stout (Burkina Faso)",
+                  "Société de Brasserie Guinéenne (SOBRAGUI) Guinness Foreign Extra Stout (Guinea",
+                  "Commonwealth Brewery Guinness Extra Stout (Bahamas)",
+                  "Carib Brewery Limited Guiness Foreign Extra Stout St. Kitts & Nevis",
+                  "Carib Brewery Limited Guiness Foreign Extra Stout (St. Kitts & Nevis)",
+                  "Guinness Foreign Extra Stout (Kenya)",
+                  "Kenya Breweries Limited Guinness Foreign Extra Stout (Kenya)",
+                  "Seychelles Breweries Guinness Foreign Extra Stout (Seychelles)",
+                  "Desnoes & Geddes Guinness Foreign Extra Stout (Jamaica)",
+                  "East African Breweries Limited (EABL) Guinness Foreign Extra Stout (Tanzania)",
+                  "Heineken Saint Lucia Ltd. Guinness Foreign Extra Stout (St. Lucia)",
+                  "Heineken Asia Pacific Guinness Foreign Extra Stout (Singapore)",
+                  "Heineken Malaysia Berhad Guinness Foreign Extra Stout (Malaysia)",
+                  "Phoenix Beverages Guinness Foreign Extra Stout (Mauritius)",
+                  "Banks Barbados Breweries Guinness Foreign Extra Stout Barbados",
+                  "Banks (Barbados) Breweries Guinness Foreign Extra Stout (Barbados)",
+                  "Uganda Breweries Limited Guinness Foreign Extra Stout (Uganda)",
+                  "Cambrew Guinness Foreign Extra Stout (Cambodia)",
+                  "Banks DIH Ltd. Guinness Foreign Extra Stout (Guyana)",
+                  "Solibra Guinness Foreign Extra Stout (Ivory Coast)",
+                  "St. Vincent Brewery (Hairoun Brewery) Guinness Foreign Extra Stout (St. Vincent & the Grenadines)",
+                  "Brasserie BB Lomè (BGI) Guinness Foreign Extra Stout (Togo)",
+                  "Grenada Breweries Ltd. Guinness Foreign Extra Stout (Grenada)",
+                  "Lion Brewery Ceylon Guinness Foreing Extra Stout (Ceylon)",
+                  "SOBRAGA Guinness Foreign Extra Stout (Gabon)",
+                  "Banjul Breweries Ltd. Guinness Foreign Extra Stout (Gambia )",
+                  "Sierra Leone Brewery Limited Guinness Foreign Extra Stout (Sierra Leone)",
+                  "Meta Abo Guinness Foreign Extra Stout (Ethiopia)",
+                  "Brasserie Nationale d’HaÏti (BRANA) Guinness Foreign Extra Stout (haiti)",
+                  "Monrovia Breweries Guiness Foreign Extra Stout (Liberia)",
+                  "Lion Brewery Ceylon Guinness Foreign Extra Stout Sri Lanka",
+                  "PT Multi Bintang Indonesia Tbk. Guiness Foreign Extra Stout (Indonesia)",
+                  "Heineken Saint Lucia Ltd. Guinness Foreign Extra Stout",
+                  "Carib Brewery Limited Guinness Foreign Extra Stout (Trinidad And Tobago)",
+                  "guiness foreign extra stout 75 barbados",
+                  "guiness foreign extra stout 75 st lucia",
+                  "guiness foreign extra stout 75 st vincent",
+                  "guiness foreign extra stout 75 trinidad  and  tobago",
+                  "guinness foreign extra stout haiti",
+                  "guiness foreign extra stout 75 cameroon"
+                ],
+                "beer_abv": 7.5,
+                "beer_ibu": 47,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1199_0ae42_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1199_2ad8c_hd.jpeg",
+                "beer_name": "Guinness Foreign Extra Stout (International)",
+                "beer_slug": "guinness-guinness-foreign-extra-stout-international",
+                "bid": 2199510,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [
+                  "extra stout original xx"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1103018_773d3_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1103018_e0e8f_hd.jpeg",
+                "beer_name": "Guinness Original XX",
+                "beer_slug": "guinness-guinness-original-xx",
+                "bid": 1103018,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "3",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 3,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "antwerpen stout aged in bulleit bourbon barrels",
+                  "bourbon barrel aged stout"
+                ],
+                "beer_abv": 10,
+                "beer_ibu": 60,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2939790_e322c_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2939790_b8af8_hd.jpeg",
+                "beer_name": "Stout Aged in Bulleit Bourbon Barrels",
+                "beer_slug": "guinness-open-gate-brewery-us-stout-aged-in-bulleit-bourbon-barrels",
+                "bid": 2939790,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 10.8,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4588694_2042e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4588694_2042e_hd.jpeg",
+                "beer_name": "Chocolate Mint Stout Aged In Kentucky Bourbon Barrels",
+                "beer_slug": "guinness-open-gate-brewery-us-chocolate-mint-stout-aged-in-kentucky-bourbon-barrels",
+                "bid": 4588694,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double Pastry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 7.5,
+                "beer_ibu": 47,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-951027_6a1a8_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-951027_32f79_hd.jpeg",
+                "beer_name": "Guinness Foreign Extra Stout (Nigeria)",
+                "beer_slug": "guinness-nigeria-guinness-foreign-extra-stout-nigeria",
+                "bid": 951027,
+                "brewery_name": "Guinness Nigeria",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 10.3,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3999061_debce_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3999061_81228_hd.jpeg",
+                "beer_name": "Imperial Stout Aged In Bourbon Barrels",
+                "beer_slug": "guinness-open-gate-brewery-us-imperial-stout-aged-in-bourbon-barrels",
+                "bid": 3999061,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 11,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4005195_9ef01_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4005195_9ef01_hd.jpeg",
+                "beer_name": "Bourbon Barrel-Aged Imperial Gingerbread Spiced Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-bourbon-barrel-aged-imperial-gingerbread-spiced-stout",
+                "bid": 4005195,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "4",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 4,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "Artesanas De Malta Y Cebada Guinness Original Extra Stout (México)"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3716335_13ffa_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3716335_89b5d_hd.jpeg",
+                "beer_name": "Guinness Original Extra Stout (México)",
+                "beer_slug": "guinness-guinness-original-extra-stout-mexico",
+                "bid": 3716335,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "guinness original extra stout japan",
+                  "guinness the original extra stout australia"
+                ],
+                "beer_abv": 6,
+                "beer_ibu": 40,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-981743_3186e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-981743_a3d5b_hd.jpeg",
+                "beer_name": "Guinness Original Extra Stout (Asia / Australia)",
+                "beer_slug": "guinness-guinness-original-extra-stout-asia-australia",
+                "bid": 981743,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4547573_45c6e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4547573_2380c_hd.jpeg",
+                "beer_name": "Gingerbread Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-gingerbread-stout",
+                "bid": 4547573,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Spiced / Herbed Beer"
+              },
+              {
+                "alias_alt": [
+                  "Brooklyn Brewery Fonio Stout"
+                ],
+                "beer_abv": 6.2,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5786163_6da40_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5786163_3cdcf_hd.jpeg",
+                "beer_name": "Fonio Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-fonio-stout",
+                "bid": 5786163,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1804374_8ba4b_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1804374_3b226_hd.jpeg",
+                "beer_name": "Nitro Double Coffee Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-nitro-double-coffee-stout",
+                "bid": 1804374,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "5",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 5,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 5.5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Rye Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-rye-stout",
+                "bid": 2860649,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.7,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4547546_c673d_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4547546_680ac_hd.jpeg",
+                "beer_name": "Pineapple Coconut Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-pineapple-coconut-stout",
+                "bid": 4547546,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Coffee Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-coffee-stout",
+                "bid": 2844619,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Coffee"
+              },
+              {
+                "alias_alt": [
+                  "guinness cherry stout"
+                ],
+                "beer_abv": 5.1,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Guinness Cherry Stout #1",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-cherry-stout-1",
+                "bid": 2700329,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 9.5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-258808_bb67e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Bourbon Barrel Aged Antwerpen Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-bourbon-barrel-aged-antwerpen-stout",
+                "bid": 2631008,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "6",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 6,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 8,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Imperial Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-imperial-stout",
+                "bid": 3040134,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2606791_c9709_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2606791_6339f_hd.jpeg",
+                "beer_name": "Oatmeal Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-oatmeal-stout",
+                "bid": 2606791,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Oatmeal"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.1,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2486186_de33e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2486186_9a1d5_hd.jpeg",
+                "beer_name": "Guinness Milk Stout #3",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-milk-stout-3",
+                "bid": 2486186,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.8,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Blueberry Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-blueberry-stout",
+                "bid": 3868163,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.8,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Coffee Stout #1",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-coffee-stout-1",
+                "bid": 2692836,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Coffee"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "7",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 7,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "La Yungueré S.A Guinness Original Extra Stout (Argentina)"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3716335_13ffa_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3716335_89b5d_hd.jpeg",
+                "beer_name": "Guinness Original Extra Stout (Argentina)",
+                "beer_slug": "guinness-guinness-original-extra-stout-argentina",
+                "bid": 4605588,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.4,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Belgian-Style Chocolate Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-belgian-style-chocolate-stout",
+                "bid": 2847540,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Belgian"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 9.4,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5160898_a1995_sm.jpeg",
+                "beer_name": "Coquito-Style Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-coquito-style-stout",
+                "bid": 5160898,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double Pastry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Chocolate Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-chocolate-stout",
+                "bid": 3651707,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [
+                  "chocolate rye barrel aged stout",
+                  "choc rye barrel aged stout",
+                  "cask  chocolate rye barrel aged stout",
+                  "caskchocolate rye barrel aged stout"
+                ],
+                "beer_abv": 8,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Rye Reserve Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-rye-reserve-stout",
+                "bid": 5838941,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "8",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 8,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 5.1,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4913104_ec0b9_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4913104_fe372_hd.jpeg",
+                "beer_name": "Tangerine Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-tangerine-stout",
+                "bid": 4913104,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.9,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-258808_bb67e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Oyster Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-oyster-stout",
+                "bid": 6632181,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Oyster"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4323268_bf0dc_sm.jpeg",
+                "beer_name": "Nitro Vanilla Cacao Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-nitro-vanilla-cacao-stout",
+                "bid": 4323268,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 10.5,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5102291_8a795_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5102291_37336_hd.jpeg",
+                "beer_name": "Nitro Barrel-Aged Imperial Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-nitro-barrel-aged-imperial-stout",
+                "bid": 5102291,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-258808_bb67e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Milk Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-milk-stout",
+                "bid": 2249457,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "9",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 9,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 4.5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Small Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-small-stout",
+                "bid": 2923043,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.1,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_label_hd": "https://assets.untappd.com/",
+                "beer_name": "Guinness Milk Stout #4",
+                "bid": 2633142,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [
+                  "mocha stout"
+                ],
+                "beer_abv": 9.7,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Mocha Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-mocha-stout",
+                "bid": 3661896,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 11,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Barrel Aged Antwerpen Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-guinness-barrel-aged-antwerpen-stout",
+                "bid": 2681711,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.3,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Milk Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-milk-stout",
+                "bid": 3391573,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "10",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 10,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "Heineken Panamá Guinness Extra Stout 5.6% (Panama)",
+                  "guinness extra stout panama"
+                ],
+                "beer_abv": 5.6,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1199_0ae42_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-1199_2ad8c_hd.jpeg",
+                "beer_name": "Guinness Extra Stout 5.6% (Panama)",
+                "beer_slug": "guinness-guinness-extra-stout-5-6-panama",
+                "bid": 4036194,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Nitro Fruit Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-nitro-fruit-stout",
+                "bid": 5269719,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-258808_bb67e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Sarsaparilla Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-sarsaparilla-stout",
+                "bid": 6606607,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Africa Special Stout",
+                "beer_slug": "guinness-guinness-africa-special-stout",
+                "bid": 1440316,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.8,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4839485_81f33_sm.jpeg",
+                "beer_name": "Bubble Tea Inspired Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-bubble-tea-inspired-stout",
+                "bid": 4839485,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "11",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 11,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 5.6,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_label_hd": "https://assets.untappd.com/",
+                "beer_name": "Guinness Espresso Stout",
+                "bid": 3642997,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Coffee"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.4,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-6148922_6c462_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-6148922_dfe32_hd.jpeg",
+                "beer_name": "Milk Punch-Inspired Stout",
+                "beer_slug": "guinness-open-gate-brewery-chicago-milk-punch-inspired-stout",
+                "bid": 6148922,
+                "brewery_name": "Guinness Open Gate Brewery Chicago",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [
+                  "Toast Ale Guinness X Toast Companion Stout"
+                ],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness X Toast Companion Stout",
+                "beer_slug": "guinness-guinness-x-toast-companion-stout",
+                "bid": 4557992,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 9.7,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Whisky Barrel Finished Chili Pepper Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-whisky-barrel-finished-chili-pepper-stout",
+                "bid": 2854210,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.9,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4620214_099a8_sm.jpeg",
+                "beer_name": "Citrus Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-citrus-stout",
+                "bid": 4620214,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "12",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 12,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guinness belgian in",
+                  "guinness belgianinspired stout"
+                ],
+                "beer_abv": 7,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2577546_4b99d_sm.jpeg",
+                "beer_name": "Guinness Belgian Stout #1",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-belgian-stout-1",
+                "bid": 2577546,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Belgian"
+              },
+              {
+                "alias_alt": [
+                  "sichuan pepper stout"
+                ],
+                "beer_abv": 5.9,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-258808_bb67e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Sichuan Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-sichaun-stout",
+                "bid": 6846573,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 13.3,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5471158_90dd0_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5471158_ba250_hd.jpeg",
+                "beer_name": "Imperial Coffee Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-imperial-coffee-stout",
+                "bid": 5471158,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double Coffee"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.6,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-258808_bb67e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Coconut Rum Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-coconut-rum-stout",
+                "bid": 6716361,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.8,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Chocolate Raspberry Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-chocolate-raspberry-stout",
+                "bid": 3682963,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "13",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 13,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 5.9,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4370762_886aa_sm.jpeg",
+                "beer_name": "Spiced Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-spiced-stout",
+                "bid": 4370762,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.2,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4684746_24bc0_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4684746_2f9b3_hd.jpeg",
+                "beer_name": "Currant Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-currant-stout",
+                "bid": 4684746,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 8.6,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Brett Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-brett-stout",
+                "bid": 5205240,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.7,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2444762_85c56_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2444762_bed34_hd.jpeg",
+                "beer_name": "Guinness Milk Stout #2",
+                "bid": 2444762,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5561555_4c8dd_sm.jpeg",
+                "beer_name": "We Made Another Stout!",
+                "beer_slug": "guinness-open-gate-brewery-chicago-we-made-another-stout",
+                "bid": 5561555,
+                "brewery_name": "Guinness Open Gate Brewery Chicago",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Oatmeal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "14",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 14,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 6.3,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1711081_08b17_sm.jpeg",
+                "beer_name": "Burnt Sugar & Sea Salt Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-burnt-sugar-and-sea-salt-stout",
+                "bid": 1711081,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.8,
+                "beer_ibu": 40,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-981742_10dbc_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-981742_e1be6_hd.jpeg",
+                "beer_name": "Guinness Original Extra Stout (Africa)",
+                "beer_slug": "guinness-guinness-original-extra-stout-africa",
+                "bid": 981742,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.9,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2555609_463d4_sm.jpeg",
+                "beer_name": "St. Pat’s Seaside Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-st-pat-s-seaside-stout",
+                "bid": 2555609,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 3.7,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-589327_242b1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Coconut Stout",
+                "beer_slug": "guinness-open-gate-brewery-london-coconut-stout",
+                "bid": 6755939,
+                "brewery_name": "Guinness Open Gate Brewery London",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.2,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Irish Dry Stout (Guinness-esque)",
+                "beer_slug": "hop-tech-irish-dry-stout-guinness-esque",
+                "bid": 1073988,
+                "brewery_name": "Hop Tech",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "15",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 15,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 7.7,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5745885_47d1d_sm.jpeg",
+                "beer_name": "Padraig's Stout",
+                "beer_slug": "guinness-open-gate-brewery-chicago-padraig-s-stout",
+                "bid": 5745885,
+                "brewery_name": "Guinness Open Gate Brewery Chicago",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Coffee"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 9,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Guinness Antwerpen Stout Barrel Finished",
+                "beer_slug": "guinness-open-gate-brewery-us-guinness-antwerpen-stout-barrel-finished",
+                "bid": 2451732,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.1,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5440658_02af1_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5440658_302f2_hd.jpeg",
+                "beer_name": "Irish Cream Inspired Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-irish-cream-inspired-stout",
+                "bid": 5440658,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5930199_54127_sm.jpeg",
+                "beer_name": "Blue Line Stout",
+                "beer_slug": "guinness-open-gate-brewery-chicago-blue-line-stout",
+                "bid": 5930199,
+                "brewery_name": "Guinness Open Gate Brewery Chicago",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - American"
+              },
+              {
+                "alias_alt": [
+                  "pistachio choco stout"
+                ],
+                "beer_abv": 5.3,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_label_hd": "https://assets.untappd.com/",
+                "beer_name": "Pistachio Chocolate Stout",
+                "bid": 6473060,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "16",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 16,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 12,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Barrel Aged Spiced Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-barrel-aged-spiced-stout",
+                "bid": 3887857,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-49_49cf6.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Guinness Chocolate Stout",
+                "beer_slug": "guinness-guinness-chocolate-stout",
+                "bid": 2782984,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Foreign / Export"
+              },
+              {
+                "alias_alt": [
+                  "nitro chocolate milk stout"
+                ],
+                "beer_abv": 4.5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Chocolate Milk Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-chocolate-milk-stout",
+                "bid": 6033609,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.8,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Milk Stout 2018",
+                "beer_slug": "guinness-open-gate-brewery-dublin-milk-stout-2018",
+                "bid": 2625051,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [
+                  "peanut stout"
+                ],
+                "beer_abv": 5.8,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Nut's About Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-nut-s-about-stout",
+                "bid": 5053594,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - English"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "17",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 17,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 5.1,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Chamomile Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-chamomile-stout",
+                "bid": 3927657,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5102297_96227_sm.jpeg",
+                "beer_name": "Chai Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-chai-stout",
+                "bid": 5102297,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.7,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Mint Chocolate Stout 2020",
+                "beer_slug": "guinness-open-gate-brewery-us-mint-chocolate-stout-2020",
+                "bid": 4029685,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.2,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3447541_f4cc3_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3447541_5a31e_hd.jpeg",
+                "beer_name": "Ginger & Wasabi Stout",
+                "bid": 3447541,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Spelt & Rye Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-spelt-and-rye-stout",
+                "bid": 3351151,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "18",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 18,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 6.3,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1814150_e87d2_sm.jpeg",
+                "beer_name": "Vanilla Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-vanilla-stout",
+                "bid": 1814150,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Milk / Sweet"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 13,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-366942_147d1.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Nitro Imperial Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-nitro-imperial-stout",
+                "bid": 6173196,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.7,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4547542_a4984_sm.jpeg",
+                "beer_name": "Raspberry Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-raspberry-stout",
+                "bid": 4547542,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4.5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Choc Mint Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-choc-mint-stout",
+                "bid": 5151263,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 8.4,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-2008676_742a3_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-2008676_1bcd8_hd.jpeg",
+                "beer_name": "Nitroatmeal Stout",
+                "bid": 2008676,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double Oatmeal"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "19",
+              "query": "Guinness Stout"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 19,
+            "nbPages": 38,
+            "nbHits": 187,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guinness cherry"
+                ],
+                "beer_abv": 4.4,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_name": "Cherry Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-cherry-stout",
+                "bid": 3528283,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 7.2,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1804379_22850_sm.jpeg",
+                "beer_name": "Weisen Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-weisen-stout",
+                "bid": 1804379,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5.5,
+                "beer_label": "https://assets.untappd.com/site/assets/images/temp/badge-beer-default.png",
+                "beer_label_hd": "https://assets.untappd.com/",
+                "beer_name": "Maritime Stout",
+                "bid": 3318171,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Oyster"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 11,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5160899_1892d_sm.jpeg",
+                "beer_name": "Barrel-Aged Chocolate Raspberry Stout",
+                "beer_slug": "guinness-open-gate-brewery-us-barrel-aged-chocolate-raspberry-stout",
+                "bid": 5160899,
+                "brewery_name": "Guinness Open Gate Brewery (US)",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Imperial / Double Pastry"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 6.2,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-1804372_a6b66_sm.jpeg",
+                "beer_name": "Apple Stout",
+                "beer_slug": "guinness-open-gate-brewery-dublin-apple-stout",
+                "bid": 1804372,
+                "brewery_name": "Guinness Open Gate Brewery Dublin",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Other"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ambiguous",
+    "reason": "Search incomplete: the page limit was reached; additional candidates may exist."
+  },
+  "excluded_urls": []
+}

@@ -1,0 +1,308 @@
+{
+  "provenance": "Live capture on 2026-10-14 (tests/corpus_tools.py record); sanitized to consumed fields; ratings masked (None/zero/positive kept); paging and identity evidence unchanged.",
+  "search": {
+    "query": "Samuel Adams Boston Lager",
+    "expected_beer": "Boston Lager",
+    "expected_brewery": "Samuel Adams",
+    "expected_abv": 5.0
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "false",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 200,
+            "nbHits": 5827180,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "guines",
+                  "guinne",
+                  "guinness draught extra cold",
+                  "guinness draft",
+                  "draught surger",
+                  "guinness draught nitro",
+                  "guinness draught stout",
+                  "nitro guinness draught",
+                  "st jamess gate guinness",
+                  "guinness nitro surge",
+                  "guinness draught nitrosurge",
+                  "guinness microdraught",
+                  "guinness draught stout limited edition lovely day",
+                  "guinness extra cold",
+                  "guiness microdraught",
+                  "guinness surger",
+                  "guinness draught 2026"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 45,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4473_1cbe8_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4473_95398_hd.jpeg",
+                "beer_name": "Guinness Draught",
+                "beer_slug": "guinness-guinness-draught",
+                "bid": 4473,
+                "brewery_name": "Guinness",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Stout - Irish Dry"
+              },
+              {
+                "alias_alt": [
+                  "l1te",
+                  "roadside draft",
+                  "millers lite",
+                  "diet miller",
+                  "miller lite steinie"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 10,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3811_99a49_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3811_65102_hd.jpeg",
+                "beer_name": "Miller Lite",
+                "beer_slug": "miller-brewing-company-miller-lite",
+                "bid": 3811,
+                "brewery_name": "Miller Brewing Company",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Light"
+              },
+              {
+                "alias_alt": [
+                  "heneken",
+                  "heinneken",
+                  "heineken xtra cold",
+                  "heineken chopp",
+                  "heineken extra cold",
+                  "heineken spectre",
+                  "heineken ice cold",
+                  "heineken ultra split",
+                  "heineken beer 150 years limited edition",
+                  "heineken cities edition",
+                  "heineken pilsener premium quality",
+                  "heineken pilsner",
+                  "heineken ijskoud",
+                  "heineken festive edition",
+                  "Brasserie de Tahiti Heineken - Tahiti",
+                  "heineken kerst magnu",
+                  "La Verde",
+                  "original pure malt lager",
+                  "heineken netflix senna",
+                  "heineken f1"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 19,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-5860_a68ef_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-5860_b0377_hd.jpeg",
+                "beer_name": "Heineken",
+                "beer_slug": "heineken-heineken",
+                "bid": 5860,
+                "brewery_name": "Heineken",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - Pale"
+              },
+              {
+                "alias_alt": [
+                  "budlight",
+                  "bud lite",
+                  "bud light limited edition",
+                  "bud light nfl",
+                  "bud light kickoff limited edition"
+                ],
+                "beer_abv": 4.2,
+                "beer_ibu": 6,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3784_0e2c3_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-3784_f4c3e_hd.jpeg",
+                "beer_name": "Bud Light",
+                "beer_slug": "anheuser-busch-bud-light",
+                "bid": 3784,
+                "brewery_name": "Anheuser-Busch",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Light"
+              },
+              {
+                "alias_alt": [
+                  "knockers lager",
+                  "yinlin",
+                  "american amber lager",
+                  "fancys down south lager",
+                  "yuengling lager team rwb",
+                  "bidwell amber ale",
+                  "Stars and Stripes",
+                  "moon mammoths lager"
+                ],
+                "beer_abv": 4.5,
+                "beer_ibu": 12,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-16649_c244e_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-16649_4ceb9_hd.jpeg",
+                "beer_name": "Traditional Lager",
+                "beer_slug": "yuengling-brewery-traditional-lager",
+                "bid": 16649,
+                "brewery_name": "Yuengling Brewery",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American Amber / Red"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0",
+              "query": "Samuel Adams Boston Lager"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 2,
+            "nbHits": 6,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [
+                  "boston lager remastered"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 30,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-4167619_98086_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/beer-4167619_98086_hd.jpeg",
+                "beer_name": "Boston Lager",
+                "beer_slug": "samuel-adams-boston-lager",
+                "bid": 4167619,
+                "brewery_name": "Samuel Adams",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 0,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-157_e5b7d.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Barrel Aged Boston Lager",
+                "beer_slug": "samuel-adams-barrel-aged-boston-lager",
+                "bid": 6823222,
+                "brewery_name": "Samuel Adams",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 0,
+                "type_name": "Lager - Vienna"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 43,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/winesearcher/40fae7ddb847997c73d3c1de8194b0a9737292ae5ba4cda5dc152a110d92b625_sm.jpeg",
+                "beer_label_hd": "https://assets.untappd.com/site/beer_logos_hd/winesearcher/40fae7ddb847997c73d3c1de8194b0a9737292ae5ba4cda5dc152a110d92b625_hd.jpeg",
+                "beer_name": "Berkshire Mountain Distillers Samuel Adams Boston Lager American Whiskey",
+                "beer_slug": "craft-brewers-whiskey-project-berkshire-mountain-distillers-samuel-adams-boston-lager-american-whiskey",
+                "bid": 7246940,
+                "brewery_name": "Craft Brewers Whiskey Project",
+                "in_production": 1,
+                "rating_count": 0,
+                "rating_score": 0,
+                "type_name": "Spirit - Whiskey - Blended"
+              },
+              {
+                "alias_alt": [
+                  "vienna style"
+                ],
+                "beer_abv": 5,
+                "beer_ibu": 30,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-3914_487c1_sm.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Boston Lager (1985–2022)",
+                "beer_slug": "samuel-adams-boston-lager-1985-2022",
+                "bid": 3914,
+                "brewery_name": "Samuel Adams",
+                "in_production": 0,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Lager - Vienna"
+              },
+              {
+                "alias_alt": [
+                  "blank slate brewing co. embree's northern dark baltic porter",
+                  "christian moerlein brewing embree's northern dark baltic porter",
+                  "fifty west brewing company embree's northern dark baltic porter",
+                  "great crescent brewery embree's northern dark baltic porter",
+                  "listermann brewing company embree's northern dark baltic porter",
+                  "moerlein lager house embree's northern dark baltic porter",
+                  "mt. carmel brewing company embree's northern dark baltic porter",
+                  "rock bottom restaurant  and  brewery embree's northern dark baltic porter",
+                  "boston beer company (samuel adams) embree's northern dark baltic porter",
+                  "triple digit brewery embree's northern dark baltic porter",
+                  "collaboration baltic porter"
+                ],
+                "beer_abv": 10.6,
+                "beer_ibu": 32,
+                "beer_label": "https://assets.untappd.com/site/beer_logos/beer-_292664_c7ec1a46c7d9c22a7f53562b7175.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Cincinnati Beer Week Embree's Northern Dark Baltic Porter (2013)",
+                "beer_slug": "rivertown-brewery-and-barrel-house-cincinnati-beer-week-embree-s-northern-dark-baltic-porter-2013",
+                "bid": 292664,
+                "brewery_name": "Rivertown Brewery & Barrel House",
+                "in_production": 0,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "Porter - Baltic"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ok",
+    "beer": "Boston Lager",
+    "url": "https://untappd.com/b/samuel-adams-boston-lager/4167619"
+  },
+  "excluded_urls": []
+}
