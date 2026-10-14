@@ -3948,6 +3948,12 @@ def _finalize_decision(page: Any, query: str, decision: Decision,
         )
 
     info = _confirmed_info_from_algolia(best, brewery)
+    if info is None and not best.get("url"):
+        # A real hit can lack beer_slug (the URL needs slug and bid). Never navigate to None:
+        # report the identified beer for manual review instead of an opaque failure.
+        return {"query": query, "status": "low_confidence", "match": best["name"], "score": best["score"],
+                "url": None, "reason": "Matched beer has no usable Untappd URL "
+                                       f"(beer_slug or bid missing; bid={best.get('bid')}); open it manually"}
     if info is None:
         _record_algolia_confirmation(detail_fallback=True)
         try:

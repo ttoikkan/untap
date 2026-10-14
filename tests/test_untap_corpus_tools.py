@@ -432,3 +432,27 @@ class LiveCaptureReplayTests(unittest.TestCase):
         _, page, problems = tools.replay_case(case)
         self.assertEqual(problems, [])
         self.assertEqual([r["mode"] for r in page.requests], ["ui", "ui"])
+
+
+class FinalizePromotionTests(unittest.TestCase):
+    def draft(self):
+        case = load("fallback_metadata")
+        return tools.build_draft(copy.deepcopy(case["exchanges"]), case["search"])
+
+    def test_synthetic_shape_issue_annotations_are_refused_for_live_drafts(self):
+        draft = self.draft()
+        draft["shape_issues"] = ["hit.bid: missing or unexpected type"]
+        with self.assertRaisesRegex(tools.CaptureRefused, "unsupported fields"):
+            tools.finalize(draft, {"status": "ok"})
+
+    def test_unknown_draft_fields_are_never_promoted(self):
+        draft = self.draft()
+        draft["note"] = "hand edited"
+        with self.assertRaisesRegex(tools.CaptureRefused, "unsupported fields"):
+            tools.finalize(draft, {"status": "ok"})
+
+    def test_search_and_provenance_must_be_present(self):
+        draft = self.draft()
+        del draft["provenance"]
+        with self.assertRaisesRegex(tools.CaptureRefused, "provenance"):
+            tools.finalize(draft, {"status": "ok"})

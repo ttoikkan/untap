@@ -1,0 +1,61 @@
+{
+  "provenance": "Hand-authored: real responses can contain hits without a usable beer_slug (seen in a refused live expansion capture).",
+  "search": {
+    "query": "Badlands Fazy",
+    "expected_beer": "Fazy",
+    "expected_brewery": "Badlands",
+    "expected_abv": 6.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Badlands Fazy",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Fazy",
+                "brewery_name": "Badlands Brewing Company",
+                "beer_abv": 6.5,
+                "bid": 10,
+                "beer_slug": null,
+                "rating_score": 4.2,
+                "rating_count": 50,
+                "type_name": "IPA",
+                "in_production": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "shape_issues": [
+    "hit.beer_slug: missing or unexpected type"
+  ],
+  "expected": {
+    "status": "low_confidence",
+    "match": "Fazy",
+    "url": null,
+    "reason": "Matched beer has no usable Untappd URL (beer_slug or bid missing; bid=10); open it manually"
+  },
+  "excluded_urls": []
+}

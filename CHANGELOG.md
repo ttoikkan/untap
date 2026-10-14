@@ -1,3 +1,8 @@
+# Unreleased — Draft promotion and missing-URL handling
+
+- Reject unsupported live-draft metadata, including synthetic shape annotations, while preserving response-shape error precedence. Promote only the five supported corpus fields.
+- Return a reviewable low-confidence result when a selected beer has no usable URL, preserving its name and bid diagnostic without navigating. Add a strict replay regression that checks the reason as well as the status and missing URL.
+
 # v112 — Capture safeguards, compatibility exports and live replay (2026-10-13)
 
 - Declare intentional compatibility exports in report, batch and run, and test their declaration and implementation identity. The unused-import guard is explicitly a lightweight check of top-level imports, not a scope-aware general linter.

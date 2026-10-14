@@ -242,8 +242,15 @@ def finalize(draft: Dict[str, Any], expected: Dict[str, Any], excluded_urls: Opt
     unknown = set(expected) - set(MatchResult.__annotations__)
     if unknown:
         raise CaptureRefused(f"unknown expected result fields: {sorted(unknown)}")
-    exchanges = _validated_exchanges(draft.get("exchanges"), sanitize=False)
-    case = {**draft, "exchanges": exchanges, "expected": expected, "excluded_urls": list(excluded_urls or [])}
+    exchanges = _validated_exchanges(draft.get("exchanges"), sanitize=False)   # response problems report first
+    unsupported = set(draft) - {"provenance", "search", "exchanges", "expected", "excluded_urls"}
+    if unsupported:
+        raise CaptureRefused(f"draft has unsupported fields {sorted(unsupported)}; "
+                             "shape_issues annotations are for synthetic cases only, never live captures")
+    if not isinstance(draft.get("search"), dict) or not isinstance(draft.get("provenance"), str):
+        raise CaptureRefused("draft needs a search object and a provenance string")
+    case = {"provenance": draft["provenance"], "search": draft["search"], "exchanges": exchanges,
+            "expected": expected, "excluded_urls": list(excluded_urls or [])}
     try:
         _result, _page, problems = replay_case(case)
     except Exception as exc:

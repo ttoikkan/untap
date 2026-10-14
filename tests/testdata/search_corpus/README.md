@@ -1,6 +1,6 @@
 # Search replay corpus
 
-These are hand-authored, sanitized payload-shaped fixtures, not live captures. They exercise the real search flow by replacing only the Playwright page. `tests/replay_page.py` supplies UI bootstrap events and direct fetch responses. No matcher, request-builder, parser or fallback helper is patched.
+Most of these are hand-authored, sanitized payload-shaped fixtures; the `live_*` cases are sanitized real captures (see "Capturing real cases"). They exercise the real search flow by replacing only the Playwright page. `tests/replay_page.py` supplies UI bootstrap events and direct fetch responses. No matcher, request-builder, parser or fallback helper is patched.
 
 Each JSON case declares search arguments, an ordered list of exchanges, expected result fields and excluded inspection URLs. An exchange specifies UI or fetch transport and every index/parameter in the POST body, plus the status and minimal Algolia response. Unexpected requests, wrong parameters, unused exchanges, unintended navigation and leaked listeners fail even if production exception handling catches the original replay error. Transport authority state resets for each case.
 
