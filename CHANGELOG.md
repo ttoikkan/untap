@@ -5,6 +5,8 @@
 
 - Split structural response failures from unavailable confirmation metadata. Smoke diagnostics locate incomplete hits by result/hit index and bid; malformed present types remain failures.
 
+- Add 1,000 seeded finalization cases with absent/null URL, ABV, brewery and ratings; validate detail-navigation targets and candidate immutability. Fix missing URL keys in low-confidence finalization.
+
 # v112 — Capture safeguards, compatibility exports and live replay (2026-10-13)
 
 - Declare intentional compatibility exports in report, batch and run, and test their declaration and implementation identity. The unused-import guard is explicitly a lightweight check of top-level imports, not a scope-aware general linter.

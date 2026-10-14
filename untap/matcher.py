@@ -3934,7 +3934,7 @@ def _finalize_decision(page: Any, query: str, decision: Decision,
                 "expanded_total_hits": discovery.get("expanded_total_hits")}
     if kind == "low_confidence":
         return {"query": query, "status": "low_confidence", "match": best["name"],
-                "score": best["score"], "url": best["url"]}
+                "score": best["score"], "url": best.get("url")}
 
     brewery = best.get("brewery")
     if not brewery or normalize(brewery) == "unknown":
