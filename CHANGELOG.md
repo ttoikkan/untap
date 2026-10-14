@@ -1,7 +1,9 @@
-# Unreleased — Draft promotion and missing-URL handling
+# Unreleased — Capture validation and finalization hardening
 
 - Reject unsupported live-draft metadata, including synthetic shape annotations, while preserving response-shape error precedence. Promote only the five supported corpus fields.
 - Return a reviewable low-confidence result when a selected beer has no usable URL, preserving its name and bid diagnostic without navigating. Add a strict replay regression that checks the reason as well as the status and missing URL.
+
+- Split structural response failures from unavailable confirmation metadata. Smoke diagnostics locate incomplete hits by result/hit index and bid; malformed present types remain failures.
 
 # v112 — Capture safeguards, compatibility exports and live replay (2026-10-13)
 

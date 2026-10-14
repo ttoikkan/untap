@@ -682,15 +682,18 @@ def _parse_algolia_request_body(body: Optional[str]) -> List[AlgoliaRequestRecor
 # additional service fields are deliberately tolerated; this is diagnostic only.
 _ALGOLIA_REQUIRED_RESULT_FIELDS = {"hits": list, "nbHits": int, "page": int, "nbPages": int}
 _ALGOLIA_REQUIRED_HIT_FIELDS: Dict[str, Any] = {"beer_name": str, "brewery_name": str, "beer_abv": (int, float),
-                                "bid": int, "beer_slug": str, "rating_score": (int, float),
-                                "rating_count": int, "type_name": str}
+                                "bid": int}
+_ALGOLIA_CONFIRMATION_HIT_FIELDS: Dict[str, Any] = {"beer_slug": str, "rating_score": (int, float),
+                                                   "rating_count": int, "type_name": str}
 _RESPONSE_SHAPE_ISSUES: set[str] = set()
 _RESPONSE_SHAPE_OBSERVATIONS = 0
+_RESPONSE_METADATA_DIAGNOSTICS: set[str] = set()
 
 
 def reset_response_shape_observations() -> None:
     global _RESPONSE_SHAPE_OBSERVATIONS
     _RESPONSE_SHAPE_ISSUES.clear()
+    _RESPONSE_METADATA_DIAGNOSTICS.clear()
     _RESPONSE_SHAPE_OBSERVATIONS = 0
 
 
@@ -717,17 +720,44 @@ def algolia_response_shape_issues(payload: Any) -> List[str]:
             if not isinstance(hit, dict):
                 issues.add("hit must be an object")
                 continue
-            for key, kinds in _ALGOLIA_REQUIRED_HIT_FIELDS.items():
+            for key, kinds in {**_ALGOLIA_REQUIRED_HIT_FIELDS, **_ALGOLIA_CONFIRMATION_HIT_FIELDS}.items():
+                if key in _ALGOLIA_CONFIRMATION_HIT_FIELDS and hit.get(key) is None:
+                    continue
                 value = hit.get(key)
                 if not isinstance(value, kinds) or isinstance(value, bool):
                     issues.add(f"hit.{key}: missing or unexpected type")
     return sorted(issues)
 
 
+
+def algolia_response_metadata_diagnostics(payload: Any) -> List[str]:
+    """Locate incomplete confirmation metadata without treating it as schema drift."""
+    diagnostics: List[str] = []
+    if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+        return diagnostics
+    for result_index, result in enumerate(payload["results"]):
+        if not isinstance(result, dict) or not isinstance(result.get("hits"), list):
+            continue
+        for hit_index, hit in enumerate(result["hits"]):
+            if not isinstance(hit, dict):
+                continue
+            for field in _ALGOLIA_CONFIRMATION_HIT_FIELDS:
+                value = hit.get(field)
+                if value is None or (isinstance(value, str) and not value.strip()):
+                    diagnostics.append(f"result[{result_index}].hit[{hit_index}] bid={hit.get('bid')}: "
+                                       f"{field} unavailable")
+    return diagnostics
+
+
+def response_metadata_observations() -> List[str]:
+    return sorted(_RESPONSE_METADATA_DIAGNOSTICS)
+
+
 def _summarize_algolia_response(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     global _RESPONSE_SHAPE_OBSERVATIONS
     _RESPONSE_SHAPE_OBSERVATIONS += 1
     _RESPONSE_SHAPE_ISSUES.update(algolia_response_shape_issues(payload))
+    _RESPONSE_METADATA_DIAGNOSTICS.update(algolia_response_metadata_diagnostics(payload))
     summaries = []
 
     for result in payload.get("results") or []:

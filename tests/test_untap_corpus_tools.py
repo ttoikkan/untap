@@ -106,7 +106,7 @@ class AllowlistTests(unittest.TestCase):
         self.assertEqual(sorted(set(tools.ALLOWED_HIT_FIELDS) - consumed_hit_fields()), [])
 
     def test_shape_canary_fields_are_all_preserved(self):
-        self.assertTrue(set(transport._ALGOLIA_REQUIRED_HIT_FIELDS) <= set(tools.ALLOWED_HIT_FIELDS))
+        self.assertTrue((set(transport._ALGOLIA_REQUIRED_HIT_FIELDS) | set(transport._ALGOLIA_CONFIRMATION_HIT_FIELDS)) <= set(tools.ALLOWED_HIT_FIELDS))
         self.assertTrue(set(transport._ALGOLIA_REQUIRED_RESULT_FIELDS) - {"hits"} <= set(tools.RESULT_FIELDS))
 
 

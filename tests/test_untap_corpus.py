@@ -55,3 +55,21 @@ class ResponseShapeCanaryTests(unittest.TestCase):
         self.assertIn("result.nbHits: missing or unexpected type", issues)
         self.assertIn("hit.beer_name: missing or unexpected type", issues)
         self.assertIn("hit.bid: missing or unexpected type", issues)
+
+
+class ConfirmationMetadataTests(unittest.TestCase):
+    def test_missing_metadata_is_not_drift_and_identifies_hit(self):
+        payload = {"results": [{"hits": [{"beer_name": "Beer", "brewery_name": "Brewery",
+                    "beer_abv": 5., "bid": 42}], "nbHits": 1, "page": 0, "nbPages": 1}]}
+        self.assertEqual(transport.algolia_response_shape_issues(payload), [])
+        diagnostics = transport.algolia_response_metadata_diagnostics(payload)
+        self.assertIn("result[0].hit[0] bid=42: beer_slug unavailable", diagnostics)
+        transport.reset_response_shape_observations()
+        self.addCleanup(transport.reset_response_shape_observations)
+        transport._summarize_algolia_response(payload)
+        self.assertEqual(transport.response_shape_observations(), (1, []))
+        self.assertEqual(transport.response_metadata_observations(), sorted(diagnostics))
+        transport.reset_response_shape_observations()
+        self.assertEqual(transport.response_metadata_observations(), [])
+        payload["results"][0]["hits"][0]["beer_slug"] = 123
+        self.assertIn("hit.beer_slug: missing or unexpected type", transport.algolia_response_shape_issues(payload))

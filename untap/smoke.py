@@ -14,7 +14,7 @@ from untap.matcher import (
     reset_algolia_confirmation_stats,
     search_one,
 )
-from untap.transport import reset_response_shape_observations, response_shape_observations
+from untap.transport import reset_response_shape_observations, response_shape_observations, response_metadata_observations
 from untap.transport import (
     get_search_transport_authority_stats,
     reset_search_transport_authority_state,
@@ -104,6 +104,9 @@ def _print_checks(checks: List[SmokeCheck], exit_code: int) -> None:
     observations, issues = response_shape_observations()
     checks.append(SmokeCheck("Recorded response shape", "WARN" if issues else "PASS" if observations else "NOT OBSERVED",
                              "; ".join(issues)))
+    metadata = response_metadata_observations()
+    checks.append(SmokeCheck("Confirmation metadata", "INFO" if metadata else "PASS" if observations else "NOT OBSERVED",
+                             "; ".join(metadata)))
     print()
     print("Untap live smoke test")
     print("=" * 70)

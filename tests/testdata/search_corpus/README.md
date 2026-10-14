@@ -29,3 +29,5 @@ First live use: confirm that the exchange count equals the requests the run made
 - `live_guinness_draught`: ten hits across two advertised pages; exact identity correctly skips expansion.
 
 All include the real empty-query search-page bootstrap before the typed query and pass strict replay after sanitization. A separate Guinness/Stout expansion attempt was refused at exchange 11 because `beer_slug` failed the shape canary; no fixture was retained. Actual expansion and retired-base live examples remain to be added. The existing synthetic cases retain that coverage.
+
+The canary requires name, brewery, ABV and bid on every hit. Missing slug, ratings or style are incomplete confirmation metadata, reported with result/hit indexes and bid by the smoke check, rather than schema failures. Present values of the wrong type still fail validation. Missing paging or identity fields still refuse live captures.

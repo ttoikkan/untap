@@ -48,9 +48,6 @@
       }
     }
   ],
-  "shape_issues": [
-    "hit.beer_slug: missing or unexpected type"
-  ],
   "expected": {
     "status": "low_confidence",
     "match": "Fazy",
