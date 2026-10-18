@@ -73,3 +73,11 @@ class ConfirmationMetadataTests(unittest.TestCase):
         self.assertEqual(transport.response_metadata_observations(), [])
         payload["results"][0]["hits"][0]["beer_slug"] = 123
         self.assertIn("hit.beer_slug: missing or unexpected type", transport.algolia_response_shape_issues(payload))
+
+
+    def test_blank_slugs_are_reported_as_incomplete_metadata(self):
+        for slug in ("", "   "):
+            with self.subTest(slug=repr(slug)):
+                payload = {"results": [{"hits": [{"bid": 42, "beer_slug": slug}]}]}
+                self.assertIn("result[0].hit[0] bid=42: beer_slug unavailable",
+                              transport.algolia_response_metadata_diagnostics(payload))

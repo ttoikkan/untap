@@ -1,5 +1,6 @@
 """Seeded missing-metadata invariants at the decision/finalization boundary."""
 import copy
+import os
 import random
 import unittest
 from unittest.mock import patch
@@ -24,11 +25,13 @@ def detail_response(page, url, **kwargs):
 
 class FinalizationInvariantTests(unittest.TestCase):
     def test_missing_metadata_never_raises_or_navigates_without_url(self):
-        rng = random.Random(112)
+        seed = int(os.environ.get("UNTAP_FINALIZATION_SEED", "112"))
+        count = int(os.environ.get("UNTAP_FINALIZATION_CASES", "1000"))
+        self.assertGreater(count, 0, "UNTAP_FINALIZATION_CASES must be positive")
+        rng = random.Random(seed)
         fields = ['url', 'abv', 'brewery', 'rating_score', 'rating_count']
         expected = dict(beer='Beer', brewery='Brewery', abv=5., style=None)
-        counts = {'selected': 0, 'low_confidence': 0, 'detail': 0}
-        for index in range(1000):
+        for index in range(count):
             row = dict(name='Beer', text='Brewery Beer 5% ABV', score=rng.choice([1., .1]),
                        brewery='Brewery', abv=5., bid=index+1,
                        url=f'https://untappd.com/b/beer/{index+1}', rating_score=4., rating_count=100)
@@ -40,10 +43,8 @@ class FinalizationInvariantTests(unittest.TestCase):
                     row[field] = None
             before = copy.deepcopy(row)
             page = StrictDetailPage()
-            with self.subTest(seed=112, case=index, row=row):
+            with self.subTest(seed=seed, case=index, row=row):
                 decision = matcher.decide_candidates([row], expected, .425, {})
-                if decision['kind'] in counts:
-                    counts[decision['kind']] += 1
                 with patch.object(matcher, 'extract_beer_info', side_effect=detail_response):
                     result = matcher._finalize_decision(page, 'Brewery Beer', decision, {}, None)
                 self.assertIn(result['status'], matcher.MATCH_RESULT_STATUSES)
@@ -51,5 +52,40 @@ class FinalizationInvariantTests(unittest.TestCase):
                 if not row.get('url'):
                     self.assertFalse(page.visits)
                     self.assertNotEqual(result['status'], 'ok')
-                counts['detail'] += bool(page.visits)
-        self.assertTrue(all(counts.values()), counts)
+
+    def test_multicandidate_ambiguity_preserves_incomplete_alternatives(self):
+        for production_conflict in (False, True):
+            for field in ('url', 'abv', 'brewery', 'rating_score', 'rating_count'):
+                with self.subTest(production_conflict=production_conflict, field=field):
+                    rows = [dict(name='Beer', text='Brewery Beer 5% ABV', brewery='Brewery',
+                                 abv=5., score=1., bid=1, url='https://untappd.com/b/beer/1',
+                                 rating_score=4., rating_count=100, in_production=False),
+                            dict(name='Beer 2026', text='Brewery Beer 2026 5% ABV', brewery='Brewery',
+                                 abv=5., score=.99, bid=2, url='https://untappd.com/b/beer-2026/2',
+                                 rating_score=4., rating_count=100, in_production=True)]
+                    for row in rows:
+                        row.pop(field)
+                    before = copy.deepcopy(rows)
+                    decision = dict(kind='ambiguous', rule='production_conflict' if production_conflict else 'ambiguity',
+                                    candidate=rows[0], reason='Review candidates', alternatives=rows,
+                                    same_abv_variants=rows[1:], search_warning=None,
+                                    diagnostics=[], excluded_candidates=[])
+                    page = StrictDetailPage()
+                    result = matcher._finalize_decision(page, 'Brewery Beer', decision, {}, None)
+                    self.assertEqual(result['status'], 'ambiguous')
+                    self.assertEqual([item['name'] for item in result['alternatives']], ['Beer', 'Beer 2026'])
+                    self.assertEqual(len(result['same_abv_variants']), 0 if production_conflict else 1)
+                    self.assertFalse(page.visits)
+                    self.assertEqual(rows, before)
+
+    def test_selected_metadata_falls_back_only_with_a_url(self):
+        for url in (None, 'https://untappd.com/b/beer/1'):
+            row = dict(name='Beer', text='Brewery Beer 5% ABV', score=1., bid=1, url=url)
+            decision = dict(kind='selected', rule='score', candidate=row, alternatives=[row],
+                            reason=None, same_abv_variants=[], search_warning=None,
+                            diagnostics=[], excluded_candidates=[])
+            page = StrictDetailPage()
+            with patch.object(matcher, 'extract_beer_info', side_effect=detail_response):
+                result = matcher._finalize_decision(page, 'Brewery Beer', decision, {}, None)
+            self.assertEqual(result['status'], 'ok' if url else 'low_confidence')
+            self.assertEqual(page.visits, [url] if url else [])

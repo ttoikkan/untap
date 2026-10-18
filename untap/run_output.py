@@ -133,7 +133,9 @@ def write_run_outputs(snapshot: Dict[str, Any], output: Path, *,
         save_csv(results, str(output / "results.csv"))
     if html is None:
         html = render_html_report(results, snapshot["report"]["title"],
-                                  snapshot["report"]["date"] if use_snapshot_date else None)
+                                  snapshot["report"]["date"] if use_snapshot_date else None,
+                                  source_created_at=snapshot.get("created_at"),
+                                  rebuilt_at=snapshot["report"].get("rebuilt_at"))
     with (output / "results.html").open("w", encoding="utf-8", newline="") as handle:
         handle.write(html)
     if csv_requested and not csv_first:

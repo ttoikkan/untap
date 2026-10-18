@@ -97,7 +97,11 @@ untap refresh results/<run-folder>/
 untap refresh results/<run-folder>/ --output results/my-refreshed-report
 ```
 
-Refresh rebuilds HTML from the saved snapshot without repeating the menu search. It creates a new output folder and retains applied manual decisions. Use `--csv` for optional CSV output. To publish the refreshed report as well, add `--archive ../untap-results --replace`.
+Refresh rebuilds HTML from the saved snapshot without repeating the menu search. At the end of the report, below the review/save controls, **Source data saved** is shown separately from **Report rebuilt**; rebuilding does not fetch new ratings or change the menu date. Published archive cards show these timestamps and the latest report-refresh outcome. A failed refresh keeps the last good published report and updates the archive index with a failure notice. Older reports remain usable without timestamp metadata.
+
+The refresh command records its latest outcome in `refresh-status.json` beside the source snapshot; archive diagnostics are stored in `.untap-refresh-status.json`. Keep that archive file when moving or publishing the archive so later index rebuilds preserve the notices.
+
+It creates a new output folder and retains applied manual decisions. Use `--csv` for optional CSV output. To publish the refreshed report as well, add `--archive ../untap-results --replace`.
 
 For several reports, create a configuration whose paths are relative to the configuration file:
 

@@ -2,6 +2,7 @@
 
 import argparse
 import json
+from datetime import datetime, timezone
 from copy import deepcopy
 import sys
 from uuid import uuid4
@@ -9,7 +10,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from untap.run_output import write_run_outputs
-from untap.publish import PublishError, publish_report
+from untap.publish import PublishError, publish_report, record_archive_refresh_status
 from untap.report import render_html_report
 from untap.review_policy import selection_report_id, sorted_review_results, review_candidates, available_review_candidate
 from untap.snapshot import load_snapshot
@@ -117,9 +118,13 @@ def refresh(source: Path, output: Optional[Path] = None, selections: Optional[Pa
 
 def write_reviewed_run(snapshot, source: Path, output: Optional[Path] = None, csv_requested: bool = False) -> Path:
     """Write self-contained reviewed outputs without changing their source."""
+    snapshot = deepcopy(snapshot)
+    snapshot["report"]["rebuilt_at"] = datetime.now(timezone.utc).isoformat()
     results = [item["result"] for item in snapshot["items"]]
     # Render before creating output so invalid results cannot leave a report.
-    html = render_html_report(results, snapshot["report"]["title"], snapshot["report"]["date"])
+    html = render_html_report(results, snapshot["report"]["title"], snapshot["report"]["date"],
+                              source_created_at=snapshot.get("created_at"),
+                              rebuilt_at=snapshot["report"].get("rebuilt_at"))
     if output is None:
         output = source.parent.parent / (source.parent.name + "_refresh_" + uuid4().hex)
         output.mkdir()
@@ -173,6 +178,41 @@ def refresh_batch(config_path: Path, csv_requested: bool = False) -> int:
     return 2 if failures else 0
 
 
+
+def _record_outcome(source: Path, archive: Optional[Path], title: Optional[str], outcome: str) -> None:
+    """Status writes are diagnostic; never turn a refresh error into a success."""
+    if not source.exists():
+        return
+    attempted_at = datetime.now(timezone.utc).isoformat()
+    directory = source if source.is_dir() else source.parent
+    try:
+        status = {"outcome": outcome, "attempted_at": attempted_at,
+                  "operation": "rebuild_and_publish" if archive else "rebuild"}
+        # Atomic replacement preserves a prior status if writing fails.
+        import tempfile
+        import os
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=directory,
+                                         prefix=".refresh-status-", delete=False) as handle:
+            temporary = Path(handle.name)
+            try:
+                json.dump(status, handle, indent=2)
+                handle.write("\n")
+            except BaseException:
+                temporary.unlink(missing_ok=True)
+                raise
+        try:
+            os.replace(temporary, directory / "refresh-status.json")
+        finally:
+            temporary.unlink(missing_ok=True)
+    except (OSError, ValueError) as exc:
+        print(f"Could not save refresh status: {exc}", file=sys.stderr)
+    if archive is not None and title:
+        try:
+            record_archive_refresh_status(archive, title, outcome, attempted_at)
+        except (OSError, ValueError, TypeError) as exc:
+            print(f"Could not update archive refresh status: {exc}", file=sys.stderr)
+
+
 def configure_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("source", nargs="?", type=Path, help="run directory or results.json")
     parser.add_argument("--batch", type=Path, help="JSON configuration listing saved runs to refresh")
@@ -205,15 +245,20 @@ def run_options(args: argparse.Namespace, parser: argparse.ArgumentParser) -> in
         parser.error("--fetch-candidates requires --selections")
     if args.replace and args.archive is None:
         parser.error("--replace requires --archive")
+    title = None
     try:
+        original = args.source / "results.json" if args.source.is_dir() else args.source
+        title = load_snapshot(original)["report"]["title"]
         output = refresh(args.source, args.output, args.selections, args.fetch_candidates, args.csv)
         print(f"Refreshed run: {output.resolve()}")
         if args.archive is not None:
             published = publish_report(output / "results.html", args.archive, replace=args.replace)
             print(f"Published locally: {args.archive / 'reports' / published.filename}")
     except (OSError, ValueError, TypeError, KeyError, PublishError) as exc:
+        _record_outcome(args.source, args.archive, title, "failed")
         print(f"Refresh failed: {exc}", file=sys.stderr)
         return 2
+    _record_outcome(args.source, args.archive, title, "succeeded")
     return 0
 
 

@@ -8,7 +8,7 @@ S1 pins conflicting beer-only inspection links. S7 uses real scores and a strict
 
 To add a recording, remove headers, keys, cookies and unrelated hit fields. Retain request query/page/index/parameters and only fields consumed by response validation, candidate construction and matching. Declare actual capture provenance; hand-authored rare-condition cases must say so. Do not copy whole third-party responses into the repository.
 
-Run `python3 -B -m unittest tests.test_untap_corpus`. The passive smoke shape canary uses `algolia_response_shape_issues` in `untap.transport`; corpus tests keep its required-field expectations aligned. Optional additions are allowed, and intentional missing metadata is annotated with `shape_issues`.
+Run `python3 -B -m unittest tests.test_untap_corpus`. The passive smoke shape canary uses `algolia_response_shape_issues` in `untap.transport`; corpus tests keep its required-field expectations aligned. Optional additions are allowed. Hand-authored cases that intentionally omit required identity or paging fields declare the expected structural failures in `shape_issues`. Missing optional confirmation metadata (slug, ratings or style) is diagnostic rather than a structural failure and needs no such annotation. Live drafts never accept `shape_issues` annotations; required-field or malformed-type failures refuse promotion.
 
 ## Capturing real cases
 

@@ -119,7 +119,8 @@ class UnifiedCommandTests(unittest.TestCase):
             smoke.assert_not_called()
 
     def test_refresh_writes_identical_html_json_and_csv(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        from tests.test_untap_decision_characterization import FixedDatetime
+        with tempfile.TemporaryDirectory() as tmp, mock.patch('untap.refresh.datetime', FixedDatetime):
             root = Path(tmp)
             source = root / 'results.json'
             save_snapshot(build_snapshot([{'query': 'Beer', 'status': 'failed', 'reason': 'No matches'}], 'My menu'), source)

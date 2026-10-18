@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 from untap.types import MatchResult
 from untap.report_model import (prepare_report_rows, format_rating as _format_rating,
-                                format_count, format_abv as _format_abv, production_label)
+                                format_count, format_abv as _format_abv, production_label, format_timestamp)
 # Compatibility names remain available to callers of older source versions.
 from untap.review_policy import (
     DEFAULT_REPORT_TITLE as DEFAULT_REPORT_TITLE,
@@ -265,7 +265,7 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
         menu_abv_text = escape(row.menu_abv)
         search_warning = (
             '<p class="review-reason">' + escape(row.search_warning) + '</p>'
-            if row.search_warning else ""
+            if row.search_warning and row.search_warning != row.reason else ""
         )
         result_cards.append(
             """
@@ -289,8 +289,22 @@ def render_html_report(
     results: Sequence[MatchResult],
     title: str = DEFAULT_REPORT_TITLE,
     report_date: Optional[str] = None,
+    *, source_created_at: Optional[str] = None, rebuilt_at: Optional[str] = None,
 ) -> str:
     """Return one self-contained responsive HTML report."""
+    lifecycle_meta = ""
+    lifecycle_html = ""
+    for key, label, value in (("source-created-at", "Source data saved", source_created_at),
+                              ("rebuilt-at", "Report rebuilt", rebuilt_at)):
+        display = format_timestamp(value)
+        if display:
+            lifecycle_meta += f'\n  <meta name="untap-{key}" content="{escape(str(value), quote=True)}">'
+            lifecycle_html += (f'<div><dt>{label}</dt><dd><time datetime="{escape(str(value), quote=True)}">'
+                               f'{escape(display)}</time></dd></div>')
+    if lifecycle_html:
+        lifecycle_html = ('<section class="report-freshness" aria-label="Report freshness"><dl>'
+                          + lifecycle_html + '</dl><p class="freshness-note">'
+                          'Rebuilding a report does not fetch new ratings.</p></section>')
     clean_title = title.strip() or DEFAULT_REPORT_TITLE
     generated_date = report_date or date.today().isoformat()
     confirmed = [result for result in results if result.get("status") == "ok"]
@@ -359,7 +373,7 @@ def render_html_report(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="untap-report-title" content="{meta_title}">
-  <meta name="untap-report-date" content="{report_date}">
+  <meta name="untap-report-date" content="{report_date}">{lifecycle_meta}
   <meta name="untap-total-beers" content="{total}">
   <meta name="untap-confirmed-count" content="{confirmed_count}">
   <meta name="untap-review-count" content="{review_count}">
@@ -378,6 +392,18 @@ def render_html_report(
     h2 {{ margin-top: 32px; }}
     h3, h4, p {{ margin-top: 0; }}
     .summary {{ margin: 0; opacity: .72; }}
+    #report-footer {{ display: grid; gap: 18px; margin-top: 32px; }}
+    #report-footer:empty {{ display: none; }}
+    .report-freshness {{ margin-top: 0; padding-top: 14px; border-top: 1px solid color-mix(in srgb, CanvasText 14%, transparent); font-size: .85rem; line-height: 1.5; }}
+    .report-freshness dl {{ display: grid; gap: 6px; margin: 0; }}
+    .report-freshness dl > div {{ display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 12px; }}
+    .report-freshness dt {{ opacity: .7; }}
+    .report-freshness dd {{ margin: 0; font-variant-numeric: tabular-nums; }}
+    .freshness-note {{ margin: 10px 0 0; font-size: .8rem; opacity: .65; }}
+    @media (max-width: 480px) {{
+      .report-freshness dl {{ gap: 10px; }}
+      .report-freshness dl > div {{ grid-template-columns: minmax(0, 1fr); gap: 0; }}
+    }}
     .style-filters {{ margin: 22px 0 8px; padding: 14px 16px 16px; border: 1px solid color-mix(in srgb, CanvasText 16%, transparent); border-radius: 16px; }}
     .status-filters {{ margin-bottom: 0; }}
     .status-filters + .style-filters {{ margin-top: 12px; }}
@@ -457,6 +483,7 @@ def render_html_report(
       <h2 id="results-heading">Results</h2>
       <div class="results-list">{results_html}</div>
     </section>
+    <footer id="report-footer">{lifecycle_html}</footer>
   </main>
   <dialog class="label-dialog" id="label-dialog" aria-label="Beer label preview">
     <button class="label-dialog-close" type="button" aria-label="Close label preview">×</button>
@@ -538,6 +565,8 @@ def render_html_report(
         not_attempted_count=not_attempted + omitted,
         rate_limited_count=rate_limited,
         incomplete_warning=incomplete_warning,
+        lifecycle_meta=lifecycle_meta,
+        lifecycle_html=lifecycle_html,
         review_count=len(needs_review),
         ambiguous_count=ambiguous_count,
         failed_count=failed_count,

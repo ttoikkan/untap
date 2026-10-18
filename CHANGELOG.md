@@ -1,3 +1,14 @@
+# v114 — Review explanations and refresh visibility (2026-10-18)
+
+- Explain uncertain review cards using saved evidence, show candidate/menu ABV differences and avoid duplicate search warnings. Preserve matching policy and selection IDs; HTML expectations have explicit presentation-only overlays.
+- Show source-data save time separately from successful report rebuild time, retaining the menu date and rating data. Offline rebuilds explicitly do not fetch new ratings.
+- Move review/save controls and timestamp metadata to the report footer, keeping the header focused on the menu and result summary. Align timestamp labels, soften the explanatory note and stack label/value pairs on mobile.
+- Persist refresh outcomes beside the source and in the local archive. Display failed attempts on archive cards while preserving the last good published report. Support legacy reports without timestamps and ignore corrupt optional archive status with a warning.
+- Pin empty/whitespace slug diagnostics; add finalization seed/count controls and directed ambiguity-list/detail-fallback coverage for incomplete metadata.
+- Record ABV-zero ambiguity with paired real examples, Cyrillic-only matching limitations and outstanding evidence/policy questions in BACKLOG.md.
+- Maintainer validation: review explanations and footer layout look correct; all 17 configured reports rebuilt successfully and timestamps were checked.
+- Validation: 428 tests pass, including fresh installed-wheel checks; 35 source/tooling files type-check. Desktop/mobile previews and the relocated save action were checked, with no mobile horizontal overflow.
+
 # v113 — Capture validation and finalization hardening (2026-10-14)
 
 - Reject unsupported live-draft metadata, including synthetic shape annotations, while preserving response-shape error precedence. Promote only the five supported corpus fields.

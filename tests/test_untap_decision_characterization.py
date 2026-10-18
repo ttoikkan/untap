@@ -111,6 +111,9 @@ class DecisionCharacterizationTests(unittest.TestCase):
         overlay = json.loads(FIXTURE.with_name('decision_review_links.json').read_text())
         self.assertEqual(set(overlay), {'Humble Sea ABV conflict', 'Brewery conflict', 'Detail rate_limited'})
         expected.update(overlay)
+        html_hashes = json.loads(FIXTURE.with_name("decision_explanations_html.json").read_text())
+        for name, digest in html_hashes.items():
+            expected[name]["html_sha256"] = digest
         for case in characterization_cases():
             with self.subTest(case=case['name']):
                 self.assertEqual(observe(case), expected[case['name']])

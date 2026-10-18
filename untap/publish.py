@@ -11,11 +11,12 @@ from __future__ import annotations
 import argparse
 from untap.identity import report_identity
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timezone
 from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 import os
+import json
 import re
 import shlex
 import sys
@@ -46,6 +47,8 @@ class ReportMetadata:
     review_count: int
     ambiguous_count: Optional[int] = None
     failed_count: Optional[int] = None
+    source_created_at: Optional[str] = None
+    rebuilt_at: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -64,7 +67,7 @@ class _MetaParser(HTMLParser):
             return
         attr_map = {key.casefold(): value for key, value in attrs}
         name = (attr_map.get("name") or "").strip()
-        if name not in REQUIRED_META_NAMES + ("untap-ambiguous-count", "untap-failed-count", "untap-not-attempted-count", "untap-rate-limited-count"):
+        if name not in REQUIRED_META_NAMES + ("untap-ambiguous-count", "untap-failed-count", "untap-not-attempted-count", "untap-rate-limited-count", "untap-source-created-at", "untap-rebuilt-at"):
             return
         content = attr_map.get("content")
         if content is None:
@@ -141,6 +144,8 @@ def read_report_metadata(path: Path) -> ReportMetadata:
         review_count=review,
         ambiguous_count=split_counts[0] if split_counts is not None else None,
         failed_count=split_counts[1] if split_counts is not None else None,
+        source_created_at=parser.values.get("untap-source-created-at"),
+        rebuilt_at=parser.values.get("untap-rebuilt-at"),
     )
 
 
@@ -170,7 +175,49 @@ def _plural(value: int, singular: str, plural: Optional[str] = None) -> str:
     return f"{value} {word}"
 
 
-def render_archive_index(reports: Iterable[ArchiveReport]) -> str:
+
+def _display_timestamp(value: object) -> str:
+    if not isinstance(value, str):
+        return "Unknown"
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return "Unknown"
+        return parsed.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    except ValueError:
+        return "Unknown"
+
+
+def _read_refresh_status(archive_root: Path) -> Dict[str, dict]:
+    path = archive_root / ".untap-refresh-status.json"
+    if not path.exists():
+        return {}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, dict) for k, v in value.items()):
+            raise ValueError("expected a status object")
+        return value
+    except (OSError, ValueError) as exc:
+        print(f"Ignoring unreadable archive refresh status: {exc}", file=sys.stderr)
+        return {}
+
+
+def record_archive_refresh_status(archive_root: Path, title: str, outcome: str, attempted_at: str) -> None:
+    """Update archive diagnostics/index without rewriting any published report."""
+    if outcome not in ("succeeded", "failed"):
+        raise ValueError("Invalid refresh outcome")
+    reports = _archive_reports(archive_root / "reports")
+    identity = report_identity(title)
+    if not any(report_identity(report.metadata.title) == identity for report in reports):
+        return
+    statuses = _read_refresh_status(archive_root)
+    statuses[identity] = {"outcome": outcome, "attempted_at": attempted_at}
+    html = render_archive_index(reports, statuses)
+    _atomic_write_text(archive_root / ".untap-refresh-status.json", json.dumps(statuses, indent=2) + "\n")
+    _atomic_write_text(archive_root / "index.html", html)
+
+
+def render_archive_index(reports: Iterable[ArchiveReport], refresh_status: Optional[Dict[str, dict]] = None) -> str:
     ordered = sorted(
         reports,
         key=lambda report: (
@@ -204,10 +251,21 @@ def render_archive_index(reports: Iterable[ArchiveReport]) -> str:
                 status_summary,
             )
         )
+        freshness = ""
+        if metadata.source_created_at:
+            freshness += '<div class="meta">Source data saved: ' + escape(_display_timestamp(metadata.source_created_at)) + '</div>\n'
+        if metadata.rebuilt_at:
+            freshness += '<div class="meta">Report rebuilt: ' + escape(_display_timestamp(metadata.rebuilt_at)) + '</div>\n'
+        attempt = (refresh_status or {}).get(report_identity(metadata.title), {})
+        if attempt.get("outcome") in ("succeeded", "failed"):
+            label = ("Latest report refresh succeeded" if attempt["outcome"] == "succeeded"
+                     else "Latest report refresh failed — previous report retained")
+            freshness += '<div class="meta">' + label + ': ' + escape(_display_timestamp(attempt.get("attempted_at"))) + '</div>\n'
         cards.append(
             "    <article class=\"report-card\">\n"
             f"      <a href=\"{escape(href, quote=True)}\">{escape(metadata.title)}</a>\n"
             f"      <div class=\"meta\">{escape(summary)}</div>\n"
+            f"{freshness}"
             "    </article>"
         )
 
@@ -341,7 +399,7 @@ def publish_report(
         index_reports = existing_reports
 
     new_report = ArchiveReport(metadata=metadata, filename=filename)
-    index_html = render_archive_index([*index_reports, new_report])
+    index_html = render_archive_index([*index_reports, new_report], _read_refresh_status(archive_root))
 
     source_bytes = source_report.read_bytes()
     previous_bytes = destination.read_bytes() if replacing else None

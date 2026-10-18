@@ -156,8 +156,20 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         result = self.run_command('untap', 'refresh', str(source), '--output', str(unified), '--csv')
         self.assertEqual(result.returncode, 0, result.stderr)
+        # Rebuild timestamps intentionally differ between separate invocations.
+        from untap.report_model import format_timestamp
+        legacy_time = json.loads((legacy / 'results.json').read_text())['report']['rebuilt_at']
+        unified_time = json.loads((unified / 'results.json').read_text())['report']['rebuilt_at']
+        def normalized(data, timestamp):
+            data = data.replace(timestamp.encode(), b'REBUILD_TIMESTAMP')
+            data = data.replace(('>' + format_timestamp(timestamp) + '</time>').encode(), b'>REBUILD_TIME</time>')
+            for label in ('Report rebuilt successfully: ', 'Report rebuilt: '):
+                text = label + format_timestamp(timestamp)
+                data = data.replace(text.encode(), (label + 'REBUILD_TIME').encode())
+            return data
         for filename in ('results.html', 'results.json', 'results.csv'):
-            self.assertEqual((legacy / filename).read_bytes(), (unified / filename).read_bytes())
+            self.assertEqual(normalized((legacy / filename).read_bytes(), legacy_time),
+                             normalized((unified / filename).read_bytes(), unified_time))
         old_archive, new_archive = self.cwd / 'old-archive', self.cwd / 'new-archive'
         for archive in (old_archive, new_archive):
             (archive / "reports").mkdir(parents=True)
@@ -165,8 +177,8 @@ class InstalledDistributionTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         result = self.run_command('untap', 'publish', str(unified), str(new_archive))
         self.assertEqual(result.returncode, 0, result.stderr)
-        old_files = {str(p.relative_to(old_archive)): p.read_bytes() for p in old_archive.rglob('*') if p.is_file()}
-        new_files = {str(p.relative_to(new_archive)): p.read_bytes() for p in new_archive.rglob('*') if p.is_file()}
+        old_files = {str(p.relative_to(old_archive)): normalized(p.read_bytes(), legacy_time) for p in old_archive.rglob('*') if p.is_file()}
+        new_files = {str(p.relative_to(new_archive)): normalized(p.read_bytes(), unified_time) for p in new_archive.rglob('*') if p.is_file()}
         self.assertEqual(old_files, new_files)
         result = self.run_command('untap', 'publish', str(unified), str(new_archive), '--replace')
         self.assertEqual(result.returncode, 0, result.stderr)

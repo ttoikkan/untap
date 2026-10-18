@@ -57,6 +57,9 @@ class OutputTests(unittest.TestCase):
             browser.assert_not_called()
 
     def test_refresh_cli_csv_option(self):
-        with patch('untap.refresh.refresh', return_value=Path('/tmp/reviewed')) as run, contextlib.redirect_stdout(io.StringIO()):
-            self.assertEqual(refresh_main(['/tmp/source', '--csv']), 0)
-            self.assertTrue(run.call_args.args[-1])
+        with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
+            source = Path(tmp) / 'source.json'
+            save_snapshot(build_snapshot([], 'Test'), source)
+            with patch('untap.refresh.refresh', return_value=Path(tmp) / 'reviewed') as run:
+                self.assertEqual(refresh_main([str(source), '--csv']), 0)
+                self.assertTrue(run.call_args.args[-1])

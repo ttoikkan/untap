@@ -27,7 +27,9 @@ class ReviewSession:
     def html(self):
         snapshot = self.snapshot
         html = render_html_report([i["result"] for i in snapshot["items"]],
-                                  snapshot["report"]["title"], snapshot["report"]["date"])
+                                  snapshot["report"]["title"], snapshot["report"]["date"],
+                                  source_created_at=snapshot.get("created_at"),
+                                  rebuilt_at=snapshot["report"].get("rebuilt_at"))
         config = json.dumps({"endpoint": f"/{self.token}/action", "token": self.token,
                              "unsavedCandidates": self.has_unsaved_candidates})
         marker = '<script id="manual-review-script">'

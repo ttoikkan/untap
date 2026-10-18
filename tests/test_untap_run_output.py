@@ -31,7 +31,7 @@ class RunOutputTests(unittest.TestCase):
             output.write_run_outputs(snapshot, actual, csv_requested=True)
             results = [i['result'] for i in snapshot['items']]
             save_snapshot(snapshot, expected / 'results.json')
-            (expected / 'results.html').write_text(render_html_report(results, 'Menu', '2026-01-01'), encoding='utf-8')
+            (expected / 'results.html').write_text(render_html_report(results, 'Menu', '2026-01-01', source_created_at=snapshot['created_at']), encoding='utf-8')
             output.save_csv(results, str(expected / 'results.csv'))
             for name in ('results.json', 'results.html', 'results.csv'):
                 self.assertEqual((actual / name).read_bytes(), (expected / name).read_bytes())

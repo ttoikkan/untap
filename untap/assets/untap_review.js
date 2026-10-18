@@ -17,7 +17,7 @@
   if (!local && !cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status) || card.dataset.automaticSelection)) return;
   const styles = document.createElement('style');
   styles.textContent = `
-    .manual-toolbar { margin: 20px 0; padding: 14px; border: 1px solid GrayText; border-radius: 12px; }
+    .manual-toolbar { margin: 0; padding: 14px; border: 1px solid GrayText; border-radius: 12px; }
     .manual-toolbar p { margin-bottom: 8px; overflow-wrap: anywhere; }
     .manual-action { font: inherit; padding: 7px 12px; border: 1px solid GrayText; border-radius: 8px; color: CanvasText; background: Canvas; cursor: pointer; margin: 6px 6px 0 0; }
     .manual-action:focus-visible { outline: 3px solid LinkText; outline-offset: 3px; }
@@ -41,7 +41,10 @@
   if (local) window.addEventListener('beforeunload', event => {
     if (dirty || busy) { event.preventDefault(); event.returnValue = ''; }
   });
-  document.querySelector('header').after(toolbar);
+  toolbar.setAttribute('aria-label', 'Review actions');
+  const footer = document.querySelector('#report-footer');
+  if (footer) footer.prepend(toolbar);
+  else document.querySelector('main').append(toolbar);
   const button = (text, action) => {
     const el = document.createElement('button');
     el.type = 'button'; el.className = 'manual-action'; el.textContent = text;

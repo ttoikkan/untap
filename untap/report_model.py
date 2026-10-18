@@ -1,5 +1,6 @@
 """Pure, HTML-free presentation data for report cards."""
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, List, Mapping, Optional, Sequence, Tuple
 
 from untap.types import MatchResult
@@ -110,6 +111,15 @@ def _beer_view(record: Mapping[str, Any], name: Any, result: Optional[MatchResul
             mismatch = abs(menu_abv - candidate_abv) > .05
         except (TypeError, ValueError):
             notes.append("ABV comparison unavailable — verify before confirming.")
+    if result is not None:
+        try:
+            menu_value = float(str(result.get("input_abv")).rstrip("%").replace(",", "."))
+            candidate_value = float(str(record.get("abv")).rstrip("%").replace(",", "."))
+            if abs(menu_value - candidate_value) > .05:
+                notes.append(f"ABV differs: menu {menu_value:g}%, candidate {candidate_value:g}%.")
+        except (TypeError, ValueError):
+            if not user_added:
+                notes.append("ABV comparison unavailable — check the menu and candidate.")
     return BeerView(str(name or ""), record.get("url"), str(record.get("brewery") or "Unknown brewery"),
                     format_abv(record.get("abv")), record.get("type_name"),
                     format_rating(record.get("rating")), format_count(record.get("ratings")),
@@ -117,6 +127,28 @@ def _beer_view(record: Mapping[str, Any], name: Any, result: Optional[MatchResul
                     production_label(record.get("in_production")),
                     "User-added" if user_added else "Match " + score_text,
                     tuple(notes), mismatch)
+
+
+
+def review_explanation(result: MatchResult) -> str:
+    """Explain saved evidence without making new matching decisions."""
+    reason = str(result.get("reason") or "")
+    status = result.get("status")
+    if result.get("manually_confirmed"):
+        return "Your saved selection is highlighted. Change it only if another beer matches the menu."
+    if status == "ok":
+        return "Automatically matched. The selected beer is highlighted; alternatives are available for review."
+    if reason:
+        return reason
+    if status == "low_confidence":
+        return "The name match is too weak to confirm automatically. Compare the beer, brewery and ABV."
+    if result.get("same_abv_variants"):
+        return "Several related beers have the menu ABV. Compare the full name and release before choosing."
+    if status == "not_attempted":
+        return "This menu row was not searched. Continue the run before reviewing it."
+    if status == "ambiguous":
+        return "Several candidates need review. Compare the full name, brewery and ABV before choosing."
+    return "No match was confirmed. Check the menu spelling or add an Untappd beer URL."
 
 
 def prepare_report_rows(results: Sequence[MatchResult]) -> List[ReportRow]:
@@ -144,8 +176,21 @@ def prepare_report_rows(results: Sequence[MatchResult]) -> List[ReportRow]:
             "Ambiguous" if manual else status.replace("_", " ").title(),
             "ambiguous" if manual else status,
             str(result.get("query") or result.get("input_beer") or "Untap result"),
-            str(result.get("reason") or ("Match is ambiguous" if status == "ambiguous" else "Match unresolved")),
+            review_explanation(result),
             format_abv(result.get("input_abv")),
             str(result["search_warning"]) if result.get("search_warning") else None,
             selected, selected if not manual else "", views, best, excluded))
     return rows
+
+
+def format_timestamp(value: Any) -> Optional[str]:
+    """Display a trustworthy timestamp, including its timezone; old runs may omit it."""
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return None
+        return parsed.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    except ValueError:
+        return None

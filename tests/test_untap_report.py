@@ -149,7 +149,7 @@ class HtmlReportTests(unittest.TestCase):
         ambiguous = dict(self._results()[2])
         ambiguous.pop("reason")
         html = untap_report.render_html_report([ambiguous])
-        self.assertIn("Match is ambiguous", html)
+        self.assertIn("Several candidates need review", html)
         self.assertNotIn("Review required", html)
 
     def test_report_is_self_contained_and_mobile_ready(self):
