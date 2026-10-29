@@ -1,3 +1,11 @@
+# v115 — Optional menu style column (2026-10-29)
+
+- Accept three-column brewery/beer/ABV menus alongside existing four-column TSV rows. Preserve omitted/empty style as `None`, original rows, query construction and existing four-column outputs.
+- Accept ABV with or without a percent sign, including decimal commas and zero. Support both header widths, mixed rows and source-line validation for invalid input.
+
+- Live validation: the complete 21-beer CM Ruoholahti menu processed successfully: 18 confirmed, 3 appropriately ambiguous and no failed rows.
+- Validation: 433 tests pass (6 installed-wheel checks skipped); 35 source/tooling files type-check. The three-column example validates without browser or network activity, and existing four-column golden outputs remain unchanged.
+
 # v114 — Review explanations and refresh visibility (2026-10-18)
 
 - Explain uncertain review cards using saved evidence, show candidate/menu ABV differences and avoid duplicate search warnings. Preserve matching policy and selection IDs; HTML expectations have explicit presentation-only overlays.

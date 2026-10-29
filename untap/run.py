@@ -753,7 +753,7 @@ def configure_parser(parser: argparse.ArgumentParser) -> None:
 def _build_cli_parser(prog: Optional[str] = None) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=prog,
-        description="Search Untappd from a query or a four-column TSV menu.",
+        description="Search Untappd from a query or a TSV menu (brewery, beer, ABV, optional style).",
         allow_abbrev=False,
     )
     configure_parser(parser)

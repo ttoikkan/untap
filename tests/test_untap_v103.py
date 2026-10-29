@@ -204,8 +204,9 @@ class LowPriorityIntegrityTests(unittest.TestCase):
         self.assertEqual(parse_menu_lines([text])[0]['original'], text)
         with self.assertRaises(MenuValidationError):
             parse_menu_lines(['Brewery\tBeer\t1,000%\tIPA'])
-        with self.assertRaisesRegex(MenuValidationError, 'Style may be empty; keep its tab'):
-            parse_menu_lines(['Brewery\tBeer\t6%'])
+        self.assertIsNone(parse_menu_lines(['Brewery\tBeer\t6%'])[0]['style'])
+        with self.assertRaisesRegex(MenuValidationError, 'expected 3 or 4'):
+            parse_menu_lines(['Brewery\tBeer'])
 
     def test_review_injection_requires_exactly_one_marker(self):
         from untap.local_review import ReviewSession

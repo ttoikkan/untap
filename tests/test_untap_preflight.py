@@ -33,7 +33,7 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
     def test_invalid_menu_aborts_before_playwright_import(self):
         filename = self._temp_menu(
             "Badlands\tPop Pop (2026)\t6.5%\tIPA\n"
-            "Brujos\tLament\t5.3%\n"
+            "Brujos\tLament\n"
         )
         output = io.StringIO()
         try:
@@ -50,7 +50,7 @@ class MenuPreflightBoundaryTests(unittest.TestCase):
 
     def test_validate_menu_with_debug_timing_is_browser_free(self):
         filename = self._temp_menu(
-            "Badlands\tPop Pop (2026)\t6.5%\tIPA\n"
+            "Badlands\tPop Pop (2026)\t6,5\n"
         )
         output = io.StringIO()
         try:

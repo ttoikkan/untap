@@ -1,7 +1,7 @@
-"""Strict four-column TSV menu parsing and shared matcher text helpers.
+"""Strict TSV menu parsing with optional style and shared matcher text helpers.
 
-Menu rows contain brewery, beer, ABV and style. Explicit fields are preserved;
-no menu-layout guessing or style stripping is performed.
+Menu rows contain brewery, beer and ABV, optionally followed by style. Explicit
+fields are preserved; no menu-layout guessing or style stripping is performed.
 """
 import re
 import unicodedata
@@ -11,13 +11,15 @@ from untap.types import NormalizedMenuRecord
 FORMAT_TABULAR = "tab-separated"
 NORMALIZED_RECORD_FIELDS = ("brewery", "beer", "style", "menu_abv", "query", "original")
 COLLABORATION_SEPARATOR_RE = re.compile(r"\s+[xX]\s+")
-ABV_RE = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*%\s*(?:abv)?", re.IGNORECASE)
+ABV_RE = re.compile(r"(\d+(?:[.,]\d{1,2})?)(?:\s*%\s*(?:abv)?)?", re.IGNORECASE)
 SUPPORTED_MENU_FORMATS = """Supported menu format: tab-separated rows
+brewery<TAB>beer<TAB>ABV
 brewery<TAB>beer<TAB>ABV<TAB>style
 Example: Badlands<TAB>Pop Pop (2026)<TAB>6.5%<TAB>IPA
-Use exactly four fields per row. Brewery, beer and ABV are required; style may
-be empty. Decimal commas and 0% are supported. Blank lines are ignored.
-An optional brewery / beer / ABV / style header is accepted.
+Use three or four fields per row. Brewery, beer and ABV are required; the style
+column may be omitted or empty. ABV accepts decimal points or commas, with or
+without a percent sign, including zero. Blank lines are ignored.
+An optional brewery / beer / ABV header, with optional style, is accepted.
 Convert older menu layouts to this format before searching.
 """
 
@@ -221,21 +223,23 @@ def parse_menu_lines(lines: Iterable[str]) -> List[NormalizedMenuRecord]:
         if not text.strip():
             continue
         fields = [field.strip() for field in text.split("\t")]
-        if first_row and [field.casefold() for field in fields] == ["brewery", "beer", "abv", "style"]:
+        if first_row and [field.casefold() for field in fields] in (
+                ["brewery", "beer", "abv"], ["brewery", "beer", "abv", "style"]):
             first_row = False
             continue
         first_row = False
-        if len(fields) != 4:
+        if len(fields) not in (3, 4):
             raise MenuValidationError(
-                f"Line {line_number} has {len(fields)} tab-separated fields; expected exactly 4: "
-                "brewery<TAB>beer<TAB>ABV<TAB>style. Style may be empty; keep its tab. Convert older menu layouts to this format.")
-        brewery, beer, abv_text, style = fields
+                f"Line {line_number} has {len(fields)} tab-separated fields; expected 3 or 4: "
+                "brewery<TAB>beer<TAB>ABV[<TAB>style]. Style may be omitted or empty. Convert older menu layouts to this format.")
+        brewery, beer, abv_text = fields[:3]
+        style = fields[3] if len(fields) == 4 else ""
         for name, value in (("brewery", brewery), ("beer", beer)):
             if not value:
                 raise MenuValidationError(f"Line {line_number} has an empty {name} field.")
         match = ABV_RE.fullmatch(abv_text)
         if match is None:
-            raise MenuValidationError(f"Line {line_number} has invalid ABV {abv_text!r}; expected a percentage such as 6.5%.")
+            raise MenuValidationError(f"Line {line_number} has invalid ABV {abv_text!r}; expected an ABV such as 6.5, 6,5 or 6.5%.")
         abv = float(match.group(1).replace(",", "."))
         if not 0 <= abv <= 100:
             raise MenuValidationError(f"Line {line_number} has out-of-range ABV {abv}.")

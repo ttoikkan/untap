@@ -56,7 +56,7 @@ Dependency tests discover runtime modules and enforce these boundaries. An impor
 
 ## Input and command composition
 
-The parser accepts four-column TSV: brewery, beer, ABV and style. Style may be empty, but the fourth column must remain. Legacy layouts are rejected before browser startup. The normalized runtime field set remains `NORMALIZED_RECORD_FIELDS`:
+The parser accepts three- or four-column TSV: brewery, beer and ABV, optionally followed by style. Style may be omitted or empty; ABV accepts decimal points or commas, with or without a percent sign. Legacy layouts are rejected before browser startup. The normalized runtime field set remains `NORMALIZED_RECORD_FIELDS`:
 
 ```text
 brewery, beer, style, menu_abv, query, original

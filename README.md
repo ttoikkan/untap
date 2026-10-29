@@ -23,7 +23,7 @@ untap run --validate-menu menu.tsv
 untap run --menu menu.tsv --report-title "My menu"
 ```
 
-The input is a tab-separated file with four columns: **brewery, beer, ABV, style**. Style may be empty, but its column must remain. An optional header, blank lines and a UTF-8 BOM are supported. ABV accepts decimal points or commas and an optional percent sign, including zero.
+The input is a tab-separated file with three required columns: **brewery, beer, ABV**, optionally followed by **style**. The style column may be omitted or empty. An optional header, blank lines and a UTF-8 BOM are supported. ABV accepts decimal points or commas and an optional percent sign, including zero.
 
 ```text
 brewery	beer	abv	style
