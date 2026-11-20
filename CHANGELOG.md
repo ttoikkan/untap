@@ -1,3 +1,11 @@
+# v116 — Confirmation and manual review fixes (2026-11-20)
+
+- Recheck detail-page ABV against the menu before confirming a match, using the existing conflict threshold. Preserve conflicting candidates as inspection evidence.
+- Apply exported deselections consistently with local review: reopen saved manual choices, retain added candidates and record decision history. Validate reopening before fetching candidates.
+- Retain low-confidence candidates for manual confirmation and allow URL additions, including for older reports. Keep best-guess links separate from selectable candidates.
+- Add regression coverage and an opt-in offline browser check for confirmation, undo and exported deselection. Update intentional report/output expectations.
+- Validation: 439 tests ran successfully (432 passed, 7 skipped); the opt-in offline browser test passed separately. All 34 runtime/wrapper files type-check. No live Untappd requests were made.
+
 # v115 — Optional menu style column (2026-10-29)
 
 - Accept three-column brewery/beer/ABV menus alongside existing four-column TSV rows. Preserve omitted/empty style as `None`, original rows, query construction and existing four-column outputs.
