@@ -10,7 +10,6 @@ import webbrowser
 
 from untap.refresh import apply_selection_payload, write_reviewed_run
 from untap.report import render_html_report
-from untap.review_policy import sorted_review_results
 from untap.snapshot import load_snapshot
 
 
@@ -49,28 +48,8 @@ class ReviewSession:
         if request["action"] == "fetch" and not payload.get("pending_candidates"):
             raise ValueError("No candidate URL supplied")
         updated = deepcopy(self.snapshot)
-        ordered = sorted_review_results([i["result"] for i in updated["items"]])
         # The shared validator runs before any network or filesystem mutation.
         apply_selection_payload(updated, payload, fetch_pending=request["action"] == "fetch")
-        chosen_rows = {entry["row"] for entry in payload["selections"]}
-        for row, result in enumerate(ordered):
-            if row in chosen_rows or not result.get("manually_confirmed"):
-                continue
-            item = next(i for i in updated["items"] if i["result"] is result)
-            previous = next((decision["original_result"] for decision in reversed(updated["manual_decisions"])
-                             if decision["item_id"] == item["id"]
-                             and not decision["original_result"].get("manually_confirmed")), None)
-            if previous is None:
-                raise ValueError("Original alternatives are unavailable for this manual decision")
-            restored = deepcopy(previous)
-            # Retain any candidates added since the original decision.
-            for field in ("alternatives", "same_abv_variants"):
-                if field in result:
-                    restored[field] = deepcopy(result[field])
-            restored.pop("manually_confirmed", None)
-            updated["manual_decisions"].append({"item_id": item["id"], "action": "reopen",
-                                                "url": None, "original_result": deepcopy(result)})
-            item["result"] = restored
         if request["action"] == "fetch":
             self.snapshot = updated
             self.has_unsaved_candidates = True

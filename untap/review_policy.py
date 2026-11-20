@@ -67,7 +67,7 @@ def available_review_candidate(result: MatchResult, url: Any) -> Optional[Altern
     Excluded inspection evidence is never a choice. Failed rows require an
     explicitly retrieved candidate before they become reviewable.
     """
-    if (result.get("status") not in ("ambiguous", "ok")
+    if (result.get("status") not in ("ambiguous", "ok", "low_confidence")
             or not isinstance(url, str) or not url.startswith("https://untappd.com/b/")):
         return None
     return next((candidate for candidate in review_candidates(result)

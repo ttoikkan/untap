@@ -3890,11 +3890,12 @@ def _resolve_discovered_candidates(
     decision = decide_candidates(candidates, expected, min_score, discovery, collect_diagnostics=debug)
     for message in decision["diagnostics"]:
         print(message)
-    return _finalize_decision(page, query, decision, discovery, primary_algolia_page)
+    return _finalize_decision(page, query, decision, discovery, primary_algolia_page, expected_abv)
 
 
 def _finalize_decision(page: Any, query: str, decision: Decision,
-                       discovery: DiscoveryContext, primary_algolia_page: Any) -> MatchResult:
+                       discovery: DiscoveryContext, primary_algolia_page: Any,
+                       expected_abv: Optional[float] = None) -> MatchResult:
     """Build legacy results; selected identities still need metadata validation."""
     kind, rule = decision["kind"], decision["rule"]
     fallback_query_used = discovery.get("fallback_query_used")
@@ -3934,7 +3935,8 @@ def _finalize_decision(page: Any, query: str, decision: Decision,
                 "expanded_total_hits": discovery.get("expanded_total_hits")}
     if kind == "low_confidence":
         return {"query": query, "status": "low_confidence", "match": best["name"],
-                "score": best["score"], "url": best.get("url")}
+                "score": best["score"], "url": best.get("url"),
+                "alternatives": [_alternative_from_candidate(item) for item in candidates[:10]]}
 
     brewery = best.get("brewery")
     if not brewery or normalize(brewery) == "unknown":
@@ -3973,6 +3975,19 @@ def _finalize_decision(page: Any, query: str, decision: Decision,
                     "reason": str(exc), "url": best["url"],
                     "alternatives": [_alternative_from_candidate(item) for item in candidates[:10]],
                     "search_fallback": fallback_query_used}
+        # Detail retrieval can supply ABV evidence absent from the search hit.
+        # Apply the same conflict threshold used by the identity decision.
+        try:
+            detail_abv = float(str(info.get("abv")).rstrip("%"))
+        except (TypeError, ValueError):
+            detail_abv = None
+        detail_candidate: CandidateRecord = {**best, "abv": detail_abv}
+        if not _exclude_abv_conflicts([detail_candidate], expected_abv):
+            conflict = f"ABV conflict: detail page {detail_abv:g}% differs from menu {expected_abv:g}%"
+            return {"query": query, "status": "failed", "reason": conflict,
+                    "search_fallback": fallback_query_used,
+                    "excluded_candidates": [{**_alternative_from_candidate(detail_candidate),
+                                             "exclusion_reason": conflict}]}
     else:
         _record_algolia_confirmation(detail_fallback=False)
 

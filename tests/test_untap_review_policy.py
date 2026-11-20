@@ -29,7 +29,7 @@ class ReviewPolicyTests(unittest.TestCase):
         choice = candidate('Beer', 1., 1)
         for status in ('ok', 'ambiguous', 'failed', 'not_attempted', 'rate_limited', 'low_confidence'):
             result = dict(status=status, alternatives=[choice])
-            self.assertEqual(available_review_candidate(result, choice['url']) is choice, status in ('ok', 'ambiguous'))
+            self.assertEqual(available_review_candidate(result, choice['url']) is choice, status in ('ok', 'ambiguous', 'low_confidence'))
             for url in (None, 1, 'javascript:alert(1)', 'https://www.untappd.com/b/beer/1'):
                 self.assertIsNone(available_review_candidate(result, url))
 

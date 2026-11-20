@@ -50,7 +50,7 @@ Open `results.html` directly in your browser for a static preview. For local rev
 untap review results/<run-folder>/
 ```
 
-The review server runs on the local machine and opens the report in your browser. Confirm candidates, change a selection, or add a candidate by its Untappd beer URL. Candidate retrieval sends an explicit request to Untappd. Saving creates a new reviewed run folder and preserves the original snapshot and decision history. Stop the server with Ctrl-C.
+The review server runs on the local machine and opens the report in your browser. Confirm candidates (including low-confidence matches), change a selection, or add a candidate by its Untappd beer URL. Candidate retrieval sends an explicit request to Untappd. Saving creates a new reviewed run folder and preserves the original snapshot and decision history. Stop the server with Ctrl-C.
 
 Candidates excluded because their brewery or ABV conflicts with the menu appear as inspection links with their exclusion reasons. These links are separate from selectable candidates and cannot be confirmed directly. A failed match remains unresolved.
 
@@ -60,7 +60,7 @@ Static reports can also store choices in the browser and export them. Apply that
 untap refresh results/<run-folder>/ --selections selections.json
 ```
 
-Browser choices are never applied automatically. Pending candidate URLs in an export require `--fetch-candidates`, which contacts Untappd. If an old export no longer matches, refresh the original snapshot and export choices from its new HTML.
+Exported selections describe all current manual choices: removing a saved manual choice reopens that row when the export is applied. Browser choices are never applied automatically. Pending candidate URLs in an export require `--fetch-candidates`, which contacts Untappd. If an old export no longer matches, refresh the original snapshot and export choices from its new HTML.
 
 ## Continue an unfinished run
 
@@ -182,3 +182,9 @@ UNTAP_TEST_ENV="$untap_check_dir/venv" python3 -B -m unittest discover -s tests 
 Run `untap smoke` only when you want the explicit live integration check. It contacts Untappd.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for dependencies and decision rules, and [CHANGELOG.md](CHANGELOG.md) for release history. The six per-module changelogs are retained as historical references. Distribution and CLI versions come from `untap/version.py`. Replay fixtures and their contribution rules are documented in [the corpus guide](tests/testdata/search_corpus/README.md).
+
+Optional offline browser regression checks (requires Chromium):
+
+```bash
+UNTAP_BROWSER_TESTS=1 python3 -B -m unittest tests.test_untap_review_fixes.ReviewBrowserTests
+```

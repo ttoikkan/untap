@@ -1,0 +1,69 @@
+{
+  "decision_low_confidence": {
+    "result": {
+      "query": "Badlands Beer",
+      "status": "low_confidence",
+      "match": "Weak Beer",
+      "score": 0.1,
+      "url": "https://untappd.com/b/fixture/1",
+      "alternatives": [
+        {
+          "name": "Weak Beer",
+          "score": 0.1,
+          "abv": null,
+          "brewery": "Badlands",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/1",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "\nAlgolia alias shadow analysis:\n  no eligible candidate received exact alias support\n  shadow only: scores, ordering, and match status unchanged\nExact-base preference: 1 candidates\n  - 'Weak Beer' | brewery='Badlands' | ABV=None | score=0.100\n  exact-base preference not applicable: fewer than two candidates\nUnique exact identity not selected: expected exactly one candidate matching all three identifiers\n",
+    "counters": {
+      "confirmed_from_algolia": 0,
+      "detail_page_fallbacks": 0
+    },
+    "html_sha256": "efe735728598ffae83bf14b8fb87a83ab850bd49db9502fdd802be04907c2664",
+    "csv_sha256": "7524b77849443039ce5552fe82a6aa5449919f10a9c09c57d10d71ba00b69ce9",
+    "json_sha256": "176daa1c3408b150729a9a2e416f993d431f4bc51de8e00696290f9b9b6ea65a"
+  },
+  "search_strongest_weak": {
+    "trace": [
+      "primary",
+      "expansion",
+      "fallback plan: trailing=False",
+      "fallback: Recovery One",
+      "fallback: Recovery Two",
+      "fallback: Recovery Three",
+      "finalization"
+    ],
+    "result": {
+      "query": "Brewery Beer",
+      "status": "low_confidence",
+      "match": "Different",
+      "score": 0.3,
+      "url": "https://untappd.com/b/fixture/3",
+      "alternatives": [
+        {
+          "name": "Different",
+          "score": 0.3,
+          "abv": 5.0,
+          "brewery": "Brewery",
+          "rating": 4.0,
+          "ratings": 100,
+          "type_name": "IPA - Sour",
+          "url": "https://untappd.com/b/fixture/3",
+          "image_url": null,
+          "image_hd_url": null,
+          "in_production": null
+        }
+      ]
+    },
+    "debug": "",
+    "selected_fallback": "Recovery Two"
+  }
+}

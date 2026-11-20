@@ -40,6 +40,7 @@ class RunOutputTests(unittest.TestCase):
 
     def test_csv_bytes_match_frozen_pre_extraction_cases(self):
         expected = json.loads(FIXTURE.read_text())
+        expected["Low confidence"] = json.loads(FIXTURE.with_name("review_fixes.json").read_text())["decision_low_confidence"]
         with tempfile.TemporaryDirectory() as tmp, contextlib.redirect_stdout(io.StringIO()):
             path = Path(tmp) / 'results.csv'
             for case in characterization_cases():

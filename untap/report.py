@@ -212,7 +212,7 @@ def _render_result_cards(results: Sequence[MatchResult]) -> str:
                 production_status += '<p class="manual-note"><strong>ABV differs from the menu — verify before confirming.</strong></p>'
             candidate_cards.append(
                 """
-                <li class="candidate-card{image_class}"{style_attr}>
+                <li class="candidate-card{image_class}" data-review-candidate{style_attr}>
                   {image}
                   <div class="rating-column"><div class="rating-badge">{rating}</div>
                     <p class="ratings-count">{ratings} ratings</p></div>

@@ -70,6 +70,8 @@ class SearchPhaseTests(unittest.TestCase):
     def test_request_sequences_and_results_match_pre_extraction_baseline(self):
         fixture = Path(__file__).with_name('testdata') / 'search_recovery_v109.json'
         expected = json.loads(fixture.read_text())
+        # Low-confidence results now retain candidates for manual review.
+        expected["strongest_weak"] = json.loads(fixture.with_name("review_fixes.json").read_text())["search_strongest_weak"]
         self.assertEqual(set(expected), set(CASES))
         for mode in CASES:
             with self.subTest(mode=mode):

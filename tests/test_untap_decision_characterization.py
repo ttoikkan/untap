@@ -111,6 +111,7 @@ class DecisionCharacterizationTests(unittest.TestCase):
         overlay = json.loads(FIXTURE.with_name('decision_review_links.json').read_text())
         self.assertEqual(set(overlay), {'Humble Sea ABV conflict', 'Brewery conflict', 'Detail rate_limited'})
         expected.update(overlay)
+        expected["Low confidence"] = json.loads(FIXTURE.with_name("review_fixes.json").read_text())["decision_low_confidence"]
         html_hashes = json.loads(FIXTURE.with_name("decision_explanations_html.json").read_text())
         for name, digest in html_hashes.items():
             expected[name]["html_sha256"] = digest

@@ -12,9 +12,9 @@
   const pendingForms = new Map();
   const original = new Map();
   const selections = new Map();
-  const candidatesByRow = cards.map(card => (card.dataset.status === 'ambiguous' || card.dataset.automaticSelection)
-    ? Array.from(card.querySelectorAll('.candidate-card')) : []);
-  if (!local && !cards.some(card => ['ambiguous', 'failed'].includes(card.dataset.status) || card.dataset.automaticSelection)) return;
+  const candidatesByRow = cards.map(card => (['ambiguous', 'low_confidence'].includes(card.dataset.status) || card.dataset.automaticSelection)
+    ? Array.from(card.querySelectorAll('.candidate-card[data-review-candidate]')) : []);
+  if (!local && !cards.some(card => ['ambiguous', 'failed', 'low_confidence'].includes(card.dataset.status) || card.dataset.automaticSelection)) return;
   const styles = document.createElement('style');
   styles.textContent = `
     .manual-toolbar { margin: 0; padding: 14px; border: 1px solid GrayText; border-radius: 12px; }
@@ -83,7 +83,7 @@
     };
     const confirmed = cards.filter(card => card.dataset.status === 'ok');
     cards.filter(card => card.dataset.status === 'ambiguous').forEach(group => {
-      group.querySelectorAll('.candidate-card').forEach(candidate => {
+      group.querySelectorAll('.candidate-card[data-review-candidate]').forEach(candidate => {
         candidate.querySelectorAll('.already-matched-note').forEach(note => note.remove());
         const id = beerId(candidate);
         if (!id || !confirmed.some(card => card !== group && beerId(card) === id)) return;
@@ -207,7 +207,7 @@
     });
   }
   cards.forEach(card => {
-    if (!['failed', 'ambiguous'].includes(card.dataset.status) || !card.dataset.itemId) return;
+    if (!['failed', 'ambiguous', 'low_confidence'].includes(card.dataset.status) || !card.dataset.itemId) return;
     const section = document.createElement('div');
     const form = document.createElement('form'); form.hidden = true;
     const label = document.createElement('label'); label.textContent = 'Untappd beer URL ';
@@ -245,7 +245,7 @@
   }
   function choose(card, index, candidate, url, interactive = true, automatic = false) {
     if (selections.has(card)) return;
-    original.set(card, {nodes: Array.from(card.childNodes), className: card.className});
+    original.set(card, {nodes: Array.from(card.childNodes), className: card.className, status: card.dataset.status});
     card.replaceChildren();
     card.className = 'beer-card' + (candidate.querySelector('.beer-label') ? ' has-label' : '');
     card.dataset.status = 'ok';
@@ -263,7 +263,7 @@
       nodes.forEach(node => candidate.append(node));
       const previous = original.get(card);
       card.replaceChildren(...previous.nodes); card.className = previous.className;
-      card.dataset.status = 'ambiguous'; delete card.dataset.styleGroup;
+      card.dataset.status = previous.status === 'low_confidence' ? 'low_confidence' : 'ambiguous'; delete card.dataset.styleGroup;
       selections.delete(card); delete choices[index];
       addButtons(card, index);
       if (card.dataset.automaticSelection) {
@@ -287,7 +287,7 @@
     if (interactive) { persist(); focusCard(card, undo); }
   }
   function addButtons(card, index) {
-    card.querySelectorAll('.candidate-card').forEach(candidate => {
+    card.querySelectorAll('.candidate-card[data-review-candidate]').forEach(candidate => {
       if (candidate.querySelector('.manual-action')) return;
       const link = candidate.querySelector('.beer-link');
       if (!link) return;
@@ -300,7 +300,7 @@
       candidate.lastElementChild.append(button('Confirm this beer', () => choose(card, index, candidate, url.href)));
     });
   }
-  cards.forEach((card, index) => { if (card.dataset.status === 'ambiguous' || card.dataset.automaticSelection) addButtons(card, index); });
+  cards.forEach((card, index) => { if (['ambiguous', 'low_confidence'].includes(card.dataset.status) || card.dataset.automaticSelection) addButtons(card, index); });
   cards.forEach((card, index) => {
     const url = card.dataset.initialSelection;
     const candidate = candidatesByRow[index].find(el => el.querySelector('.beer-link')?.href === url);

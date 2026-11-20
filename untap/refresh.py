@@ -39,7 +39,7 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
         if not isinstance(entry, dict):
             raise ValueError("Invalid pending candidate")
         item = next((i for i in snapshot["items"] if i["id"] == entry.get("item_id")), None)
-        if item is None or (item["result"].get("status") not in ("failed", "ambiguous")
+        if item is None or (item["result"].get("status") not in ("failed", "ambiguous", "low_confidence")
                             and not item["result"].get("manually_confirmed")):
             raise ValueError("Pending candidate has an invalid menu item")
         beer_id, url, _ = parse_beer_url(entry.get("url"))
@@ -73,6 +73,19 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
             raise ValueError("Selection is not an available review candidate")
         item = next(item for item in snapshot["items"] if item["result"] is result)
         validated.append((item, candidate, url))
+    # Exports describe the complete set of manual choices. An omitted saved
+    # choice reopens its original result, just as it does in local review.
+    reopened = []
+    for row, result in enumerate(ordered):
+        if row in seen or not result.get("manually_confirmed"):
+            continue
+        item = next(i for i in snapshot["items"] if i["result"] is result)
+        previous = next((decision["original_result"] for decision in reversed(snapshot["manual_decisions"])
+                         if decision["item_id"] == item["id"]
+                         and not decision["original_result"].get("manually_confirmed")), None)
+        if previous is None:
+            raise ValueError("Original alternatives are unavailable for this manual decision")
+        reopened.append((item, deepcopy(previous)))
     # No network until every row and URL in the export has passed validation.
     fetched = fetch_candidates([url for _, _, url in additions]) if additions else {}
     for item, beer_id, url in additions:
@@ -84,6 +97,17 @@ def apply_selection_payload(snapshot, payload, fetch_pending: bool = False) -> N
         if target.get("status") == "failed":
             target["status"] = "ambiguous"
             target["reason"] = "User-added candidate awaiting manual confirmation"
+    for item, restored in reopened:
+        result = item["result"]
+        # Keep candidates fetched since the original decision, including this request.
+        if "alternatives" in result:
+            restored["alternatives"] = deepcopy(result["alternatives"])
+        if "same_abv_variants" in result:
+            restored["same_abv_variants"] = deepcopy(result["same_abv_variants"])
+        restored.pop("manually_confirmed", None)
+        snapshot["manual_decisions"].append({"item_id": item["id"], "action": "reopen",
+                                            "url": None, "original_result": deepcopy(result)})
+        item["result"] = restored
     for item, candidate, url in validated:
         original = deepcopy(item["result"])
         result = item["result"]
