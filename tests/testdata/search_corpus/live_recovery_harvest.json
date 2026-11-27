@@ -1,0 +1,141 @@
+{
+  "provenance": "Live capture on 2026-11-27 (tests/corpus_tools.py record); sanitized to consumed fields; ratings masked (None/zero/positive kept); paging and identity evidence unchanged.",
+  "search": {
+    "query": "Crak Harvest 2026",
+    "expected_beer": "Crak Harvest 2026",
+    "expected_brewery": "Crak",
+    "expected_abv": 6.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0",
+              "query": "Crak Harvest 2026"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 0,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-183551_66341.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Harvest Crak 2026",
+                "beer_slug": "crak-brewery-harvest-crak-2026",
+                "bid": 6961463,
+                "brewery_name": "CRAK Brewery",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "IPA - American"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "analytics": "true",
+              "clickAnalytics": "true",
+              "highlightPostTag": "__/ais-highlight__",
+              "highlightPreTag": "__ais-highlight__",
+              "hitsPerPage": "5",
+              "page": "0",
+              "query": "Crak Harvest 2026 Crak"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 3,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "alias_alt": [],
+                "beer_abv": 0,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-183551_66341.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Harvest Crak 2026",
+                "beer_slug": "crak-brewery-harvest-crak-2026",
+                "bid": 6961463,
+                "brewery_name": "CRAK Brewery",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 4.0,
+                "type_name": "IPA - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 4,
+                "beer_ibu": 0,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-470076_5552e.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "BLONDE- Harvest 2026",
+                "beer_slug": "la-barberenca-craft-beer-blonde-harvest-2026",
+                "bid": 7635111,
+                "brewery_name": "La Barberenca Craft Beer",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 0,
+                "type_name": "Blonde / Golden Ale - American"
+              },
+              {
+                "alias_alt": [],
+                "beer_abv": 5,
+                "beer_label": "https://assets.untappd.com/site/brewery_logos/brewery-441295_4cd11.jpeg",
+                "beer_label_hd": null,
+                "beer_name": "Mandarins 2026 Harvest",
+                "beer_slug": "which-craft-beer-mandarins-2026-harvest",
+                "bid": 6694654,
+                "brewery_name": "Which Craft Beer",
+                "in_production": 1,
+                "rating_count": 100,
+                "rating_score": 0,
+                "type_name": "Hard Seltzer"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ambiguous",
+    "url": "https://untappd.com/b/crak-brewery-harvest-crak-2026/6961463"
+  },
+  "excluded_urls": []
+}

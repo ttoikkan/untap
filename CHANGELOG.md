@@ -1,3 +1,13 @@
+# v117 — Conservative recovery of missed menu beers (2026-11-27)
+
+- Append at most two brewery-qualified annotation recovery searches after existing fallbacks, only for zero-hit primary searches. Remove nonnumeric trailing parenthetical descriptions or a terminal Wet/Fresh Hop annotation for discovery only; all returned matches require manual review.
+- Retain XTRM Turbo recovery candidates with matching ABV and brewery when the base name is exact or differs by the existing single-edit token rule, including an XT suffix. Preserve numeric identities and log rejected candidate names/ABVs/breweries.
+- Offer plausible zero-ABV search hits for review when no brewery-compatible ABV-eligible candidate survives, or when already recovering for review. Keep zero as zero, explain its unknown-versus-genuine-zero ambiguity and never auto-confirm it against a nonzero menu ABV. Existing valid matches and the normal ABV conflict predicate remain unchanged.
+- Add strict I/O corpus cases for Harvest Crak 2026, Tyranny, Broccoli Fauche Tout XT and Hyperion (2026), including expected selectable URLs and 429 termination checks. Add a sanitized real Harvest recovery capture.
+- Live validation (2026-11-27): all four user-supplied identities appear as ambiguous, selectable alternatives. Additional base/vintage alternatives remain available; none is auto-confirmed. Two other recording attempts were refused as unusable HTTP/JSON, so only the validated Harvest recording was retained.
+- Maintainer validation: the 47-row rerun retained 42 automatic confirmations and offered all four expected recoveries for review, with no failed rows. Applying the four exported selections produced 46 confirmed results and one remaining low-confidence result (Varietal Cit); the reviewed report was published locally.
+- Validation: 444 tests pass (7 optional checks skipped); 35 source/tooling files type-check. A 10,000-case seeded invariant run passes. Existing corpus requests and frozen output contracts still pass.
+
 # v116 — Confirmation and manual review fixes (2026-11-20)
 
 - Recheck detail-page ABV against the menu before confirming a match, using the existing conflict threshold. Preserve conflicting candidates as inspection evidence.

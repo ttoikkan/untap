@@ -1,0 +1,168 @@
+{
+  "provenance": "Hand-authored from expected identities supplied for the 2026-11-27 menu failure; payload-shaped regression, not a live recording. Ratings fixed; zero ABV reflects the recorded Harvest hit and N/A Hyperion detail evidence.",
+  "search": {
+    "query": "Ill Will Tyranny (Pulp Fiction-themed)",
+    "expected_beer": "Tyranny (Pulp Fiction-themed)",
+    "expected_brewery": "Ill Will",
+    "expected_abv": 5.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Ill Will Tyranny (Pulp Fiction-themed)",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Ill Will Tyranny (Pulp",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Tyranny (Pulp Fiction-themed) Ill Will",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Tyranny (Pulp Fiction-themed)",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Ill Will Tyranny",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Tyranny",
+                "brewery_name": "ill will brewing",
+                "beer_abv": 5.5,
+                "bid": 6701913,
+                "beer_slug": "ill-will-brewing-tyranny",
+                "rating_score": 4.0,
+                "rating_count": 100,
+                "type_name": "IPA",
+                "in_production": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ambiguous",
+    "url": "https://untappd.com/b/ill-will-brewing-tyranny/6701913"
+  },
+  "excluded_urls": []
+}

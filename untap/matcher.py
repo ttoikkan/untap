@@ -1506,6 +1506,58 @@ def candidate_needs_trailing_review(candidate, expected_beer, expected_brewery, 
             and abs(float(abv) - expected_abv) <= EXACT_ABV_EPSILON)
 
 
+
+# These annotations broaden discovery only; they never establish identity.
+SEASONAL_HOP_ANNOTATION_RE = re.compile(r"\s*[-–—]\s*(?:wet|fresh)\s+hop\s*$", re.IGNORECASE)
+
+
+def annotation_recovery_base(beer):
+    text = (beer or "").strip()
+    suffix = re.search(r"\s+\(([^()]+)\)\s*$", text)
+    if suffix and not re.search(r"\d", suffix.group(1)):
+        text = text[:suffix.start()]
+    text = SEASONAL_HOP_ANNOTATION_RE.sub("", text).strip()
+    return text if normalize(text) != normalize(beer or "") and len(normalize(text)) >= 3 else None
+
+
+def annotation_recovery_queries(beer, brewery):
+    base = annotation_recovery_base(beer)
+    if not base or not brewery:
+        return []
+    forms = collaboration_brewery_components_for_search(brewery) or [normalize_brewery_for_search(brewery)]
+    return [final_query_cleanup(f"{form} {base}") for form in forms[:2] if form]
+
+
+def plausible_review_identity(candidate, base, brewery):
+    """Require positive brewery evidence, close spelling and unchanged numeric identity."""
+    if candidate_brewery_verdict(candidate, brewery).kind != "compatible":
+        return False
+    target = normalize(base or "")
+    name = normalize(candidate.get("name") or "")
+    # An unrequested vintage is evidence for review, never automatic equivalence.
+    if not re.search(r"\b(?:19|20)\d{2}\b", target):
+        name = re.sub(r"\b(?:19|20)\d{2}\b", "", name).strip()
+    if set(re.findall(r"\d+", target)) != set(re.findall(r"\d+", name)):
+        return False
+    return bool(target and name and (target == normalize(name) or is_narrow_beer_name_typo(target, name)))
+
+
+def candidate_needs_spelling_review(candidate, beer, brewery, abv):
+    target = normalize(beer or "")
+    if not target.endswith(" xtrm turbo"):
+        return False
+    base = target[:-len(" xtrm turbo")]
+    if len(base.split()) < 3:
+        return False
+    review_copy = dict(candidate)
+    review_copy["name"] = re.sub(r"\s+xt$", "", normalize(candidate.get("name") or ""))
+    try:
+        same_abv = abv is not None and abs(float(candidate.get("abv")) - abv) <= EXACT_ABV_EPSILON
+    except (TypeError, ValueError):
+        return False
+    return same_abv and plausible_review_identity(review_copy, base, brewery)
+
+
 def trailing_relaxation_search_queries(expected_beer, expected_brewery):
     """Build brewery-qualified search strings for bounded trailing relaxation."""
     if not expected_beer or not expected_brewery:
@@ -1961,6 +2013,12 @@ def build_search_fallback_queries(
     if key and key not in seen:
         fallback_queries.append(beer_only)
 
+    if enable_trailing_relaxation:
+        for recovery_query in annotation_recovery_queries(expected_beer, expected_brewery):
+            key = normalize(recovery_query)
+            if key and key not in seen:
+                seen.add(key)
+                fallback_queries.append(recovery_query)
     return fallback_queries
 
 
@@ -3205,7 +3263,8 @@ def _filter_trailing_recovery_identity(fallback, fallback_candidates, fallback_q
             item for item in fallback_candidates
             if candidate_has_brewery_overlap(item, expected_brewery)
             and (candidate_matches_trailing_relaxed_identity(item, expected_beer)
-                 or candidate_needs_trailing_review(item, expected_beer, expected_brewery, expected_abv))
+                 or candidate_needs_trailing_review(item, expected_beer, expected_brewery, expected_abv)
+                 or candidate_needs_spelling_review(item, expected_beer, expected_brewery, expected_abv))
         ]
         if debug and len(compatible_candidates) != len(fallback_candidates):
             print(
@@ -3213,6 +3272,11 @@ def _filter_trailing_recovery_identity(fallback, fallback_candidates, fallback_q
                 f"{len(fallback_candidates) - len(compatible_candidates)} "
                 f"candidate(s) rejected"
             )
+        if debug:
+            for rejected in fallback_candidates:
+                if rejected not in compatible_candidates:
+                    print(f"    rejected for relaxed identity: {rejected.get('name')!r} "
+                          f"(ABV {rejected.get('abv')}, brewery {rejected.get('brewery')!r})")
         fallback_candidates = compatible_candidates
         fallback["candidates"] = compatible_candidates
         fallback["ambiguity_reason"] = detect_candidate_ambiguity(
@@ -3232,6 +3296,20 @@ def _filter_trailing_recovery_identity(fallback, fallback_candidates, fallback_q
             fallback["ambiguity_reason"] = "Recovered candidate name differs from the menu; manual confirmation required"
 
     return fallback_candidates
+
+
+
+def _filter_annotation_recovery(fallback, rows, fallback_query, query, min_score, debug,
+                                expected_beer, expected_brewery, expected_abv, brewery_filtered):
+    if normalize(fallback_query) not in {normalize(q) for q in annotation_recovery_queries(expected_beer, expected_brewery)}:
+        return rows
+    base = annotation_recovery_base(expected_beer)
+    kept = [row for row in rows if plausible_review_identity(row, base, expected_brewery)]
+    fallback["candidates"] = kept
+    fallback["review_required"] = bool(kept)
+    fallback["ambiguity_reason"] = "Menu annotation was relaxed for discovery; verify the release and ABV manually" if kept else None
+    fallback["weak_match"] = not kept
+    return kept
 
 
 def _filter_beer_only_brewery(fallback, fallback_candidates, fallback_query, query, min_score, debug,
@@ -3281,7 +3359,7 @@ def _run_filtered_fallback(page, fallback_query, query, min_score, debug,
         expected_brewery=expected_brewery, expected_abv=expected_abv)
     candidates = fallback.get("candidates") or []
     for apply_filter in (_filter_recovered_identity, _filter_trailing_recovery_identity,
-                         _filter_beer_only_brewery):
+                         _filter_annotation_recovery, _filter_beer_only_brewery):
         candidates = apply_filter(fallback, candidates, fallback_query, query, min_score, debug,
                                   expected_beer, expected_brewery, expected_abv, brewery_filtered)
     return fallback, candidates
@@ -3800,6 +3878,24 @@ def decide_candidates(
         return outcome("failed", "no_candidates", "No matching beer found")
     eligible = _exclude_abv_conflicts(candidates, abv, debug=collect_diagnostics, diagnostics=diagnostics)
     abv_exclusions = len(eligible) != len(candidates)
+    zero_review = []
+    if abv is not None and abv > 0 and (
+            not any(candidate_has_brewery_overlap(row, brewery) for row in eligible)
+            or discovery.get("fallback_review_required", False)):
+        for row in candidates:
+            name_words = set(normalize(row.get("name") or "").split())
+            target_words = set(normalize(beer or "").split())
+            if (row.get("abv") == 0 and not isinstance(row.get("abv"), bool)
+                    and candidate_brewery_verdict(row, brewery).kind == "compatible"
+                    and ((row.get("score", 0) >= min_score and target_words and target_words <= name_words)
+                         or discovery.get("fallback_review_required", False))):
+                zero_review.append(row)
+    if zero_review:
+        candidates = [row for row in candidates if row in zero_review or (
+                      any(row is item for item in eligible) and candidate_has_brewery_overlap(row, brewery))]
+        return outcome("ambiguous", "zero_abv_review",
+                       f"Untappd search reports 0% ABV, which can also mean unknown; menu {abv:g}%. "
+                       "Verify ABV and identity before confirming.")
     if not eligible:
         excluded = [{"candidate": row, "reason": f"ABV conflicts with menu {abv:g}%"} for row in candidates]
         return outcome("failed", "abv_conflict", f"ABV conflict: all retrieved candidates conflict with menu {abv:g}%")

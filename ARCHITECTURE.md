@@ -112,6 +112,10 @@ Rank and stable tie order remain discovery input order. Exact-numbered and uniqu
 
 When all candidates conflict on ABV or brewery, finalization retains up to ten ordered `excluded_candidates` with individual exclusion reasons. They are inspection evidence, separate from selectable alternatives. Beer-only recovery keeps its existing brewery eligibility filter to preserve fallback adoption, but carries rejected candidates as internal discovery evidence. If no candidates survive, the decision reports the brewery conflict and exposes those inspection links; rejected fallback candidates never replace a useful earlier result. This additive output behavior was introduced in v109; v110 preserves it.
 
+Annotation recovery is bounded and review-only: after existing fallback attempts, zero-hit searches may add up to two brewery-qualified queries without a nonnumeric parenthetical description or terminal Wet/Fresh Hop annotation. Numeric identity, positive brewery evidence and exact/single-edit base-name matching constrain retained candidates. XTRM Turbo recovery may retain matching-ABV XT spellings for review. Rejected trailing-recovery candidates are logged with names and ABVs. These discovery relaxations do not establish automatic identity.
+
+A search ABV of zero remains zero. The decision stage can route plausible zero-ABV hits to manual review when no brewery-compatible ABV-eligible candidate survives or when recovery is already review-only; it explicitly explains that search zero may also encode unknown ABV. It does not rewrite zero to `None`, bypass the normal confirmation ABV predicate or override an existing valid primary match.
+
 ## Transport, diagnostics and rate limits
 
 The transport owns browser lifecycle, event-driven waits, network capture, browser-context Algolia requests, response/query/index/page pairing, detail-page validation and HTTP observations. It does not decide beer identity.

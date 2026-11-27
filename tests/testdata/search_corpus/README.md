@@ -40,3 +40,9 @@ The canary requires name, brewery, ABV and bid on every hit. Missing slug, ratin
 - `live_no_match`: intentionally nonexistent menu identity; real zero-hit primary and fallback responses.
 
 Each records the search-page bootstrap and passes sanitized strict replay. No rate-limit probing was performed. The earlier refused expansion attempt remains documented as a historical validation result.
+
+### November 27 recovery regressions
+
+The four `recovery_*` cases are hand-authored from the supplied expected beer identities; they are not claimed as live captures. They pin review-only recovery of nonnumeric parenthetical menu annotations, Wet Hop annotations, Brocoli/Broccoli with XT/XTRM suffix differences, and zero-ABV ambiguity. `live_recovery_harvest` is a sanitized live capture and passes strict replay. All four expected URLs must appear as selectable alternatives, never automatically confirmed. Dedicated tests check numeric/brewery boundaries and immediate 429 termination on recovery.
+
+Normal live search also verified Tyranny, Broccoli Fauche Tout XT and Hyperion (2026) as selectable ambiguous alternatives on 2026-11-27. Their recording attempts were not retained after unusable HTTP/JSON responses; the synthetic fixtures remain explicitly labeled. Varietal Cit has no supplied expected identity and is outside this recovery change.

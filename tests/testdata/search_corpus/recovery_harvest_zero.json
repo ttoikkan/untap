@@ -1,0 +1,96 @@
+{
+  "provenance": "Hand-authored from expected identities supplied for the 2026-11-27 menu failure; payload-shaped regression, not a live recording. Ratings fixed; zero ABV reflects the recorded Harvest hit and N/A Hyperion detail evidence.",
+  "search": {
+    "query": "Crak Harvest 2026",
+    "expected_beer": "Crak Harvest 2026",
+    "expected_brewery": "Crak",
+    "expected_abv": 6.5
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Crak Harvest 2026",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Harvest Crak 2026",
+                "brewery_name": "CRAK Brewery",
+                "beer_abv": 0,
+                "bid": 6961463,
+                "beer_slug": "crak-brewery-harvest-crak-2026",
+                "rating_score": 4.0,
+                "rating_count": 100,
+                "type_name": "IPA",
+                "in_production": 1
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Crak Harvest 2026 Crak",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Harvest Crak 2026",
+                "brewery_name": "CRAK Brewery",
+                "beer_abv": 0,
+                "bid": 6961463,
+                "beer_slug": "crak-brewery-harvest-crak-2026",
+                "rating_score": 4.0,
+                "rating_count": 100,
+                "type_name": "IPA",
+                "in_production": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ambiguous",
+    "url": "https://untappd.com/b/crak-brewery-harvest-crak-2026/6961463"
+  },
+  "excluded_urls": []
+}

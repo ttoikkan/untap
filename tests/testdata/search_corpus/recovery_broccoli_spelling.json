@@ -1,0 +1,112 @@
+{
+  "provenance": "Hand-authored from expected identities supplied for the 2026-11-27 menu failure; payload-shaped regression, not a live recording. Ratings fixed; zero ABV reflects the recorded Harvest hit and N/A Hyperion detail evidence.",
+  "search": {
+    "query": "Messorem Other Half Brocoli Fauche Tout - XTRM Turbo",
+    "expected_beer": "Brocoli Fauche Tout - XTRM Turbo",
+    "expected_brewery": "Messorem x Other Half",
+    "expected_abv": 7.9
+  },
+  "exchanges": [
+    {
+      "request": {
+        "mode": "ui",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Messorem Other Half Brocoli Fauche Tout - XTRM Turbo",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Messorem Other Half Brocoli Fauche Tout XTRM",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 0,
+            "nbHits": 0,
+            "hitsPerPage": 5,
+            "hits": []
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "mode": "fetch",
+        "requests": [
+          {
+            "index": "beer",
+            "params": {
+              "query": "Messorem Other Half Brocoli Fauche Tout",
+              "page": "0",
+              "hitsPerPage": "5"
+            }
+          }
+        ]
+      },
+      "status": 200,
+      "payload": {
+        "results": [
+          {
+            "index": "beer",
+            "page": 0,
+            "nbPages": 1,
+            "nbHits": 1,
+            "hitsPerPage": 5,
+            "hits": [
+              {
+                "beer_name": "Broccoli Fauche Tout XT",
+                "brewery_name": "Messorem",
+                "beer_abv": 7.9,
+                "bid": 6920064,
+                "beer_slug": "messorem-broccoli-fauche-tout-xt",
+                "rating_score": 4.0,
+                "rating_count": 100,
+                "type_name": "IPA",
+                "in_production": 1
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "status": "ambiguous",
+    "url": "https://untappd.com/b/messorem-broccoli-fauche-tout-xt/6920064"
+  },
+  "excluded_urls": []
+}

@@ -51,7 +51,7 @@ class CandidateRecord(TypedDict, total=False):
 
 DecisionKind = Literal["failed", "ambiguous", "low_confidence", "selected"]
 DecisionRule = Literal[
-    "no_candidates", "abv_conflict", "brewery_conflict", "production_conflict",
+    "no_candidates", "abv_conflict", "brewery_conflict", "production_conflict", "zero_abv_review",
     "exact_base", "exact_numbered", "unique_exact_identity", "incomplete_discovery",
     "fallback_review", "same_abv_family", "ambiguity", "low_confidence", "score",
 ]

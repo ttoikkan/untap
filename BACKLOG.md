@@ -2,7 +2,7 @@
 
 ## ABV zero versus unknown
 
-Keep the current conservative interpretation: numeric `beer_abv: 0` is known 0%, so it conflicts with a nonzero menu ABV and remains inspection-only. The live Boston Lager capture includes Barrel Aged Boston Lager at 0%, but this does not establish an upstream unknown-value convention. Before changing policy, obtain evidence that distinguishes missing ABV from genuine non-alcoholic beer; avoid globally converting zero to unknown.
+Numeric `beer_abv: 0` remains zero and conflicts with a nonzero menu ABV for automatic confirmation. Plausible matches can now be offered for manual review with an explicit zero-versus-unknown warning when no compatible ABV-eligible candidate survives, or during review-only annotation recovery. Existing valid matches remain unaffected. The live Boston Lager capture includes Barrel Aged Boston Lager at 0%, but this does not establish an upstream unknown-value convention. Before changing policy, obtain evidence that distinguishes missing ABV from genuine non-alcoholic beer; avoid globally converting zero to unknown.
 
 
 Verified paired examples (2026-10-14):
