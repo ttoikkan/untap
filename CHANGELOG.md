@@ -1,4 +1,4 @@
-# Unreleased — Low-confidence report filter
+# v118 — Low-confidence report filter (2026-11-27)
 
 - Add a Low confidence status filter beside Ambiguous and Failed. Reuse existing status/style filtering, including confirmation and undo behavior during local or personal review.
 - Validation: 444 tests pass (7 optional checks skipped), type checks pass, and the offline browser test covers filtering with styles, confirmation and undo. Maintainer confirms the filter works after batch-refreshing reports.
