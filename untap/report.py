@@ -363,6 +363,8 @@ def render_html_report(
         '<label class="style-chip"><input type="radio" name="status-filter" '
         'data-status-filter value="ambiguous"><span>Ambiguous</span></label>'
         '<label class="style-chip"><input type="radio" name="status-filter" '
+        'data-status-filter value="low_confidence"><span>Low confidence</span></label>'
+        '<label class="style-chip"><input type="radio" name="status-filter" '
         'data-status-filter value="failed"><span>Failed</span></label>'
         '</div></fieldset>'
     )

@@ -121,13 +121,32 @@ class ReviewBrowserTests(unittest.TestCase):
                 # All requests are blocked: these are local report controls only.
                 page.route('**/*', lambda route: route.abort())
                 snapshot = review_snapshot('low_confidence')
+                snapshot['items'][0]['result']['alternatives'][0]['type_name'] = 'IPA - American'
                 def show(current):
                     page.set_content(render_html_report([i['result'] for i in current['items']],
                         current['report']['title'], current['report']['date']))
                 show(snapshot)
                 self.assertEqual(page.get_by_role('button', name='Add candidate by URL').count(), 1)
+                page.get_by_text('Low confidence', exact=True).click()
+                card = page.locator('.results-list > *')
+                self.assertTrue(card.is_visible())
+                page.get_by_text('Failed', exact=True).click()
+                self.assertFalse(card.is_visible())
+                page.get_by_text('Low confidence', exact=True).click()
+                style = page.get_by_text('IPA', exact=True)
+                style.click()
+                self.assertFalse(card.is_visible())
+                style.click()
+                self.assertTrue(card.is_visible())
                 page.get_by_role('button', name='Confirm this beer').click()
+                self.assertEqual(card.get_attribute('data-status'), 'ok')
+                # Confirmation focuses the card under All results; the low filter must exclude it.
+                page.get_by_text('Low confidence', exact=True).click()
+                self.assertFalse(card.is_visible())
+                page.get_by_text('All results', exact=True).click()
                 page.get_by_role('button', name='Change selection').click()
+                page.get_by_text('Low confidence', exact=True).click()
+                self.assertTrue(card.is_visible())
                 self.assertEqual(page.locator('.results-list > *').get_attribute('data-status'), 'low_confidence')
                 page.get_by_role('button', name='Confirm this beer').click()
                 with page.expect_download() as downloaded:

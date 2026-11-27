@@ -1,3 +1,8 @@
+# Unreleased — Low-confidence report filter
+
+- Add a Low confidence status filter beside Ambiguous and Failed. Reuse existing status/style filtering, including confirmation and undo behavior during local or personal review.
+- Validation: 444 tests pass (7 optional checks skipped), type checks pass, and the offline browser test covers filtering with styles, confirmation and undo. Maintainer confirms the filter works after batch-refreshing reports.
+
 # v117 — Conservative recovery of missed menu beers (2026-11-27)
 
 - Append at most two brewery-qualified annotation recovery searches after existing fallbacks, only for zero-hit primary searches. Remove nonnumeric trailing parenthetical descriptions or a terminal Wet/Fresh Hop annotation for discovery only; all returned matches require manual review.
